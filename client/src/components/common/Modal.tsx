@@ -1,0 +1,73 @@
+import { ReactNode, useEffect } from "react";
+import { X } from "lucide-react";
+import clsx from "clsx";
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  size?: "sm" | "md" | "lg" | "xl" | "full";
+  children: ReactNode;
+}
+
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  size = "md",
+  children,
+}: ModalProps) => {
+  const sizes = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    full: "max-w-4xl",
+  };
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className={clsx(
+          "bg-white rounded-2xl shadow-xl w-full mx-4 animate-scale-in max-h-[90vh] overflow-auto",
+          sizes[size]
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {title && (
+          <div className="flex items-center justify-between px-6 py-4 border-b">
+            <h2 className="text-xl font-bold">{title}</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
+  );
+};

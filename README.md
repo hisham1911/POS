@@ -1,333 +1,188 @@
-# KasserPro - نظام نقاط البيع (POS)
+<div align="center">
 
-## 📋 ملخص المشروع
+# 🏪 KasserPro
 
-نظام نقاط بيع احترافي مبني بـ .NET 9 + Clean Architecture
+### Modern Point of Sale System
+
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+A full-featured, modern Point of Sale system built with Clean Architecture principles.
+
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Screenshots](#-screenshots)
+
+</div>
 
 ---
 
-## 🏗️ هيكل المشروع
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| 🛒 **POS Interface** | Fast, intuitive sales interface with real-time cart |
+| 📦 **Product Management** | Full CRUD for products and categories |
+| 📋 **Order Management** | Track and manage all orders |
+| ⏰ **Shift Management** | Open/close shifts with cash tracking |
+| 📊 **Reports** | Daily sales reports and analytics |
+| 🌐 **RTL Support** | Full Arabic language support |
+| 📱 **Responsive** | Works on desktop, tablet, and mobile |
+| 🔐 **Authentication** | JWT-based auth with role management |
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Frontend                              │
+│                   React + TypeScript                         │
+│              Redux Toolkit + RTK Query                       │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ REST API
+┌─────────────────────────▼───────────────────────────────────┐
+│                      API Layer                               │
+│                   ASP.NET Core 8                             │
+├─────────────────────────────────────────────────────────────┤
+│                  Application Layer                           │
+│              Business Logic & Services                       │
+├─────────────────────────────────────────────────────────────┤
+│                    Domain Layer                              │
+│              Entities & Interfaces                           │
+├─────────────────────────────────────────────────────────────┤
+│                Infrastructure Layer                          │
+│           EF Core + SQLite + External Services               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 📁 Project Structure
 
 ```
 KasserPro/
-├── src/
-│   ├── KasserPro.Domain/           # Entities, Enums
-│   ├── KasserPro.Application/      # DTOs, Services, Interfaces
-│   ├── KasserPro.Infrastructure/   # DbContext, Repositories
-│   └── KasserPro.API/              # Controllers, Middleware
-├── KasserPro.sln
-└── README.md
+├── src/                              # Backend Source
+│   ├── KasserPro.API/               # REST API & Controllers
+│   ├── KasserPro.Application/       # Business Logic & DTOs
+│   ├── KasserPro.Domain/            # Entities & Interfaces
+│   └── KasserPro.Infrastructure/    # Data Access & Services
+│
+├── client/                           # Frontend Source
+│   ├── src/
+│   │   ├── api/                     # API Integration (RTK Query)
+│   │   ├── components/              # Reusable Components
+│   │   ├── hooks/                   # Custom React Hooks
+│   │   ├── pages/                   # Page Components
+│   │   ├── store/                   # Redux Store & Slices
+│   │   ├── types/                   # TypeScript Definitions
+│   │   └── utils/                   # Helper Functions
+│   └── ...
+│
+├── docs/                             # Documentation
+│   ├── api/                         # API Documentation
+│   ├── guides/                      # Development Guides
+│   └── design/                      # Design System
+│
+├── scripts/                          # Build & Deploy Scripts
+├── .github/                          # GitHub Actions & Templates
+└── docker/                           # Docker Configuration
 ```
 
----
+## 🚀 Quick Start
 
-## 🚀 التشغيل
+### Prerequisites
 
-```powershell
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js 18+](https://nodejs.org/)
+- [Git](https://git-scm.com/)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/KasserPro.git
+cd KasserPro
+
+# Start Backend
 cd src/KasserPro.API
-dotnet run --urls "http://localhost:5000"
+dotnet restore
+dotnet run
+
+# Start Frontend (new terminal)
+cd client
+npm install
+npm run dev
 ```
 
-**Swagger:** http://localhost:5000/swagger
+### Access
 
----
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:5000/api |
+| Swagger Docs | http://localhost:5000/swagger |
 
-## 🔐 بيانات الدخول
+### Demo Credentials
 
-| المستخدم | البريد | كلمة المرور | الصلاحية |
-|----------|--------|-------------|----------|
-| مدير النظام | admin@kasserpro.com | Admin@123 | Admin |
-| أحمد الكاشير | ahmed@kasserpro.com | 123456 | Cashier |
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@kasserpro.com | admin123 |
+| Cashier | cashier@kasserpro.com | cashier123 |
 
----
+## 📖 Documentation
 
-## 📡 API Endpoints
+| Document | Description |
+|----------|-------------|
+| [API Reference](docs/api/API_DOCUMENTATION.md) | Complete API documentation |
+| [Backend Guide](docs/guides/BACKEND_GUIDE.md) | Backend development guide |
+| [Frontend Guide](docs/guides/FRONTEND_GUIDE.md) | Frontend development guide |
+| [Design System](docs/design/DESIGN_SYSTEM.md) | UI/UX design guidelines |
 
-### Base URL: `http://localhost:5000/api`
+## 🛠️ Tech Stack
 
-### 🔑 Authentication
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| POST | `/auth/login` | تسجيل الدخول | ❌ |
-| POST | `/auth/register` | تسجيل مستخدم جديد | Admin |
-| GET | `/auth/me` | بيانات المستخدم الحالي | ✅ |
-
-### 📁 Categories
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| GET | `/categories` | قائمة التصنيفات | ✅ |
-| GET | `/categories/{id}` | تصنيف واحد | ✅ |
-| POST | `/categories` | إضافة تصنيف | Admin |
-| PUT | `/categories/{id}` | تعديل تصنيف | Admin |
-| DELETE | `/categories/{id}` | حذف تصنيف | Admin |
-
-### 📦 Products
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| GET | `/products` | قائمة المنتجات | ✅ |
-| GET | `/products/{id}` | منتج واحد | ✅ |
-| GET | `/products/category/{id}` | منتجات تصنيف | ✅ |
-| POST | `/products` | إضافة منتج | Admin |
-| PUT | `/products/{id}` | تعديل منتج | Admin |
-| DELETE | `/products/{id}` | حذف منتج | Admin |
-
-### 🛒 Orders
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| GET | `/orders` | طلبات اليوم | ✅ |
-| GET | `/orders/{id}` | تفاصيل طلب | ✅ |
-| POST | `/orders` | إنشاء طلب | ✅ |
-| POST | `/orders/{id}/items` | إضافة منتج للطلب | ✅ |
-| DELETE | `/orders/{id}/items/{itemId}` | حذف منتج من الطلب | ✅ |
-| POST | `/orders/{id}/complete` | إكمال الطلب | ✅ |
-| POST | `/orders/{id}/cancel` | إلغاء الطلب | ✅ |
-
-### ⏰ Shifts
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| GET | `/shifts/current` | الوردية الحالية | ✅ |
-| POST | `/shifts/open` | فتح وردية | ✅ |
-| POST | `/shifts/close` | إغلاق وردية | ✅ |
-| GET | `/shifts/history` | سجل الورديات | ✅ |
-
-### 💳 Payments
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| GET | `/payments/order/{id}` | مدفوعات طلب | ✅ |
-
-### 📊 Reports
-| Method | Endpoint | الوصف | Auth |
-|--------|----------|-------|------|
-| GET | `/reports/daily?date=2024-01-01` | تقرير يومي | Admin |
-| GET | `/reports/sales?fromDate=...&toDate=...` | تقرير مبيعات | Admin |
-
----
-
-## 📝 أمثلة الاستخدام
-
-### تسجيل الدخول
-```javascript
-const response = await fetch('http://localhost:5000/api/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    email: 'admin@kasserpro.com',
-    password: 'Admin@123'
-  })
-});
-const data = await response.json();
-const token = data.data.accessToken;
-```
-
-### جلب المنتجات
-```javascript
-const response = await fetch('http://localhost:5000/api/products', {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
-const products = await response.json();
-```
-
-### إنشاء طلب
-```javascript
-const response = await fetch('http://localhost:5000/api/orders', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    customerName: 'أحمد',
-    items: [
-      { productId: 1, quantity: 2 },
-      { productId: 3, quantity: 1 }
-    ]
-  })
-});
-```
-
-### إكمال الطلب
-```javascript
-await fetch(`http://localhost:5000/api/orders/${orderId}/complete`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    amountPaid: 100,
-    paymentMethod: 'Cash'
-  })
-});
-```
-
----
-
-## 📦 البيانات التجريبية
-
-### التصنيفات (6)
-| التصنيف | المنتجات |
-|---------|----------|
-| ☕ مشروبات ساخنة | 6 |
-| 🥤 مشروبات باردة | 6 |
-| 🍽️ وجبات رئيسية | 6 |
-| 🥪 سندويشات | 4 |
-| 🍰 حلويات | 4 |
-| 🥗 مقبلات | 4 |
-
-### المنتجات (30 منتج)
-- قهوة عربية، كابتشينو، لاتيه، شاي...
-- عصير برتقال، موهيتو، سموذي...
-- برجر لحم، ستيك، دجاج مشوي...
-- شاورما، فلافل، كلوب ساندويش...
-- كيكة شوكولاتة، تشيز كيك، كنافة...
-- حمص، سلطة، بطاطس مقلية...
-
-### الطلبات (10)
-- 8 طلبات مكتملة
-- 1 طلب مسودة (Draft)
-- 1 طلب ملغي
-
----
-
-## 🛠️ التقنيات المستخدمة
-
-- **.NET 9** - Framework
-- **Entity Framework Core 9** - ORM
+### Backend
+- **.NET 8** - Web API Framework
+- **Entity Framework Core** - ORM
 - **SQLite** - Database
 - **JWT** - Authentication
-- **Swashbuckle** - Swagger/OpenAPI
-- **BCrypt** - Password Hashing
-- **Clean Architecture** - Design Pattern
+- **AutoMapper** - Object Mapping
+- **FluentValidation** - Input Validation
+
+### Frontend
+- **React 18** - UI Library
+- **TypeScript** - Type Safety
+- **Redux Toolkit** - State Management
+- **RTK Query** - Data Fetching
+- **TailwindCSS** - Styling
+- **React Router** - Navigation
+- **Vite** - Build Tool
+
+## 📸 Screenshots
+
+<details>
+<summary>Click to view screenshots</summary>
+
+### Login Page
+![Login](docs/screenshots/login.png)
+
+### POS Interface
+![POS](docs/screenshots/pos.png)
+
+### Products Management
+![Products](docs/screenshots/products.png)
+
+</details>
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📁 الملفات الرئيسية
+<div align="center">
 
-### Domain Layer
-```
-src/KasserPro.Domain/
-├── Common/BaseEntity.cs
-├── Entities/
-│   ├── User.cs
-│   ├── Category.cs
-│   ├── Product.cs
-│   ├── Order.cs
-│   ├── OrderItem.cs
-│   ├── Payment.cs
-│   └── Shift.cs
-└── Enums/
-    ├── OrderStatus.cs
-    ├── PaymentMethod.cs
-    └── UserRole.cs
-```
+Made with ❤️ by [Your Name]
 
-### Application Layer
-```
-src/KasserPro.Application/
-├── Common/Interfaces/
-│   ├── IRepository.cs
-│   └── IUnitOfWork.cs
-├── DTOs/
-│   ├── Auth/
-│   ├── Categories/
-│   ├── Products/
-│   ├── Orders/
-│   ├── Shifts/
-│   ├── Reports/
-│   └── Common/ApiResponse.cs
-└── Services/
-    ├── Interfaces/
-    │   ├── IAuthService.cs
-    │   ├── ICategoryService.cs
-    │   ├── IProductService.cs
-    │   ├── IOrderService.cs
-    │   ├── IShiftService.cs
-    │   └── IReportService.cs
-    └── Implementations/
-        ├── AuthService.cs
-        ├── CategoryService.cs
-        ├── ProductService.cs
-        ├── OrderService.cs
-        ├── ShiftService.cs
-        └── ReportService.cs
-```
-
-### Infrastructure Layer
-```
-src/KasserPro.Infrastructure/
-├── Data/
-│   ├── AppDbContext.cs
-│   ├── DbInitializer.cs
-│   └── Configurations/
-│       ├── UserConfiguration.cs
-│       ├── ProductConfiguration.cs
-│       └── OrderConfiguration.cs
-├── Repositories/
-│   ├── GenericRepository.cs
-│   └── UnitOfWork.cs
-└── Migrations/
-```
-
-### API Layer
-```
-src/KasserPro.API/
-├── Controllers/
-│   ├── AuthController.cs
-│   ├── CategoriesController.cs
-│   ├── ProductsController.cs
-│   ├── OrdersController.cs
-│   ├── ShiftsController.cs
-│   ├── PaymentsController.cs
-│   └── ReportsController.cs
-├── Middleware/
-│   └── ExceptionMiddleware.cs
-├── Program.cs
-└── appsettings.json
-```
-
----
-
-## ⚙️ الأوامر
-
-```powershell
-# بناء المشروع
-dotnet build
-
-# تشغيل المشروع
-cd src/KasserPro.API
-dotnet run --urls "http://localhost:5000"
-
-# إنشاء Migration جديد
-dotnet ef migrations add MigrationName -p ../KasserPro.Infrastructure -s .
-
-# تطبيق Migrations
-dotnet ef database update -p ../KasserPro.Infrastructure -s .
-```
-
----
-
-## 📄 Response Format
-
-جميع الـ APIs ترجع بهذا الشكل:
-
-```json
-{
-  "success": true,
-  "message": "تم بنجاح",
-  "data": { ... },
-  "errors": null
-}
-```
-
----
-
-## 🔒 JWT Token
-
-أضف الـ Token في Header لكل Request:
-```
-Authorization: Bearer <token>
-```
-
----
-
-تم إنشاء هذا المشروع بواسطة Kiro AI 🤖
+</div>

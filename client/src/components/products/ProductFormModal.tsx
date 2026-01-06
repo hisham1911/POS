@@ -1,0 +1,162 @@
+import { useState } from "react";
+import { X } from "lucide-react";
+import { Product, CreateProductRequest } from "@/types/product.types";
+import { useProducts, useCategories } from "@/hooks/useProducts";
+import { Button } from "@/components/common/Button";
+import { Input } from "@/components/common/Input";
+import { Modal } from "@/components/common/Modal";
+import clsx from "clsx";
+
+interface ProductFormModalProps {
+  product: Product | null;
+  onClose: () => void;
+}
+
+export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) => {
+  const { createProduct, updateProduct, isCreating, isUpdating } = useProducts();
+  const { categories } = useCategories();
+  const isEditing = !!product;
+
+  const [formData, setFormData] = useState<CreateProductRequest>({
+    name: product?.name || "",
+    nameEn: product?.nameEn || "",
+    description: product?.description || "",
+    sku: product?.sku || "",
+    barcode: product?.barcode || "",
+    price: product?.price || 0,
+    cost: product?.cost || 0,
+    categoryId: product?.categoryId || categories[0]?.id || 0,
+    trackInventory: product?.trackInventory || false,
+    stockQuantity: product?.stockQuantity || 0,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isEditing && product) {
+      await updateProduct(product.id, formData);
+    } else {
+      await createProduct(formData);
+    }
+
+    onClose();
+  };
+
+  const isLoading = isCreating || isUpdating;
+
+  return (
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={isEditing ? "تعديل المنتج" : "إضافة منتج جديد"}
+      size="lg"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="اسم المنتج (عربي) *"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+          <Input
+            label="اسم المنتج (إنجليزي)"
+            value={formData.nameEn}
+            onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            التصنيف *
+          </label>
+          <select
+            value={formData.categoryId}
+            onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            required
+          >
+            <option value="">اختر التصنيف</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="سعر البيع *"
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.price}
+            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            required
+          />
+          <Input
+            label="سعر التكلفة"
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.cost}
+            onChange={(e) => setFormData({ ...formData, cost: parseFloat(e.target.value) || 0 })}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="SKU"
+            value={formData.sku}
+            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+          />
+          <Input
+            label="الباركود"
+            value={formData.barcode}
+            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div>
+            <p className="font-medium text-gray-700">تتبع المخزون</p>
+            <p className="text-sm text-gray-500">تفعيل إدارة الكميات</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, trackInventory: !formData.trackInventory })}
+            className={clsx(
+              "w-12 h-6 rounded-full transition-colors relative",
+              formData.trackInventory ? "bg-primary-600" : "bg-gray-300"
+            )}
+          >
+            <span
+              className={clsx(
+                "absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow",
+                formData.trackInventory ? "right-0.5" : "left-0.5"
+              )}
+            />
+          </button>
+        </div>
+
+        {formData.trackInventory && (
+          <Input
+            label="الكمية الحالية"
+            type="number"
+            min="0"
+            value={formData.stockQuantity}
+            onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+          />
+        )}
+
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
+            إلغاء
+          </Button>
+          <Button type="submit" variant="primary" isLoading={isLoading} className="flex-1">
+            {isEditing ? "حفظ التغييرات" : "إضافة المنتج"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
