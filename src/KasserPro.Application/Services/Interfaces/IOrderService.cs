@@ -1,0 +1,15 @@
+namespace KasserPro.Application.Services.Interfaces;
+
+using KasserPro.Application.DTOs.Common;
+using KasserPro.Application.DTOs.Orders;
+
+public interface IOrderService
+{
+    Task<ApiResponse<OrderDto>> CreateAsync(CreateOrderRequest request, int userId);
+    Task<ApiResponse<OrderDto>> GetByIdAsync(int id);
+    Task<ApiResponse<List<OrderDto>>> GetTodayOrdersAsync();
+    Task<ApiResponse<OrderDto>> AddItemAsync(int orderId, AddOrderItemRequest request);
+    Task<ApiResponse<OrderDto>> RemoveItemAsync(int orderId, int itemId);
+    Task<ApiResponse<OrderDto>> CompleteAsync(int orderId, CompleteOrderRequest request);
+    Task<ApiResponse<bool>> CancelAsync(int orderId, string? reason);
+}
