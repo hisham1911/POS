@@ -28,12 +28,13 @@ export const CartItemComponent = ({ item }: CartItemProps) => {
         <div className="flex items-center gap-2 mt-2">
           <button
             onClick={() => updateQuantity(product.id, quantity - 1)}
-            className="w-8 h-8 flex items-center justify-center bg-white rounded-lg border hover:bg-gray-100"
+            className="w-11 h-11 flex items-center justify-center bg-white rounded-lg border hover:bg-gray-100 active:scale-95 transition-transform"
+            aria-label={quantity === 1 ? `حذف ${product.name}` : `تقليل كمية ${product.name}`}
           >
             {quantity === 1 ? (
-              <Trash2 className="w-4 h-4 text-danger-500" />
+              <Trash2 className="w-5 h-5 text-danger-500" />
             ) : (
-              <Minus className="w-4 h-4" />
+              <Minus className="w-5 h-5" />
             )}
           </button>
 
@@ -41,9 +42,10 @@ export const CartItemComponent = ({ item }: CartItemProps) => {
 
           <button
             onClick={() => updateQuantity(product.id, quantity + 1)}
-            className="w-8 h-8 flex items-center justify-center bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="w-11 h-11 flex items-center justify-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:scale-95 transition-transform"
+            aria-label={`زيادة كمية ${product.name}`}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
         </div>
       </div>

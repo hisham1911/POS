@@ -65,6 +65,26 @@ export default {
         "2xl": "1rem",
         "3xl": "1.5rem",
       },
+      animation: {
+        shake: "shake 0.5s ease-in-out",
+        "scale-in": "scaleIn 0.2s ease-out",
+        "slide-in-right": "slideInRight 0.3s ease-out",
+      },
+      keyframes: {
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "25%": { transform: "translateX(-4px)" },
+          "75%": { transform: "translateX(4px)" },
+        },
+        scaleIn: {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        slideInRight: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+      },
     },
   },
   plugins: [],

@@ -27,6 +27,7 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
   const { createOrder, completeOrder, isCreating, isCompleting } = useOrders();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("Cash");
   const [amountPaid, setAmountPaid] = useState<string>(total.toFixed(2));
+  const [showError, setShowError] = useState(false);
 
   const numericAmount = parseFloat(amountPaid) || 0;
   const change = numericAmount - total;
@@ -51,6 +52,8 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
 
   const handleComplete = async () => {
     if (numericAmount < total) {
+      setShowError(true);
+      setTimeout(() => setShowError(false), 500);
       toast.error("المبلغ المدفوع أقل من الإجمالي");
       return;
     }
@@ -143,7 +146,10 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
                 <p className="text-sm font-medium text-gray-500 mb-3">
                   المبلغ المدفوع
                 </p>
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                <div className={clsx(
+                  "text-center p-4 bg-gray-50 rounded-xl transition-all",
+                  showError && "animate-shake border-2 border-danger-500"
+                )}>
                   <p className="text-3xl font-bold">
                     {amountPaid || "0"}{" "}
                     <span className="text-lg text-gray-400">ج.م</span>

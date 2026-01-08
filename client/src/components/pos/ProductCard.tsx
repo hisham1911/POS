@@ -23,7 +23,9 @@ export const ProductCard = ({ product, category }: ProductCardProps) => {
     <button
       onClick={handleClick}
       disabled={!product.isActive}
-      className="card-hover p-3 text-right w-full disabled:opacity-50 disabled:cursor-not-allowed"
+      className="card-hover p-3 text-right w-full disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
+      aria-label={`إضافة ${product.name} - ${formatCurrency(product.price)}`}
+      aria-disabled={!product.isActive}
     >
       {/* Image */}
       <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
