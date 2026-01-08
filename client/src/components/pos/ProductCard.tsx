@@ -3,6 +3,8 @@ import { Product } from "@/types/product.types";
 import { Category } from "@/types/category.types";
 import { useCart } from "@/hooks/useCart";
 import { formatCurrency } from "@/utils/formatters";
+import { useAppSelector } from "@/store/hooks";
+import { selectAllowNegativeStock } from "@/store/slices/cartSlice";
 import clsx from "clsx";
 
 // Default low stock threshold if not provided
@@ -23,6 +25,7 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const { items, addItem } = useCart();
   const [imageError, setImageError] = useState(false);
+  const allowNegativeStock = useAppSelector(selectAllowNegativeStock);
 
   // Get quantity in cart for this product
   const cartItem = items.find((item) => item.product.id === product.id);
@@ -33,7 +36,10 @@ export const ProductCard = ({
   const availableStock = product.trackInventory
     ? totalStock - quantityInCart
     : Infinity;
-  const canAddMore = !product.trackInventory || availableStock > 0;
+
+  // If allowNegativeStock is enabled, always allow adding
+  const canAddMore =
+    allowNegativeStock || !product.trackInventory || availableStock > 0;
 
   const handleClick = () => {
     if (product.isActive && canAddMore) {
@@ -85,8 +91,9 @@ export const ProductCard = ({
     );
   };
 
-  // Determine if product is out of stock
-  const isOutOfStock = product.trackInventory && totalStock <= 0;
+  // Determine if product is out of stock (only if allowNegativeStock is disabled)
+  const isOutOfStock =
+    !allowNegativeStock && product.trackInventory && totalStock <= 0;
   const isDisabled = !product.isActive || isOutOfStock;
   const isInCart = quantityInCart > 0;
 

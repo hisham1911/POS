@@ -11,12 +11,14 @@ interface CartState {
   items: CartItem[];
   taxRate: number;
   isTaxEnabled: boolean;
+  allowNegativeStock: boolean;
 }
 
 const initialState: CartState = {
   items: [],
   taxRate: 14, // Default VAT 14% (الضريبة المصرية) - will be updated from tenant
   isTaxEnabled: true,
+  allowNegativeStock: false, // Default: don't allow selling when stock is 0
 };
 
 const cartSlice = createSlice({
@@ -36,6 +38,16 @@ const cartSlice = createSlice({
       const currentQty = existingItem?.quantity ?? 0;
       const newQty = currentQty + quantity;
       const availableStock = product.stockQuantity ?? Infinity;
+
+      // If allowNegativeStock is enabled, skip stock check
+      if (state.allowNegativeStock) {
+        if (existingItem) {
+          existingItem.quantity = newQty;
+        } else {
+          state.items.push({ product, quantity });
+        }
+        return;
+      }
 
       // Don't allow adding if track inventory and exceeds stock
       if (product.trackInventory && newQty > availableStock) {
@@ -79,6 +91,11 @@ const cartSlice = createSlice({
 
       const item = state.items.find((item) => item.product.id === productId);
       if (item) {
+        // If allowNegativeStock is enabled, skip stock check
+        if (state.allowNegativeStock) {
+          item.quantity = quantity;
+          return;
+        }
         // Check stock availability
         const availableStock = item.product.stockQuantity ?? Infinity;
         if (item.product.trackInventory && quantity > availableStock) {
@@ -104,13 +121,20 @@ const cartSlice = createSlice({
       state.items = [];
     },
 
-    // تحديث إعدادات الضريبة من بيانات الشركة
+    // تحديث إعدادات الضريبة والمخزون من بيانات الشركة
     setTaxSettings: (
       state,
-      action: PayloadAction<{ taxRate: number; isTaxEnabled: boolean }>
+      action: PayloadAction<{
+        taxRate: number;
+        isTaxEnabled: boolean;
+        allowNegativeStock?: boolean;
+      }>
     ) => {
       state.taxRate = action.payload.taxRate;
       state.isTaxEnabled = action.payload.isTaxEnabled;
+      if (action.payload.allowNegativeStock !== undefined) {
+        state.allowNegativeStock = action.payload.allowNegativeStock;
+      }
     },
   },
 });
@@ -129,6 +153,9 @@ export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 export const selectTaxRate = (state: { cart: CartState }) => state.cart.taxRate;
 export const selectIsTaxEnabled = (state: { cart: CartState }) =>
   state.cart.isTaxEnabled;
+
+export const selectAllowNegativeStock = (state: { cart: CartState }) =>
+  state.cart.allowNegativeStock;
 
 export const selectItemsCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);

@@ -6,16 +6,18 @@ import { Cart } from "@/components/pos/Cart";
 import { PaymentModal } from "@/components/pos/PaymentModal";
 import { LowStockAlert } from "@/components/pos/LowStockAlert";
 import { Loading } from "@/components/common/Loading";
-import { Menu, ScanBarcode } from "lucide-react";
+import { Menu, ScanBarcode, PackageCheck } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
 import { Customer } from "@/types/customer.types";
 import { toast } from "sonner";
+import clsx from "clsx";
 
 export const POSPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
@@ -77,10 +79,20 @@ export const POSPage = () => {
     }
   };
 
-  // Filter products by category
-  const filteredProducts = selectedCategory
+  // Filter products by category and availability
+  let filteredProducts = selectedCategory
     ? products.filter((p) => p.categoryId === selectedCategory)
     : products;
+
+  // Filter by available stock if enabled
+  if (showAvailableOnly) {
+    filteredProducts = filteredProducts.filter((p) => {
+      // If product doesn't track inventory, it's always available
+      if (!p.trackInventory) return true;
+      // Only show products with stock > 0
+      return (p.stockQuantity ?? 0) > 0;
+    });
+  }
 
   if (isLoading) {
     return (
@@ -114,18 +126,35 @@ export const POSPage = () => {
           </div>
         </div>
 
-        {/* Categories */}
-        <div className="flex items-center justify-between mb-4">
-          <CategoryTabs
-            categories={categories}
-            selectedId={selectedCategory}
-            onSelect={setSelectedCategory}
-          />
+        {/* Categories and Filters */}
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <CategoryTabs
+              categories={categories}
+              selectedId={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
+
+            {/* Available Stock Filter */}
+            <button
+              onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+              className={clsx(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
+                showAvailableOnly
+                  ? "bg-success-100 text-success-700 border border-success-300"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              )}
+              title="عرض المنتجات المتاحة في المخزون فقط"
+            >
+              <PackageCheck className="w-4 h-4" />
+              <span className="hidden sm:inline">المتاح فقط</span>
+            </button>
+          </div>
 
           {/* Mobile cart toggle */}
           <button
             onClick={() => setShowMobileCart(!showMobileCart)}
-            className="lg:hidden relative p-2 border border-gray-200 rounded-lg hover:bg-gray-100"
+            className="lg:hidden relative p-2 border border-gray-200 rounded-lg hover:bg-gray-100 shrink-0"
           >
             <Menu className="w-5 h-5" />
             {itemsCount > 0 && (

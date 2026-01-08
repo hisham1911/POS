@@ -68,8 +68,8 @@ export const SettingsPage = () => {
       }).unwrap();
 
       if (result.success) {
-        // Update cart tax settings globally
-        dispatch(setTaxSettings({ taxRate, isTaxEnabled }));
+        // Update cart tax settings globally (including allowNegativeStock)
+        dispatch(setTaxSettings({ taxRate, isTaxEnabled, allowNegativeStock }));
         toast.success("تم حفظ الإعدادات بنجاح");
         refetch();
       } else {
