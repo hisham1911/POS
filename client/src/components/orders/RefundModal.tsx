@@ -29,7 +29,11 @@ const refundReasons = [
   { id: "other", label: "أسباب أخرى" },
 ];
 
-export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => {
+export const RefundModal = ({
+  order,
+  onClose,
+  onSuccess,
+}: RefundModalProps) => {
   // Refund type: "full" or "partial"
   const [refundType, setRefundType] = useState<"full" | "partial">("full");
   const [selectedReason, setSelectedReason] = useState<string>("");
@@ -68,14 +72,19 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
       : refundReasons.find((r) => r.id === selectedReason)?.label || "";
 
   const canSubmit =
-    (refundType === "full" && selectedReason && (selectedReason !== "other" || customReason.trim())) ||
+    (refundType === "full" &&
+      selectedReason &&
+      (selectedReason !== "other" || customReason.trim())) ||
     (refundType === "partial" && hasSelectedItems);
 
   const updateRefundQuantity = (itemId: number, delta: number) => {
     setRefundItems((prev) =>
       prev.map((item) => {
         if (item.itemId !== itemId) return item;
-        const newQty = Math.max(0, Math.min(item.maxQuantity, item.refundQuantity + delta));
+        const newQty = Math.max(
+          0,
+          Math.min(item.maxQuantity, item.refundQuantity + delta)
+        );
         return { ...item, refundQuantity: newQty };
       })
     );
@@ -93,7 +102,11 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
 
   const handleSubmit = async () => {
     if (!canSubmit) {
-      toast.error(refundType === "full" ? "يرجى اختيار سبب الاسترجاع" : "يرجى تحديد المنتجات للاسترجاع");
+      toast.error(
+        refundType === "full"
+          ? "يرجى اختيار سبب الاسترجاع"
+          : "يرجى تحديد المنتجات للاسترجاع"
+      );
       return;
     }
 
@@ -127,8 +140,12 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
         const returnOrderNumber = result.data?.orderNumber;
         const message =
           refundType === "full"
-            ? `تم إنشاء فاتورة المرتجع ${returnOrderNumber ? `#${returnOrderNumber}` : ""}`
-            : `تم إنشاء فاتورة المرتجع الجزئي ${returnOrderNumber ? `#${returnOrderNumber}` : ""}`;
+            ? `تم إنشاء فاتورة المرتجع ${
+                returnOrderNumber ? `#${returnOrderNumber}` : ""
+              }`
+            : `تم إنشاء فاتورة المرتجع الجزئي ${
+                returnOrderNumber ? `#${returnOrderNumber}` : ""
+              }`;
         toast.success(message);
         onSuccess?.();
         onClose();
@@ -150,8 +167,12 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
               <RotateCcw className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-orange-700">إنشاء فاتورة مرتجع</h2>
-              <p className="text-sm text-orange-600">للطلب #{order.orderNumber}</p>
+              <h2 className="text-lg font-bold text-orange-700">
+                إنشاء فاتورة مرتجع
+              </h2>
+              <p className="text-sm text-orange-600">
+                للطلب #{order.orderNumber}
+              </p>
             </div>
           </div>
           <button
@@ -167,7 +188,9 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
           <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
             <AlertTriangle className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800">
-              <p className="font-semibold mb-1">سيتم إنشاء فاتورة مرتجع جديدة</p>
+              <p className="font-semibold mb-1">
+                سيتم إنشاء فاتورة مرتجع جديدة
+              </p>
               <ul className="list-disc list-inside space-y-1 text-blue-700">
                 <li>سيتم إنشاء طلب جديد من نوع "مرتجع" بقيمة سالبة</li>
                 <li>سيتم استرجاع المنتجات للمخزون</li>
@@ -178,7 +201,9 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
 
           {/* Refund Type Toggle */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">نوع الاسترجاع</label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              نوع الاسترجاع
+            </label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -219,25 +244,39 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-right px-4 py-3 text-sm font-semibold text-gray-600">المنتج</th>
-                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">السعر</th>
-                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">الأصلي</th>
-                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">الكمية المستردة</th>
+                      <th className="text-right px-4 py-3 text-sm font-semibold text-gray-600">
+                        المنتج
+                      </th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+                        السعر
+                      </th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+                        الأصلي
+                      </th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+                        الكمية المستردة
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {refundItems.map((item) => (
                       <tr key={item.itemId} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-800">{item.productName}</td>
+                        <td className="px-4 py-3 font-medium text-gray-800">
+                          {item.productName}
+                        </td>
                         <td className="px-4 py-3 text-center text-gray-600">
                           {formatCurrency(item.unitPrice)}
                         </td>
-                        <td className="px-4 py-3 text-center text-gray-500">{item.maxQuantity}</td>
+                        <td className="px-4 py-3 text-center text-gray-500">
+                          {item.maxQuantity}
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
-                              onClick={() => updateRefundQuantity(item.itemId, -1)}
+                              onClick={() =>
+                                updateRefundQuantity(item.itemId, -1)
+                              }
                               disabled={item.refundQuantity === 0}
                               className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -246,14 +285,21 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
                             <input
                               type="number"
                               value={item.refundQuantity}
-                              onChange={(e) => setRefundQuantity(item.itemId, parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                setRefundQuantity(
+                                  item.itemId,
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
                               min={0}
                               max={item.maxQuantity}
                               className="w-16 text-center py-1 border border-gray-200 rounded-lg focus:ring-2 focus:ring-danger-500 focus:border-danger-500"
                             />
                             <button
                               type="button"
-                              onClick={() => updateRefundQuantity(item.itemId, 1)}
+                              onClick={() =>
+                                updateRefundQuantity(item.itemId, 1)
+                              }
                               disabled={item.refundQuantity >= item.maxQuantity}
                               className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -272,14 +318,21 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
           {/* Refund Reason - Required for Full, Optional for Partial */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              سبب الاسترجاع {refundType === "full" && <span className="text-danger-500">*</span>}
+              سبب الاسترجاع{" "}
+              {refundType === "full" && (
+                <span className="text-danger-500">*</span>
+              )}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {refundReasons.map((reason) => (
                 <button
                   key={reason.id}
                   type="button"
-                  onClick={() => setSelectedReason(reason.id === selectedReason ? "" : reason.id)}
+                  onClick={() =>
+                    setSelectedReason(
+                      reason.id === selectedReason ? "" : reason.id
+                    )
+                  }
                   className={clsx(
                     "p-2 rounded-lg border-2 transition-all text-sm text-center",
                     selectedReason === reason.id
@@ -309,13 +362,17 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
           {/* Total Refund Amount */}
           <div className="bg-danger-50 rounded-xl p-4">
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-danger-700">إجمالي المبلغ المسترجع</span>
+              <span className="font-semibold text-danger-700">
+                إجمالي المبلغ المسترجع
+              </span>
               <span className="text-2xl font-bold text-danger-600">
                 {formatCurrency(totalRefundAmount)}
               </span>
             </div>
             {refundType === "partial" && !hasSelectedItems && (
-              <p className="text-sm text-danger-500 mt-2">يرجى تحديد كمية واحدة على الأقل</p>
+              <p className="text-sm text-danger-500 mt-2">
+                يرجى تحديد كمية واحدة على الأقل
+              </p>
             )}
           </div>
         </div>
@@ -337,7 +394,9 @@ export const RefundModal = ({ order, onClose, onSuccess }: RefundModalProps) => 
             disabled={isLoading || !canSubmit}
             className="flex-1 !bg-orange-500 hover:!bg-orange-600"
           >
-            {refundType === "full" ? "إنشاء فاتورة المرتجع" : "إنشاء فاتورة المرتجع الجزئي"}
+            {refundType === "full"
+              ? "إنشاء فاتورة المرتجع"
+              : "إنشاء فاتورة المرتجع الجزئي"}
           </Button>
         </div>
       </div>

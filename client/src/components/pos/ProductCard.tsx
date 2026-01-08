@@ -15,17 +15,24 @@ interface ProductCardProps {
   showStockAdjust?: boolean;
 }
 
-export const ProductCard = ({ product, category, onStockAdjust, showStockAdjust }: ProductCardProps) => {
+export const ProductCard = ({
+  product,
+  category,
+  onStockAdjust,
+  showStockAdjust,
+}: ProductCardProps) => {
   const { items, addItem } = useCart();
   const [imageError, setImageError] = useState(false);
 
   // Get quantity in cart for this product
-  const cartItem = items.find(item => item.product.id === product.id);
+  const cartItem = items.find((item) => item.product.id === product.id);
   const quantityInCart = cartItem?.quantity ?? 0;
 
   // Calculate available stock (stock - what's in cart)
   const totalStock = product.stockQuantity ?? 0;
-  const availableStock = product.trackInventory ? totalStock - quantityInCart : Infinity;
+  const availableStock = product.trackInventory
+    ? totalStock - quantityInCart
+    : Infinity;
   const canAddMore = !product.trackInventory || availableStock > 0;
 
   const handleClick = () => {
@@ -94,7 +101,9 @@ export const ProductCard = ({ product, category, onStockAdjust, showStockAdjust 
         isDisabled && "opacity-50 cursor-not-allowed",
         !isDisabled && canAddMore && "active:scale-[0.97]",
         !canAddMore && !isDisabled && "cursor-not-allowed",
-        isInCart ? "border-primary-400 shadow-md" : "border-transparent shadow hover:shadow-md"
+        isInCart
+          ? "border-primary-400 shadow-md"
+          : "border-transparent shadow hover:shadow-md"
       )}
       aria-label={`إضافة ${product.name} - ${formatCurrency(product.price)}`}
       aria-disabled={isDisabled}
@@ -109,18 +118,24 @@ export const ProductCard = ({ product, category, onStockAdjust, showStockAdjust 
             onError={() => setImageError(true)}
           />
         ) : (
-          <span className="text-5xl drop-shadow-sm">{category?.imageUrl || "📦"}</span>
+          <span className="text-5xl drop-shadow-sm">
+            {category?.imageUrl || "📦"}
+          </span>
         )}
-        
+
         {/* Stock Badge */}
         {getStockBadge()}
       </div>
 
       {/* Name */}
-      <h3 className="font-semibold text-gray-800 truncate mb-1 text-sm">{product.name}</h3>
+      <h3 className="font-semibold text-gray-800 truncate mb-1 text-sm">
+        {product.name}
+      </h3>
 
       {/* Price */}
-      <p className="text-primary-600 font-bold">{formatCurrency(product.price)}</p>
+      <p className="text-primary-600 font-bold">
+        {formatCurrency(product.price)}
+      </p>
 
       {/* Out of stock overlay */}
       {isOutOfStock && (

@@ -7,10 +7,10 @@ import { selectCurrentUser } from "@/store/slices/authSlice";
 export const LowStockAlert = () => {
   const [dismissed, setDismissed] = useState(false);
   const user = useAppSelector(selectCurrentUser);
-  
+
   // Only show for Admin or Manager
   const canViewAlert = user?.role === "Admin" || user?.role === "Manager";
-  
+
   const { data } = useGetLowStockProductsQuery(undefined, {
     skip: !canViewAlert,
     pollingInterval: 60000, // Refresh every minute
@@ -28,7 +28,8 @@ export const LowStockAlert = () => {
       <div className="flex items-center gap-2 text-amber-700">
         <AlertTriangle className="w-5 h-5 shrink-0" />
         <span className="text-sm font-medium">
-          ⚠️ تنبيه: {lowStockCount} منتج{lowStockCount > 1 ? "ات" : ""} مخزونها منخفض
+          ⚠️ تنبيه: {lowStockCount} منتج{lowStockCount > 1 ? "ات" : ""} مخزونها
+          منخفض
         </span>
       </div>
       <button

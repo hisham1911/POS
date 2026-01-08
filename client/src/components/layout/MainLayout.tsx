@@ -193,7 +193,7 @@ export const MainLayout = () => {
 
           <div className="flex items-center gap-4">
             <BranchSelector />
-            
+
             <div className="hidden sm:flex items-center gap-2 text-gray-500">
               <Clock className="w-4 h-4" />
               <span className="text-sm">{currentTime}</span>

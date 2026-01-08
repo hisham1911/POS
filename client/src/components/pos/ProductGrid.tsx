@@ -13,7 +13,9 @@ interface ProductGridProps {
 }
 
 export const ProductGrid = ({ products, categories }: ProductGridProps) => {
-  const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
+  const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(
+    null
+  );
   const user = useAppSelector(selectCurrentUser);
 
   // Only Admin or Manager can adjust stock
@@ -41,7 +43,7 @@ export const ProductGrid = ({ products, categories }: ProductGridProps) => {
           <ProductCard
             key={product.id}
             product={product}
-            category={categories?.find(c => c.id === product.categoryId)}
+            category={categories?.find((c) => c.id === product.categoryId)}
             onStockAdjust={handleStockAdjust}
             showStockAdjust={canAdjustStock && product.trackInventory}
           />

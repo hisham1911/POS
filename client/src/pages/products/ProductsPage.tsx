@@ -20,8 +20,11 @@ export const ProductsPage = () => {
   const { categories } = useCategories();
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || product.categoryId === selectedCategory;
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      !selectedCategory || product.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -76,12 +79,18 @@ export const ProductsPage = () => {
           </div>
           <select
             value={selectedCategory || ""}
-            onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) =>
+              setSelectedCategory(
+                e.target.value ? Number(e.target.value) : null
+              )
+            }
             className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">كل التصنيفات</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
@@ -93,18 +102,34 @@ export const ProductsPage = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b">
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">#</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">المنتج</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">التصنيف</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">السعر</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">الكمية</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">الحالة</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">الإجراءات</th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  #
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  المنتج
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  التصنيف
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  السعر
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  الكمية
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  الحالة
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  الإجراءات
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((product, index) => {
-                const category = categories.find((c) => c.id === product.categoryId);
+                const category = categories.find(
+                  (c) => c.id === product.categoryId
+                );
                 return (
                   <tr key={product.id} className="border-b hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500">{index + 1}</td>
@@ -116,7 +141,9 @@ export const ProductsPage = () => {
                         <span className="font-medium">{product.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{category?.name || "-"}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {category?.name || "-"}
+                    </td>
                     <td className="px-4 py-3 font-semibold text-primary-600">
                       {formatCurrency(product.price)}
                     </td>
@@ -126,7 +153,8 @@ export const ProductsPage = () => {
                           "px-2.5 py-1 rounded-full text-xs font-medium",
                           (product.stockQuantity ?? 0) <= 0
                             ? "bg-danger-50 text-danger-600"
-                            : (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 5)
+                            : (product.stockQuantity ?? 0) <=
+                              (product.lowStockThreshold ?? 5)
                             ? "bg-warning-50 text-warning-600"
                             : "bg-gray-100 text-gray-700"
                         )}
@@ -180,10 +208,7 @@ export const ProductsPage = () => {
 
       {/* Product Form Modal */}
       {showForm && (
-        <ProductFormModal
-          product={editingProduct}
-          onClose={handleCloseForm}
-        />
+        <ProductFormModal product={editingProduct} onClose={handleCloseForm} />
       )}
     </div>
   );

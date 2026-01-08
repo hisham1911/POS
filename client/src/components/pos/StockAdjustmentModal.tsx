@@ -12,18 +12,26 @@ interface StockAdjustmentModalProps {
   onClose: () => void;
 }
 
-const adjustmentReasons: { id: StockAdjustmentType; label: string; icon: string }[] = [
+const adjustmentReasons: {
+  id: StockAdjustmentType;
+  label: string;
+  icon: string;
+}[] = [
   { id: "Receiving", label: "استلام بضاعة", icon: "📦" },
   { id: "Damage", label: "تلف / كسر", icon: "💔" },
   { id: "Adjustment", label: "جرد / تعديل", icon: "📋" },
   { id: "Transfer", label: "تحويل", icon: "🔄" },
 ];
 
-export const StockAdjustmentModal = ({ product, onClose }: StockAdjustmentModalProps) => {
+export const StockAdjustmentModal = ({
+  product,
+  onClose,
+}: StockAdjustmentModalProps) => {
   const [newQuantity, setNewQuantity] = useState<string>(
     (product.stockQuantity ?? 0).toString()
   );
-  const [adjustmentType, setAdjustmentType] = useState<StockAdjustmentType>("Adjustment");
+  const [adjustmentType, setAdjustmentType] =
+    useState<StockAdjustmentType>("Adjustment");
   const [reason, setReason] = useState("");
 
   const [adjustStock, { isLoading }] = useAdjustProductStockMutation();
@@ -49,13 +57,20 @@ export const StockAdjustmentModal = ({ product, onClose }: StockAdjustmentModalP
         productId: product.id,
         data: {
           quantity: quantityChange,
-          reason: reason || adjustmentReasons.find(r => r.id === adjustmentType)?.label || "",
+          reason:
+            reason ||
+            adjustmentReasons.find((r) => r.id === adjustmentType)?.label ||
+            "",
           adjustmentType,
         },
       }).unwrap();
 
       if (result.success) {
-        toast.success(`تم تحديث المخزون: ${currentStock} → ${result.data?.newBalance ?? targetQuantity}`);
+        toast.success(
+          `تم تحديث المخزون: ${currentStock} → ${
+            result.data?.newBalance ?? targetQuantity
+          }`
+        );
         onClose();
       } else {
         toast.error(result.message || "فشل تعديل المخزون");
@@ -108,11 +123,14 @@ export const StockAdjustmentModal = ({ product, onClose }: StockAdjustmentModalP
             />
             {/* Change Preview */}
             {quantityChange !== 0 && (
-              <div className={clsx(
-                "mt-2 text-center text-sm font-medium",
-                quantityChange > 0 ? "text-green-600" : "text-red-600"
-              )}>
-                {quantityChange > 0 ? `+${quantityChange}` : quantityChange} وحدة
+              <div
+                className={clsx(
+                  "mt-2 text-center text-sm font-medium",
+                  quantityChange > 0 ? "text-green-600" : "text-red-600"
+                )}
+              >
+                {quantityChange > 0 ? `+${quantityChange}` : quantityChange}{" "}
+                وحدة
               </div>
             )}
           </div>
@@ -160,18 +178,16 @@ export const StockAdjustmentModal = ({ product, onClose }: StockAdjustmentModalP
           {Math.abs(quantityChange) > 50 && (
             <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg text-amber-700">
               <AlertTriangle className="w-5 h-5 shrink-0" />
-              <span className="text-sm">تغيير كبير في المخزون - يرجى التأكد</span>
+              <span className="text-sm">
+                تغيير كبير في المخزون - يرجى التأكد
+              </span>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="flex gap-3 p-6 border-t bg-gray-50 rounded-b-2xl">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            className="flex-1"
-          >
+          <Button variant="secondary" onClick={onClose} className="flex-1">
             إلغاء
           </Button>
           <Button

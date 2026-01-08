@@ -79,7 +79,10 @@ export const CustomerSearch = ({
   };
 
   const showNotFound =
-    phone.length >= 8 && !isFetching && !isSearching && (isError || !searchResult?.data);
+    phone.length >= 8 &&
+    !isFetching &&
+    !isSearching &&
+    (isError || !searchResult?.data);
   const showResult =
     phone.length >= 8 && !isFetching && !isSearching && searchResult?.data;
 

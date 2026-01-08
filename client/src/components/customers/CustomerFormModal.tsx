@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { X, UserPlus, Edit } from "lucide-react";
-import { Customer, CreateCustomerRequest, UpdateCustomerRequest } from "@/types/customer.types";
-import { useCreateCustomerMutation, useUpdateCustomerMutation } from "@/api/customersApi";
+import {
+  Customer,
+  CreateCustomerRequest,
+  UpdateCustomerRequest,
+} from "@/types/customer.types";
+import {
+  useCreateCustomerMutation,
+  useUpdateCustomerMutation,
+} from "@/api/customersApi";
 import { Button } from "@/components/common/Button";
 import { toast } from "sonner";
 
@@ -11,7 +18,11 @@ interface CustomerFormModalProps {
   onSuccess?: () => void;
 }
 
-export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerFormModalProps) => {
+export const CustomerFormModal = ({
+  customer,
+  onClose,
+  onSuccess,
+}: CustomerFormModalProps) => {
   const isEditing = !!customer;
 
   const [formData, setFormData] = useState({
@@ -23,8 +34,10 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [createCustomer, { isLoading: isCreating }] = useCreateCustomerMutation();
-  const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
+  const [createCustomer, { isLoading: isCreating }] =
+    useCreateCustomerMutation();
+  const [updateCustomer, { isLoading: isUpdating }] =
+    useUpdateCustomerMutation();
 
   const isLoading = isCreating || isUpdating;
 
@@ -59,7 +72,7 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
@@ -71,7 +84,10 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
           notes: formData.notes || undefined,
         };
 
-        const result = await updateCustomer({ id: customer.id, data: updateData }).unwrap();
+        const result = await updateCustomer({
+          id: customer.id,
+          data: updateData,
+        }).unwrap();
         if (result.success) {
           toast.success("تم تحديث بيانات العميل بنجاح");
           onSuccess?.();
@@ -136,7 +152,9 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
             <input
               type="tel"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
               placeholder="01xxxxxxxxx"
               disabled={isEditing}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
@@ -157,7 +175,9 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="اسم العميل"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
@@ -171,7 +191,9 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               placeholder="email@example.com"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                 errors.email ? "border-danger-500" : "border-gray-200"
@@ -191,7 +213,9 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
             <input
               type="text"
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, address: e.target.value })
+              }
               placeholder="عنوان العميل"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
@@ -204,7 +228,9 @@ export const CustomerFormModal = ({ customer, onClose, onSuccess }: CustomerForm
             </label>
             <textarea
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               placeholder="ملاحظات إضافية..."
               rows={2}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"

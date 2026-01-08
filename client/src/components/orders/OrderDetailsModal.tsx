@@ -14,12 +14,16 @@ interface OrderDetailsModalProps {
   onClose: () => void;
 }
 
-export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) => {
+export const OrderDetailsModal = ({
+  order,
+  onClose,
+}: OrderDetailsModalProps) => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const user = useAppSelector(selectCurrentUser);
 
   // Only Admin or Manager can refund - can also do additional partial refund on PartiallyRefunded orders
-  const canRefund = (user?.role === "Admin" || user?.role === "Manager") && 
+  const canRefund =
+    (user?.role === "Admin" || user?.role === "Manager") &&
     (order.status === "Completed" || order.status === "PartiallyRefunded");
 
   const isFullyRefunded = order.status === "Refunded";
@@ -37,13 +41,15 @@ export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) =>
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-xl font-bold">طلب #{order.orderNumber}</h2>
-            <p className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</p>
+            <p className="text-sm text-gray-500">
+              {formatDateTime(order.createdAt)}
+            </p>
           </div>
           <div className="flex gap-2">
             {canRefund && (
-              <Button 
-                variant="danger" 
-                size="sm" 
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={() => setShowRefundModal(true)}
                 title="استرجاع الطلب"
               >
@@ -87,12 +93,16 @@ export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) =>
           {/* Customer */}
           {order.customerId ? (
             <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-sm font-medium text-gray-500 mb-2">معلومات العميل</p>
+              <p className="text-sm font-medium text-gray-500 mb-2">
+                معلومات العميل
+              </p>
               <div className="space-y-1.5">
                 {order.customerName && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-primary-500" />
-                    <span className="font-medium text-gray-800">{order.customerName}</span>
+                    <span className="font-medium text-gray-800">
+                      {order.customerName}
+                    </span>
                   </div>
                 )}
                 {order.customerPhone && (
@@ -140,7 +150,9 @@ export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) =>
             {order.discountAmount > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">الخصم</span>
-                <span className="text-danger-500">-{formatCurrency(order.discountAmount)}</span>
+                <span className="text-danger-500">
+                  -{formatCurrency(order.discountAmount)}
+                </span>
               </div>
             )}
             <div className="flex justify-between text-sm">
@@ -149,24 +161,32 @@ export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) =>
             </div>
             <div className="flex justify-between text-lg font-bold pt-2 border-t">
               <span>الإجمالي</span>
-              <span className="text-primary-600">{formatCurrency(order.total)}</span>
+              <span className="text-primary-600">
+                {formatCurrency(order.total)}
+              </span>
             </div>
-            
+
             {/* Refund Amount - For partial or full refund */}
             {hasRefund && order.refundAmount > 0 && (
               <div className="flex justify-between text-sm pt-2 border-t border-dashed">
                 <span className="text-danger-500 font-medium">
-                  {isFullyRefunded ? "مبلغ الاسترجاع الكامل" : "مبلغ الاسترجاع الجزئي"}
+                  {isFullyRefunded
+                    ? "مبلغ الاسترجاع الكامل"
+                    : "مبلغ الاسترجاع الجزئي"}
                 </span>
-                <span className="text-danger-500 font-semibold">-{formatCurrency(order.refundAmount)}</span>
+                <span className="text-danger-500 font-semibold">
+                  -{formatCurrency(order.refundAmount)}
+                </span>
               </div>
             )}
-            
+
             {/* Net Amount After Partial Refund */}
             {isPartiallyRefunded && order.refundAmount > 0 && (
               <div className="flex justify-between text-sm font-medium">
                 <span className="text-gray-600">الصافي بعد الاسترجاع</span>
-                <span className="text-success-600">{formatCurrency(order.total - order.refundAmount)}</span>
+                <span className="text-success-600">
+                  {formatCurrency(order.total - order.refundAmount)}
+                </span>
               </div>
             )}
           </div>
@@ -182,14 +202,18 @@ export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) =>
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <span>{PAYMENT_METHODS[payment.method]?.label}</span>
-                    <span className="font-semibold">{formatCurrency(payment.amount)}</span>
+                    <span className="font-semibold">
+                      {formatCurrency(payment.amount)}
+                    </span>
                   </div>
                 ))}
               </div>
               {order.changeAmount > 0 && (
                 <div className="flex justify-between mt-2 text-sm">
                   <span className="text-gray-500">الباقي</span>
-                  <span className="text-success-500">{formatCurrency(order.changeAmount)}</span>
+                  <span className="text-success-500">
+                    {formatCurrency(order.changeAmount)}
+                  </span>
                 </div>
               )}
             </div>
@@ -199,44 +223,58 @@ export const OrderDetailsModal = ({ order, onClose }: OrderDetailsModalProps) =>
           {order.notes && (
             <div>
               <h3 className="font-semibold mb-2">ملاحظات</h3>
-              <p className="text-gray-500 bg-gray-50 p-3 rounded-lg">{order.notes}</p>
+              <p className="text-gray-500 bg-gray-50 p-3 rounded-lg">
+                {order.notes}
+              </p>
             </div>
           )}
 
           {/* Refund Info - For both full and partial refunds */}
           {hasRefund && order.refundReason && (
-            <div className={clsx(
-              "border rounded-lg p-4",
-              isFullyRefunded 
-                ? "bg-danger-50 border-danger-200" 
-                : "bg-amber-50 border-amber-200"
-            )}>
-              <h3 className={clsx(
-                "font-semibold mb-2",
-                isFullyRefunded ? "text-danger-700" : "text-amber-700"
-              )}>
-                {isFullyRefunded ? "معلومات الاسترجاع الكامل" : "معلومات الاسترجاع الجزئي"}
+            <div
+              className={clsx(
+                "border rounded-lg p-4",
+                isFullyRefunded
+                  ? "bg-danger-50 border-danger-200"
+                  : "bg-amber-50 border-amber-200"
+              )}
+            >
+              <h3
+                className={clsx(
+                  "font-semibold mb-2",
+                  isFullyRefunded ? "text-danger-700" : "text-amber-700"
+                )}
+              >
+                {isFullyRefunded
+                  ? "معلومات الاسترجاع الكامل"
+                  : "معلومات الاسترجاع الجزئي"}
               </h3>
-              <div className={clsx(
-                "text-sm space-y-1",
-                isFullyRefunded ? "text-danger-600" : "text-amber-700"
-              )}>
+              <div
+                className={clsx(
+                  "text-sm space-y-1",
+                  isFullyRefunded ? "text-danger-600" : "text-amber-700"
+                )}
+              >
                 <p>
-                  <span className="font-medium">السبب:</span> {order.refundReason}
+                  <span className="font-medium">السبب:</span>{" "}
+                  {order.refundReason}
                 </p>
                 {order.refundedAt && (
                   <p>
-                    <span className="font-medium">التاريخ:</span> {formatDateTime(order.refundedAt)}
+                    <span className="font-medium">التاريخ:</span>{" "}
+                    {formatDateTime(order.refundedAt)}
                   </p>
                 )}
                 {order.refundedByUserName && (
                   <p>
-                    <span className="font-medium">بواسطة:</span> {order.refundedByUserName}
+                    <span className="font-medium">بواسطة:</span>{" "}
+                    {order.refundedByUserName}
                   </p>
                 )}
                 {order.refundAmount > 0 && (
                   <p>
-                    <span className="font-medium">المبلغ المسترد:</span> {formatCurrency(order.refundAmount)}
+                    <span className="font-medium">المبلغ المسترد:</span>{" "}
+                    {formatCurrency(order.refundAmount)}
                   </p>
                 )}
               </div>

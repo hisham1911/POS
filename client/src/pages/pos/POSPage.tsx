@@ -16,7 +16,9 @@ export const POSPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [barcodeInput, setBarcodeInput] = useState("");
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +51,8 @@ export const POSPage = () => {
       // Search by barcode or SKU
       const foundProduct = products.find(
         (p) =>
-          (p.barcode && p.barcode.toLowerCase() === trimmedValue.toLowerCase()) ||
+          (p.barcode &&
+            p.barcode.toLowerCase() === trimmedValue.toLowerCase()) ||
           (p.sku && p.sku.toLowerCase() === trimmedValue.toLowerCase())
       );
 
@@ -141,8 +144,8 @@ export const POSPage = () => {
 
       {/* Cart Section - Desktop */}
       <div className="hidden lg:flex w-96 bg-white border-l border-gray-200 p-4 flex-col shrink-0">
-        <Cart 
-          onCheckout={() => setShowPayment(true)} 
+        <Cart
+          onCheckout={() => setShowPayment(true)}
           selectedCustomer={selectedCustomer}
           onCustomerSelect={setSelectedCustomer}
         />
@@ -170,8 +173,8 @@ export const POSPage = () => {
 
       {/* Payment Modal */}
       {showPayment && (
-        <PaymentModal 
-          onClose={() => setShowPayment(false)} 
+        <PaymentModal
+          onClose={() => setShowPayment(false)}
           selectedCustomer={selectedCustomer}
           onOrderComplete={() => setSelectedCustomer(null)}
         />

@@ -1,37 +1,37 @@
-import type React from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import { useAppSelector } from "./store/hooks"
-import { selectIsAuthenticated, selectIsAdmin } from "./store/slices/authSlice"
-import { MainLayout } from "./components/layout/MainLayout"
-import LoginPage from "./pages/auth/LoginPage"
-import POSPage from "./pages/pos/POSPage"
-import ProductsPage from "./pages/products/ProductsPage"
-import CategoriesPage from "./pages/categories/CategoriesPage"
-import OrdersPage from "./pages/orders/OrdersPage"
-import ShiftPage from "./pages/shifts/ShiftPage"
-import CustomersPage from "./pages/customers/CustomersPage"
-import DailyReportPage from "./pages/reports/DailyReportPage"
-import AuditLogPage from "./pages/audit/AuditLogPage"
-import SettingsPage from "./pages/settings/SettingsPage"
-import NotFound from "./pages/NotFound"
+import type React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAppSelector } from "./store/hooks";
+import { selectIsAuthenticated, selectIsAdmin } from "./store/slices/authSlice";
+import { MainLayout } from "./components/layout/MainLayout";
+import LoginPage from "./pages/auth/LoginPage";
+import POSPage from "./pages/pos/POSPage";
+import ProductsPage from "./pages/products/ProductsPage";
+import CategoriesPage from "./pages/categories/CategoriesPage";
+import OrdersPage from "./pages/orders/OrdersPage";
+import ShiftPage from "./pages/shifts/ShiftPage";
+import CustomersPage from "./pages/customers/CustomersPage";
+import DailyReportPage from "./pages/reports/DailyReportPage";
+import AuditLogPage from "./pages/audit/AuditLogPage";
+import SettingsPage from "./pages/settings/SettingsPage";
+import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAppSelector(selectIsAuthenticated)
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  return <>{children}</>
-}
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+};
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAdmin = useAppSelector(selectIsAdmin)
-  if (!isAdmin) return <Navigate to="/pos" replace />
-  return <>{children}</>
-}
+  const isAdmin = useAppSelector(selectIsAdmin);
+  if (!isAdmin) return <Navigate to="/pos" replace />;
+  return <>{children}</>;
+};
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAppSelector(selectIsAuthenticated)
-  if (isAuthenticated) return <Navigate to="/pos" replace />
-  return <>{children}</>
-}
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  if (isAuthenticated) return <Navigate to="/pos" replace />;
+  return <>{children}</>;
+};
 
 const AppRoutes = () => (
   <Routes>
@@ -105,12 +105,12 @@ const AppRoutes = () => (
     </Route>
     <Route path="*" element={<NotFound />} />
   </Routes>
-)
+);
 
 const App = () => (
   <BrowserRouter>
     <AppRoutes />
   </BrowserRouter>
-)
+);
 
-export default App
+export default App;

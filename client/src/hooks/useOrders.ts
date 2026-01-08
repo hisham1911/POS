@@ -18,12 +18,19 @@ interface ApiErrorData {
 export const useOrders = () => {
   const { items, clearCart } = useCart();
 
-  const { data: ordersData, isLoading: isLoadingOrders, refetch } = useGetOrdersQuery();
-  const { data: todayOrdersData, isLoading: isLoadingToday } = useGetTodayOrdersQuery();
+  const {
+    data: ordersData,
+    isLoading: isLoadingOrders,
+    refetch,
+  } = useGetOrdersQuery();
+  const { data: todayOrdersData, isLoading: isLoadingToday } =
+    useGetTodayOrdersQuery();
 
   const [createMutation, { isLoading: isCreating }] = useCreateOrderMutation();
-  const [completeMutation, { isLoading: isCompleting }] = useCompleteOrderMutation();
-  const [cancelMutation, { isLoading: isCancelling }] = useCancelOrderMutation();
+  const [completeMutation, { isLoading: isCompleting }] =
+    useCompleteOrderMutation();
+  const [cancelMutation, { isLoading: isCancelling }] =
+    useCancelOrderMutation();
 
   const orders = ordersData?.data || [];
   const todayOrders = todayOrdersData?.data || [];
@@ -41,7 +48,7 @@ export const useOrders = () => {
     }));
 
     try {
-      const result = await createMutation({ 
+      const result = await createMutation({
         items: orderItems,
         customerId,
       }).unwrap();
@@ -62,7 +69,10 @@ export const useOrders = () => {
     }
   };
 
-  const completeOrder = async (orderId: number, data: CompleteOrderRequest): Promise<Order | null> => {
+  const completeOrder = async (
+    orderId: number,
+    data: CompleteOrderRequest
+  ): Promise<Order | null> => {
     try {
       const result = await completeMutation({ orderId, data }).unwrap();
       if (result.success && result.data) {
@@ -85,7 +95,10 @@ export const useOrders = () => {
     }
   };
 
-  const cancelOrder = async (orderId: number, reason?: string): Promise<boolean> => {
+  const cancelOrder = async (
+    orderId: number,
+    reason?: string
+  ): Promise<boolean> => {
     try {
       const result = await cancelMutation({ orderId, reason }).unwrap();
       if (result.success) {

@@ -53,7 +53,10 @@ export const ordersApi = baseApi.injectEndpoints({
     }),
 
     // جلب طلبات عميل معين
-    getCustomerOrders: builder.query<ApiResponse<OrdersPagedResult>, CustomerOrdersParams>({
+    getCustomerOrders: builder.query<
+      ApiResponse<OrdersPagedResult>,
+      CustomerOrdersParams
+    >({
       query: ({ customerId, page = 1, pageSize = 10 }) => ({
         url: `/orders/by-customer/${customerId}`,
         params: { page, pageSize },
@@ -70,7 +73,9 @@ export const ordersApi = baseApi.injectEndpoints({
         method: "POST",
         body: order,
         headers: {
-          "Idempotency-Key": `order-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          "Idempotency-Key": `order-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(7)}`,
         },
       }),
       invalidatesTags: [{ type: "Orders", id: "LIST" }, "Shifts"],
@@ -150,7 +155,11 @@ export const ordersApi = baseApi.injectEndpoints({
     // استرجاع الطلب (Full or Partial Refund)
     refundOrder: builder.mutation<
       ApiResponse<Order>,
-      { orderId: number; reason?: string; items?: { itemId: number; quantity: number; reason?: string }[] }
+      {
+        orderId: number;
+        reason?: string;
+        items?: { itemId: number; quantity: number; reason?: string }[];
+      }
     >({
       query: ({ orderId, reason, items }) => ({
         url: `/orders/${orderId}/refund`,

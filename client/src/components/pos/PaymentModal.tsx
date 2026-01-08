@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { X, Check, Banknote, CreditCard, Building2, User, Phone, Star } from "lucide-react";
+import {
+  X,
+  Check,
+  Banknote,
+  CreditCard,
+  Building2,
+  User,
+  Phone,
+  Star,
+} from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useOrders } from "@/hooks/useOrders";
 import { formatCurrency } from "@/utils/formatters";
@@ -25,7 +34,11 @@ const paymentMethods: {
   { id: "Fawry", label: "فوري", icon: <Building2 className="w-8 h-8" /> },
 ];
 
-export const PaymentModal = ({ onClose, selectedCustomer, onOrderComplete }: PaymentModalProps) => {
+export const PaymentModal = ({
+  onClose,
+  selectedCustomer,
+  onOrderComplete,
+}: PaymentModalProps) => {
   const { total, clearCart } = useCart();
   const { createOrder, completeOrder, isCreating, isCompleting } = useOrders();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("Cash");
@@ -116,7 +129,9 @@ export const PaymentModal = ({ onClose, selectedCustomer, onOrderComplete }: Pay
         <div className="p-6 space-y-6">
           {/* Customer Info */}
           <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <p className="text-sm font-medium text-gray-500 mb-2">معلومات العميل</p>
+            <p className="text-sm font-medium text-gray-500 mb-2">
+              معلومات العميل
+            </p>
             {selectedCustomer ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -185,10 +200,12 @@ export const PaymentModal = ({ onClose, selectedCustomer, onOrderComplete }: Pay
                 <p className="text-sm font-medium text-gray-500 mb-3">
                   المبلغ المدفوع
                 </p>
-                <div className={clsx(
-                  "text-center p-4 bg-gray-50 rounded-xl transition-all",
-                  showError && "animate-shake border-2 border-danger-500"
-                )}>
+                <div
+                  className={clsx(
+                    "text-center p-4 bg-gray-50 rounded-xl transition-all",
+                    showError && "animate-shake border-2 border-danger-500"
+                  )}
+                >
                   <p className="text-3xl font-bold">
                     {amountPaid || "0"}{" "}
                     <span className="text-lg text-gray-400">ج.م</span>
@@ -268,7 +285,11 @@ export const PaymentModal = ({ onClose, selectedCustomer, onOrderComplete }: Pay
             disabled={isCreating || isCompleting || numericAmount < total}
             rightIcon={<Check className="w-5 h-5" />}
           >
-            {isCreating ? "جاري إنشاء الطلب..." : isCompleting ? "جاري الدفع..." : "إتمام الدفع"}
+            {isCreating
+              ? "جاري إنشاء الطلب..."
+              : isCompleting
+              ? "جاري الدفع..."
+              : "إتمام الدفع"}
           </Button>
         </div>
       </div>

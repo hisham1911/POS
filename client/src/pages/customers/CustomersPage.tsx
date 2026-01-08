@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { 
-  UserPlus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  ChevronLeft, 
+import {
+  UserPlus,
+  Search,
+  Edit,
+  Trash2,
+  ChevronLeft,
   ChevronRight,
   Users,
   Star,
-  Eye
+  Eye,
 } from "lucide-react";
-import { 
-  useGetCustomersQuery, 
-  useDeleteCustomerMutation 
+import {
+  useGetCustomersQuery,
+  useDeleteCustomerMutation,
 } from "@/api/customersApi";
 import { Customer } from "@/types/customer.types";
 import { CustomerFormModal } from "@/components/customers/CustomerFormModal";
@@ -29,7 +29,9 @@ export const CustomersPage = () => {
   const [searchInput, setSearchInput] = useState("");
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(
+    null
+  );
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
 
   const pageSize = 10;
@@ -40,7 +42,8 @@ export const CustomersPage = () => {
     search: search || undefined,
   });
 
-  const [deleteCustomer, { isLoading: isDeleting }] = useDeleteCustomerMutation();
+  const [deleteCustomer, { isLoading: isDeleting }] =
+    useDeleteCustomerMutation();
 
   const customers = data?.data?.items || [];
   const totalPages = data?.data?.totalPages || 1;
@@ -102,10 +105,7 @@ export const CustomersPage = () => {
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => setShowFormModal(true)}
-        >
+        <Button variant="primary" onClick={() => setShowFormModal(true)}>
           <UserPlus className="w-5 h-5" />
           إضافة عميل جديد
         </Button>
@@ -128,8 +128,8 @@ export const CustomersPage = () => {
             بحث
           </Button>
           {search && (
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               variant="ghost"
               onClick={() => {
                 setSearch("");
@@ -149,19 +149,36 @@ export const CustomersPage = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">الاسم</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">رقم الهاتف</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden md:table-cell">العنوان</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">نقاط الولاء</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">إجمالي الطلبات</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">إجمالي المشتريات</th>
-                <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600">الإجراءات</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
+                  الاسم
+                </th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
+                  رقم الهاتف
+                </th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden md:table-cell">
+                  العنوان
+                </th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
+                  نقاط الولاء
+                </th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
+                  إجمالي الطلبات
+                </th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
+                  إجمالي المشتريات
+                </th>
+                <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600">
+                  الإجراءات
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {customers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <p className="text-lg font-medium">لا يوجد عملاء</p>
                     <p className="text-sm">ابدأ بإضافة عميل جديد</p>
@@ -169,8 +186,8 @@ export const CustomersPage = () => {
                 </tr>
               ) : (
                 customers.map((customer) => (
-                  <tr 
-                    key={customer.id} 
+                  <tr
+                    key={customer.id}
                     className={clsx(
                       "hover:bg-gray-50 transition-colors",
                       isFetching && "opacity-50"
@@ -301,9 +318,12 @@ export const CustomersPage = () => {
               <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="w-8 h-8 text-danger-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">حذف العميل</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
+                حذف العميل
+              </h3>
               <p className="text-gray-500">
-                هل أنت متأكد من حذف العميل "{deletingCustomer.name || deletingCustomer.phone}"؟
+                هل أنت متأكد من حذف العميل "
+                {deletingCustomer.name || deletingCustomer.phone}"؟
               </p>
               <p className="text-sm text-danger-500 mt-2">
                 لا يمكن التراجع عن هذا الإجراء

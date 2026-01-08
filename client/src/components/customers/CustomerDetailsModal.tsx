@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { 
-  X, 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Star, 
+import {
+  X,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Star,
   ShoppingBag,
   Wallet,
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Eye
+  Eye,
 } from "lucide-react";
 import { Customer } from "@/types/customer.types";
 import { useGetCustomerOrdersQuery } from "@/api/ordersApi";
@@ -28,17 +28,21 @@ interface CustomerDetailsModalProps {
 
 type TabType = "details" | "orders";
 
-export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModalProps) => {
+export const CustomerDetailsModal = ({
+  customer,
+  onClose,
+}: CustomerDetailsModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("orders");
   const [ordersPage, setOrdersPage] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
 
   const ordersPageSize = 5;
-  const { data: ordersData, isLoading: isLoadingOrders } = useGetCustomerOrdersQuery({
-    customerId: customer.id,
-    page: ordersPage,
-    pageSize: ordersPageSize,
-  });
+  const { data: ordersData, isLoading: isLoadingOrders } =
+    useGetCustomerOrdersQuery({
+      customerId: customer.id,
+      page: ordersPage,
+      pageSize: ordersPageSize,
+    });
 
   const orders = ordersData?.data?.items || [];
   const ordersTotalPages = ordersData?.data?.totalPages || 1;
@@ -47,14 +51,27 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; color: string }> = {
       Draft: { label: "مسودة", color: "bg-gray-100 text-gray-800" },
-      Pending: { label: "قيد الانتظار", color: "bg-yellow-100 text-yellow-800" },
+      Pending: {
+        label: "قيد الانتظار",
+        color: "bg-yellow-100 text-yellow-800",
+      },
       Completed: { label: "مكتمل", color: "bg-green-100 text-green-800" },
       Cancelled: { label: "ملغي", color: "bg-red-100 text-red-800" },
       Refunded: { label: "مسترجع", color: "bg-purple-100 text-purple-800" },
-      PartiallyRefunded: { label: "مسترجع جزئياً", color: "bg-orange-100 text-orange-800" },
+      PartiallyRefunded: {
+        label: "مسترجع جزئياً",
+        color: "bg-orange-100 text-orange-800",
+      },
     };
-    const { label, color } = statusMap[status] || { label: status, color: "bg-gray-100 text-gray-800" };
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${color}`}>{label}</span>;
+    const { label, color } = statusMap[status] || {
+      label: status,
+      color: "bg-gray-100 text-gray-800",
+    };
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${color}`}>
+        {label}
+      </span>
+    );
   };
 
   const getOrderTypeBadge = (orderType: string) => {
@@ -64,12 +81,14 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
       Delivery: { label: "توصيل", icon: "🚚" },
       Return: { label: "مرتجع", icon: "↩️" },
     };
-    const { label, icon } = typeMap[orderType] || { label: "غير معروف", icon: "❓" };
+    const { label, icon } = typeMap[orderType] || {
+      label: "غير معروف",
+      icon: "❓",
+    };
     return (
-      <span className={clsx(
-        "text-xs",
-        orderType === "Return" && "text-orange-600"
-      )}>
+      <span
+        className={clsx("text-xs", orderType === "Return" && "text-orange-600")}
+      >
         {icon} {label}
       </span>
     );
@@ -79,10 +98,10 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
     <>
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      
+
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div 
+        <div
           className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
@@ -124,7 +143,9 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                 <ShoppingBag className="w-4 h-4" />
                 إجمالي الطلبات
               </div>
-              <p className="font-bold text-lg text-gray-800">{customer.totalOrders}</p>
+              <p className="font-bold text-lg text-gray-800">
+                {customer.totalOrders}
+              </p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mb-1">
@@ -141,10 +162,9 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                 آخر طلب
               </div>
               <p className="font-semibold text-gray-800 text-sm">
-                {customer.lastOrderAt 
+                {customer.lastOrderAt
                   ? formatDateTime(customer.lastOrderAt).split(",")[0]
-                  : "—"
-                }
+                  : "—"}
               </p>
             </div>
           </div>
@@ -195,17 +215,27 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50 text-gray-600">
                           <tr>
-                            <th className="text-right py-3 px-3 font-medium">رقم الطلب</th>
-                            <th className="text-right py-3 px-3 font-medium">التاريخ</th>
-                            <th className="text-right py-3 px-3 font-medium">النوع</th>
-                            <th className="text-right py-3 px-3 font-medium">الحالة</th>
-                            <th className="text-right py-3 px-3 font-medium">الإجمالي</th>
+                            <th className="text-right py-3 px-3 font-medium">
+                              رقم الطلب
+                            </th>
+                            <th className="text-right py-3 px-3 font-medium">
+                              التاريخ
+                            </th>
+                            <th className="text-right py-3 px-3 font-medium">
+                              النوع
+                            </th>
+                            <th className="text-right py-3 px-3 font-medium">
+                              الحالة
+                            </th>
+                            <th className="text-right py-3 px-3 font-medium">
+                              الإجمالي
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {orders.map((order) => (
-                            <tr 
-                              key={order.id} 
+                            <tr
+                              key={order.id}
                               className={clsx(
                                 "hover:bg-gray-50 transition-colors",
                                 order.orderType === "Return" && "bg-orange-50"
@@ -225,10 +255,14 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                               <td className="py-3 px-3">
                                 {getStatusBadge(order.status)}
                               </td>
-                              <td className={clsx(
-                                "py-3 px-3 font-semibold",
-                                order.total < 0 ? "text-orange-600" : "text-gray-800"
-                              )}>
+                              <td
+                                className={clsx(
+                                  "py-3 px-3 font-semibold",
+                                  order.total < 0
+                                    ? "text-orange-600"
+                                    : "text-gray-800"
+                                )}
+                              >
                                 {formatCurrency(order.total)}
                               </td>
                             </tr>
@@ -243,7 +277,9 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setOrdersPage(p => Math.max(1, p - 1))}
+                          onClick={() =>
+                            setOrdersPage((p) => Math.max(1, p - 1))
+                          }
                           disabled={ordersPage === 1}
                         >
                           <ChevronRight className="w-4 h-4 ml-1" />
@@ -255,7 +291,11 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setOrdersPage(p => Math.min(ordersTotalPages, p + 1))}
+                          onClick={() =>
+                            setOrdersPage((p) =>
+                              Math.min(ordersTotalPages, p + 1)
+                            )
+                          }
                           disabled={ordersPage === ordersTotalPages}
                         >
                           التالي
@@ -272,8 +312,10 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
               <div className="space-y-4">
                 {/* Contact Info */}
                 <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  <h3 className="font-semibold text-gray-800 mb-3">معلومات الاتصال</h3>
-                  
+                  <h3 className="font-semibold text-gray-800 mb-3">
+                    معلومات الاتصال
+                  </h3>
+
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-gray-400" />
                     <div>
@@ -286,7 +328,9 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                     <div className="flex items-center gap-3">
                       <Mail className="w-5 h-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-500">البريد الإلكتروني</p>
+                        <p className="text-sm text-gray-500">
+                          البريد الإلكتروني
+                        </p>
                         <p className="font-medium">{customer.email}</p>
                       </div>
                     </div>
@@ -306,25 +350,33 @@ export const CustomerDetailsModal = ({ customer, onClose }: CustomerDetailsModal
                 {/* Notes */}
                 {customer.notes && (
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">ملاحظات</h3>
+                    <h3 className="font-semibold text-gray-800 mb-2">
+                      ملاحظات
+                    </h3>
                     <p className="text-gray-600">{customer.notes}</p>
                   </div>
                 )}
 
                 {/* Account Info */}
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-800 mb-3">معلومات الحساب</h3>
+                  <h3 className="font-semibold text-gray-800 mb-3">
+                    معلومات الحساب
+                  </h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">تاريخ التسجيل</p>
-                      <p className="font-medium">{formatDateTime(customer.createdAt)}</p>
+                      <p className="font-medium">
+                        {formatDateTime(customer.createdAt)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">الحالة</p>
-                      <p className={clsx(
-                        "font-medium",
-                        customer.isActive ? "text-green-600" : "text-red-600"
-                      )}>
+                      <p
+                        className={clsx(
+                          "font-medium",
+                          customer.isActive ? "text-green-600" : "text-red-600"
+                        )}
+                      >
                         {customer.isActive ? "نشط" : "غير نشط"}
                       </p>
                     </div>

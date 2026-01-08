@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
-import { Settings, Percent, ToggleLeft, ToggleRight, Save, Building2, Package } from "lucide-react";
-import { useGetCurrentTenantQuery, useUpdateCurrentTenantMutation } from "@/api/branchesApi";
+import {
+  Settings,
+  Percent,
+  ToggleLeft,
+  ToggleRight,
+  Save,
+  Building2,
+  Package,
+} from "lucide-react";
+import {
+  useGetCurrentTenantQuery,
+  useUpdateCurrentTenantMutation,
+} from "@/api/branchesApi";
 import { useAppDispatch } from "@/store/hooks";
 import { setTaxSettings } from "@/store/slices/cartSlice";
 import { Button } from "@/components/common/Button";
@@ -11,7 +22,8 @@ import clsx from "clsx";
 export const SettingsPage = () => {
   const dispatch = useAppDispatch();
   const { data: tenantData, isLoading, refetch } = useGetCurrentTenantQuery();
-  const [updateTenant, { isLoading: isUpdating }] = useUpdateCurrentTenantMutation();
+  const [updateTenant, { isLoading: isUpdating }] =
+    useUpdateCurrentTenantMutation();
 
   const tenant = tenantData?.data;
 
@@ -86,7 +98,9 @@ export const SettingsPage = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold">إعدادات الشركة</h1>
-            <p className="text-gray-500">إدارة إعدادات الضريبة والبيانات الأساسية</p>
+            <p className="text-gray-500">
+              إدارة إعدادات الضريبة والبيانات الأساسية
+            </p>
           </div>
         </div>
 
@@ -170,8 +184,8 @@ export const SettingsPage = () => {
             <div>
               <p className="font-medium">تفعيل الضريبة</p>
               <p className="text-sm text-gray-500">
-                {isTaxEnabled 
-                  ? "الضريبة مفعلة - سيتم احتساب الضريبة على جميع الطلبات" 
+                {isTaxEnabled
+                  ? "الضريبة مفعلة - سيتم احتساب الضريبة على جميع الطلبات"
                   : "الضريبة معطلة - لن يتم احتساب أي ضريبة"}
               </p>
             </div>
@@ -179,8 +193,8 @@ export const SettingsPage = () => {
               onClick={() => setIsTaxEnabled(!isTaxEnabled)}
               className={clsx(
                 "p-2 rounded-lg transition-colors",
-                isTaxEnabled 
-                  ? "bg-success-100 text-success-600" 
+                isTaxEnabled
+                  ? "bg-success-100 text-success-600"
                   : "bg-gray-200 text-gray-500"
               )}
             >
@@ -193,7 +207,9 @@ export const SettingsPage = () => {
           </div>
 
           {/* Tax Rate Input */}
-          <div className={clsx(!isTaxEnabled && "opacity-50 pointer-events-none")}>
+          <div
+            className={clsx(!isTaxEnabled && "opacity-50 pointer-events-none")}
+          >
             <label className="block text-sm font-medium text-gray-700 mb-2">
               نسبة الضريبة (%)
             </label>
@@ -221,11 +237,19 @@ export const SettingsPage = () => {
           {/* Tax Preview */}
           {isTaxEnabled && (
             <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-              <p className="text-sm font-medium text-primary-800 mb-2">معاينة الحساب (ضريبة مضافة):</p>
+              <p className="text-sm font-medium text-primary-800 mb-2">
+                معاينة الحساب (ضريبة مضافة):
+              </p>
               <div className="text-sm text-primary-700 space-y-1">
                 <p>• سعر المنتج (صافي بدون ضريبة): 100 ج.م</p>
-                <p>• قيمة الضريبة ({taxRate}%): {(100 * taxRate / 100).toFixed(2)} ج.م</p>
-                <p>• الإجمالي (شامل الضريبة): {(100 + 100 * taxRate / 100).toFixed(2)} ج.م</p>
+                <p>
+                  • قيمة الضريبة ({taxRate}%):{" "}
+                  {((100 * taxRate) / 100).toFixed(2)} ج.م
+                </p>
+                <p>
+                  • الإجمالي (شامل الضريبة):{" "}
+                  {(100 + (100 * taxRate) / 100).toFixed(2)} ج.م
+                </p>
               </div>
             </div>
           )}
@@ -241,10 +265,12 @@ export const SettingsPage = () => {
           {/* Allow Negative Stock Toggle */}
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <p className="font-medium">السماح بالمخزون السالب (Sale below 0)</p>
+              <p className="font-medium">
+                السماح بالمخزون السالب (Sale below 0)
+              </p>
               <p className="text-sm text-gray-500">
-                {allowNegativeStock 
-                  ? "مسموح - يمكن البيع حتى لو كان المخزون صفر أو سالب" 
+                {allowNegativeStock
+                  ? "مسموح - يمكن البيع حتى لو كان المخزون صفر أو سالب"
                   : "غير مسموح - سيقوم النظام برفض البيع عند نفاد المخزون"}
               </p>
             </div>
@@ -252,8 +278,8 @@ export const SettingsPage = () => {
               onClick={() => setAllowNegativeStock(!allowNegativeStock)}
               className={clsx(
                 "p-2 rounded-lg transition-colors",
-                allowNegativeStock 
-                  ? "bg-success-100 text-success-600" 
+                allowNegativeStock
+                  ? "bg-success-100 text-success-600"
                   : "bg-gray-200 text-gray-500"
               )}
             >
@@ -268,7 +294,8 @@ export const SettingsPage = () => {
           {!allowNegativeStock && (
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
               <p className="text-sm text-amber-800">
-                <strong>تنبيه:</strong> عند إيقاف هذا الخيار، لن يتمكن الكاشير من إتمام عمليات البيع للمنتجات التي نفد مخزونها.
+                <strong>تنبيه:</strong> عند إيقاف هذا الخيار، لن يتمكن الكاشير
+                من إتمام عمليات البيع للمنتجات التي نفد مخزونها.
               </p>
             </div>
           )}

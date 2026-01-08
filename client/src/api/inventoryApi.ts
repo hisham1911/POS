@@ -33,10 +33,7 @@ export const inventoryApi = baseApi.injectEndpoints({
     }),
 
     // جلب المخزون الحالي لمنتج
-    getCurrentStock: builder.query<
-      ApiResponse<CurrentStockResponse>,
-      number
-    >({
+    getCurrentStock: builder.query<ApiResponse<CurrentStockResponse>, number>({
       query: (productId) => `/inventory/products/${productId}/stock`,
       providesTags: (_result, _error, productId) => [
         { type: "Inventory", id: `STOCK_${productId}` },

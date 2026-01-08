@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ClipboardList, Eye, XCircle, Search, Calendar, Undo2 } from "lucide-react";
+import {
+  ClipboardList,
+  Eye,
+  XCircle,
+  Search,
+  Calendar,
+  Undo2,
+} from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
@@ -79,7 +86,9 @@ export const OrdersPage = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 shrink-0">
         <Card>
           <p className="text-sm text-gray-500">إجمالي الطلبات</p>
-          <p className="text-2xl font-bold text-gray-800">{filteredOrders.length}</p>
+          <p className="text-2xl font-bold text-gray-800">
+            {filteredOrders.length}
+          </p>
         </Card>
         <Card>
           <p className="text-sm text-gray-500">المكتملة</p>
@@ -122,94 +131,122 @@ export const OrdersPage = () => {
       <Card padding="none" className="flex-1 min-h-0 flex flex-col">
         <div className="overflow-auto flex-1">
           <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">رقم الطلب</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">التاريخ</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">العميل</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">الإجمالي</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">طريقة الدفع</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">الحالة</th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-600 w-24">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="text-center py-12">
-                  <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-gray-400">لا توجد طلبات</p>
-                </td>
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  رقم الطلب
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  التاريخ
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  العميل
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  الإجمالي
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  طريقة الدفع
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  الحالة
+                </th>
+                <th className="px-4 py-3 text-center font-semibold text-gray-600 w-24">
+                  إجراءات
+                </th>
               </tr>
-            ) : (
-              filteredOrders.map((order) => (
-                <tr 
-                  key={order.id} 
-                  className={clsx(
-                    "border-b hover:bg-gray-50",
-                    isReturnOrder(order) && "bg-orange-50/50"
-                  )}
-                >
-                  <td className="px-4 py-3 font-mono font-medium">
-                    <div className="flex items-center gap-2">
-                      {isReturnOrder(order) && (
-                        <Undo2 className="w-4 h-4 text-orange-500" />
-                      )}
-                      <span className={clsx(isReturnOrder(order) && "text-orange-600")}>
-                        #{order.orderNumber}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {formatDateTime(order.createdAt)}
-                  </td>
-                  <td className="px-4 py-3">{order.customerName || "-"}</td>
-                  <td className={clsx(
-                    "px-4 py-3 font-semibold",
-                    isReturnOrder(order) ? "text-orange-600" : "text-primary-600"
-                  )}>
-                    {formatCurrency(order.total)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {isReturnOrder(order) 
-                      ? <span className="text-orange-500">{ORDER_TYPES.Return.icon} {ORDER_TYPES.Return.label}</span>
-                      : order.payments.length > 0
-                        ? order.payments.map((p) => PAYMENT_METHODS[p.method]?.label).join(", ")
-                        : "-"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={clsx(
-                        "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        getStatusColor(order.status)
-                      )}
-                    >
-                      {ORDER_STATUS[order.status]?.label}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-1">
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4 text-gray-500" />
-                      </button>
-                      {order.status === "Pending" && (
-                        <button
-                          onClick={() => handleCancel(order.id)}
-                          className="p-2 hover:bg-danger-50 rounded-lg transition-colors"
-                        >
-                          <XCircle className="w-4 h-4 text-danger-500" />
-                        </button>
-                      )}
-                    </div>
+            </thead>
+            <tbody>
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12">
+                    <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-400">لا توجد طلبات</p>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredOrders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className={clsx(
+                      "border-b hover:bg-gray-50",
+                      isReturnOrder(order) && "bg-orange-50/50"
+                    )}
+                  >
+                    <td className="px-4 py-3 font-mono font-medium">
+                      <div className="flex items-center gap-2">
+                        {isReturnOrder(order) && (
+                          <Undo2 className="w-4 h-4 text-orange-500" />
+                        )}
+                        <span
+                          className={clsx(
+                            isReturnOrder(order) && "text-orange-600"
+                          )}
+                        >
+                          #{order.orderNumber}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {formatDateTime(order.createdAt)}
+                    </td>
+                    <td className="px-4 py-3">{order.customerName || "-"}</td>
+                    <td
+                      className={clsx(
+                        "px-4 py-3 font-semibold",
+                        isReturnOrder(order)
+                          ? "text-orange-600"
+                          : "text-primary-600"
+                      )}
+                    >
+                      {formatCurrency(order.total)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isReturnOrder(order) ? (
+                        <span className="text-orange-500">
+                          {ORDER_TYPES.Return.icon} {ORDER_TYPES.Return.label}
+                        </span>
+                      ) : order.payments.length > 0 ? (
+                        order.payments
+                          .map((p) => PAYMENT_METHODS[p.method]?.label)
+                          .join(", ")
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={clsx(
+                          "px-2.5 py-0.5 rounded-full text-xs font-medium",
+                          getStatusColor(order.status)
+                        )}
+                      >
+                        {ORDER_STATUS[order.status]?.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Eye className="w-4 h-4 text-gray-500" />
+                        </button>
+                        {order.status === "Pending" && (
+                          <button
+                            onClick={() => handleCancel(order.id)}
+                            className="p-2 hover:bg-danger-50 rounded-lg transition-colors"
+                          >
+                            <XCircle className="w-4 h-4 text-danger-500" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </Card>
 

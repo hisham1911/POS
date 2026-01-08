@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Product, CreateProductRequest, UpdateProductRequest } from "@/types/product.types";
+import {
+  Product,
+  CreateProductRequest,
+  UpdateProductRequest,
+} from "@/types/product.types";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
@@ -12,8 +16,12 @@ interface ProductFormModalProps {
   onClose: () => void;
 }
 
-export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) => {
-  const { createProduct, updateProduct, isCreating, isUpdating } = useProducts();
+export const ProductFormModal = ({
+  product,
+  onClose,
+}: ProductFormModalProps) => {
+  const { createProduct, updateProduct, isCreating, isUpdating } =
+    useProducts();
   const { categories } = useCategories();
   const isEditing = !!product;
 
@@ -92,7 +100,9 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
           <Input
             label="اسم المنتج (إنجليزي)"
             value={formData.nameEn}
-            onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, nameEn: e.target.value })
+            }
           />
         </div>
 
@@ -102,13 +112,17 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
           </label>
           <select
             value={formData.categoryId}
-            onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
+            onChange={(e) =>
+              setFormData({ ...formData, categoryId: Number(e.target.value) })
+            }
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             required
           >
             <option value="">اختر التصنيف</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
@@ -120,7 +134,12 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
             min="0"
             step="0.01"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                price: parseFloat(e.target.value) || 0,
+              })
+            }
             required
           />
           <Input
@@ -129,7 +148,12 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
             min="0"
             step="0.01"
             value={formData.cost}
-            onChange={(e) => setFormData({ ...formData, cost: parseFloat(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                cost: parseFloat(e.target.value) || 0,
+              })
+            }
           />
         </div>
 
@@ -142,7 +166,9 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
           <Input
             label="الباركود"
             value={formData.barcode}
-            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, barcode: e.target.value })
+            }
           />
         </div>
 
@@ -152,7 +178,12 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
             type="number"
             min="0"
             value={formData.stockQuantity}
-            onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                stockQuantity: parseInt(e.target.value) || 0,
+              })
+            }
             required
           />
           <Input
@@ -160,15 +191,30 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
             type="number"
             min="0"
             value={formData.lowStockThreshold}
-            onChange={(e) => setFormData({ ...formData, lowStockThreshold: parseInt(e.target.value) || 5 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                lowStockThreshold: parseInt(e.target.value) || 5,
+              })
+            }
           />
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            className="flex-1"
+          >
             إلغاء
           </Button>
-          <Button type="submit" variant="primary" isLoading={isLoading} className="flex-1">
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={isLoading}
+            className="flex-1"
+          >
             {isEditing ? "حفظ التغييرات" : "إضافة المنتج"}
           </Button>
         </div>

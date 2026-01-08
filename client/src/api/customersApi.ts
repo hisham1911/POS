@@ -47,7 +47,10 @@ export const customersApi = baseApi.injectEndpoints({
     }),
 
     // إنشاء عميل جديد
-    createCustomer: builder.mutation<ApiResponse<Customer>, CreateCustomerRequest>({
+    createCustomer: builder.mutation<
+      ApiResponse<Customer>,
+      CreateCustomerRequest
+    >({
       query: (customer) => ({
         url: "/customers",
         method: "POST",

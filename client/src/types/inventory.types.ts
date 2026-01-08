@@ -2,18 +2,18 @@
  * Inventory Types - Matches backend StockMovementDto and related DTOs
  */
 
-export type StockMovementType = 
-  | "Sale" 
-  | "Refund" 
-  | "Adjustment" 
-  | "Receiving" 
-  | "Damage" 
+export type StockMovementType =
+  | "Sale"
+  | "Refund"
+  | "Adjustment"
+  | "Receiving"
+  | "Damage"
   | "Transfer";
 
-export type StockAdjustmentType = 
-  | "Adjustment" 
-  | "Receiving" 
-  | "Damage" 
+export type StockAdjustmentType =
+  | "Adjustment"
+  | "Receiving"
+  | "Damage"
   | "Transfer";
 
 export interface StockMovement {

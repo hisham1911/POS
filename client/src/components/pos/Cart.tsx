@@ -13,7 +13,11 @@ interface CartProps {
   onCustomerSelect: (customer: Customer | null) => void;
 }
 
-export const Cart = ({ onCheckout, selectedCustomer, onCustomerSelect }: CartProps) => {
+export const Cart = ({
+  onCheckout,
+  selectedCustomer,
+  onCustomerSelect,
+}: CartProps) => {
   const { items, clearCart, total, itemsCount } = useCart();
 
   if (items.length === 0) {
@@ -24,7 +28,7 @@ export const Cart = ({ onCheckout, selectedCustomer, onCustomerSelect }: CartPro
           selectedCustomer={selectedCustomer}
           onCustomerSelect={onCustomerSelect}
         />
-        
+
         <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
           <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
             <ShoppingCart className="w-10 h-10" />
@@ -78,7 +82,7 @@ export const Cart = ({ onCheckout, selectedCustomer, onCustomerSelect }: CartPro
         className="w-full mt-4"
         onClick={onCheckout}
       >
-        💳 الدفع  {formatCurrency(total)}
+        💳 الدفع {formatCurrency(total)}
       </Button>
     </div>
   );
