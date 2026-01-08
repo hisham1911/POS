@@ -38,7 +38,7 @@ public class CategoriesController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Update(int id, [FromBody] CreateCategoryRequest request)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequest request)
     {
         var result = await _categoryService.UpdateAsync(id, request);
         return result.Success ? Ok(result) : NotFound(result);

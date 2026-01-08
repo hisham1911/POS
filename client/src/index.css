@@ -44,7 +44,8 @@ body {
   .btn {
     @apply inline-flex items-center justify-center gap-2 font-medium rounded-lg 
            transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-50 disabled:cursor-not-allowed
+           active:scale-95;
   }
 
   .btn-primary {
@@ -118,7 +119,7 @@ body {
   }
 
   .card-hover {
-    @apply card hover:shadow-md hover:border-primary-200 transition-all duration-200 cursor-pointer;
+    @apply card hover:shadow-md hover:border-primary-200 transition-all duration-200 cursor-pointer active:scale-95;
   }
 
   /* Badges */
@@ -246,6 +247,11 @@ body {
   to { transform: translateX(0); }
 }
 
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
@@ -259,7 +265,7 @@ body {
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out;
+  animation: slideInLeft 0.3s ease-out;
 }
 
 .animate-pulse-soft {

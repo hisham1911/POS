@@ -4,6 +4,7 @@ public class ApiResponse<T>
 {
     public bool Success { get; set; }
     public string? Message { get; set; }
+    public string? ErrorCode { get; set; }
     public T? Data { get; set; }
     public List<string>? Errors { get; set; }
 
@@ -20,4 +21,24 @@ public class ApiResponse<T>
         Message = message,
         Errors = errors
     };
+
+    public static ApiResponse<T> Fail(string errorCode, string message, List<string>? errors = null) => new()
+    {
+        Success = false,
+        ErrorCode = errorCode,
+        Message = message,
+        Errors = errors
+    };
+}
+
+
+public class PagedResult<T>
+{
+    public List<T> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public bool HasNextPage => Page < TotalPages;
+    public bool HasPreviousPage => Page > 1;
 }

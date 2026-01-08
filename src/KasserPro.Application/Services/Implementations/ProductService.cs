@@ -10,14 +10,20 @@ using KasserPro.Domain.Entities;
 public class ProductService : IProductService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUser;
 
-    public ProductService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
+    public ProductService(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+    {
+        _unitOfWork = unitOfWork;
+        _currentUser = currentUser;
+    }
 
     public async Task<ApiResponse<List<ProductDto>>> GetAllAsync()
     {
+        var tenantId = _currentUser.TenantId;
         var products = await _unitOfWork.Products.Query()
             .Include(p => p.Category)
-            .Where(p => p.IsActive)
+            .Where(p => p.TenantId == tenantId && p.IsActive)
             .Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -27,8 +33,13 @@ public class ProductService : IProductService
                 Sku = p.Sku,
                 Barcode = p.Barcode,
                 Price = p.Price,
+                Cost = p.Cost,
+                TaxRate = p.TaxRate,
+                TaxInclusive = p.TaxInclusive,
                 ImageUrl = p.ImageUrl,
                 IsActive = p.IsActive,
+                TrackInventory = p.TrackInventory,
+                StockQuantity = p.StockQuantity,
                 CategoryId = p.CategoryId,
                 CategoryName = p.Category.Name
             })
@@ -39,9 +50,10 @@ public class ProductService : IProductService
 
     public async Task<ApiResponse<ProductDto>> GetByIdAsync(int id)
     {
+        var tenantId = _currentUser.TenantId;
         var product = await _unitOfWork.Products.Query()
             .Include(p => p.Category)
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
 
         if (product == null)
             return ApiResponse<ProductDto>.Fail("المنتج غير موجود");
@@ -52,24 +64,42 @@ public class ProductService : IProductService
             Name = product.Name,
             NameEn = product.NameEn,
             Description = product.Description,
+            Sku = product.Sku,
+            Barcode = product.Barcode,
             Price = product.Price,
+            Cost = product.Cost,
+            TaxRate = product.TaxRate,
+            TaxInclusive = product.TaxInclusive,
+            ImageUrl = product.ImageUrl,
+            IsActive = product.IsActive,
+            TrackInventory = product.TrackInventory,
+            StockQuantity = product.StockQuantity,
             CategoryId = product.CategoryId,
-            CategoryName = product.Category.Name,
-            IsActive = product.IsActive
+            CategoryName = product.Category.Name
         });
     }
 
     public async Task<ApiResponse<List<ProductDto>>> GetByCategoryAsync(int categoryId)
     {
+        var tenantId = _currentUser.TenantId;
         var products = await _unitOfWork.Products.Query()
-            .Where(p => p.CategoryId == categoryId && p.IsActive)
+            .Include(p => p.Category)
+            .Where(p => p.TenantId == tenantId && p.CategoryId == categoryId && p.IsActive)
             .Select(p => new ProductDto
             {
                 Id = p.Id,
                 Name = p.Name,
+                NameEn = p.NameEn,
                 Price = p.Price,
+                Cost = p.Cost,
+                TaxRate = p.TaxRate,
+                TaxInclusive = p.TaxInclusive,
                 ImageUrl = p.ImageUrl,
-                CategoryId = p.CategoryId
+                IsActive = p.IsActive,
+                TrackInventory = p.TrackInventory,
+                StockQuantity = p.StockQuantity,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category.Name
             })
             .ToListAsync();
 
@@ -78,8 +108,18 @@ public class ProductService : IProductService
 
     public async Task<ApiResponse<ProductDto>> CreateAsync(CreateProductRequest request)
     {
+        // Validation: Price must be non-negative
+        if (request.Price < 0)
+            return ApiResponse<ProductDto>.Fail("سعر المنتج لا يمكن أن يكون سالباً");
+        
+        // Validation: Category must exist
+        var category = await _unitOfWork.Categories.GetByIdAsync(request.CategoryId);
+        if (category == null)
+            return ApiResponse<ProductDto>.Fail("التصنيف غير موجود");
+
         var product = new Product
         {
+            TenantId = _currentUser.TenantId,
             Name = request.Name,
             NameEn = request.NameEn,
             Description = request.Description,
@@ -98,16 +138,34 @@ public class ProductService : IProductService
         {
             Id = product.Id,
             Name = product.Name,
+            NameEn = product.NameEn,
             Price = product.Price,
+            Cost = product.Cost,
+            TaxRate = product.TaxRate,
+            TaxInclusive = product.TaxInclusive,
+            IsActive = product.IsActive,
+            TrackInventory = product.TrackInventory,
+            StockQuantity = product.StockQuantity,
             CategoryId = product.CategoryId
         }, "تم إنشاء المنتج بنجاح");
     }
 
     public async Task<ApiResponse<ProductDto>> UpdateAsync(int id, UpdateProductRequest request)
     {
-        var product = await _unitOfWork.Products.GetByIdAsync(id);
+        // Validation: Price must be non-negative
+        if (request.Price < 0)
+            return ApiResponse<ProductDto>.Fail("سعر المنتج لا يمكن أن يكون سالباً");
+
+        var tenantId = _currentUser.TenantId;
+        var product = await _unitOfWork.Products.Query()
+            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
         if (product == null)
             return ApiResponse<ProductDto>.Fail("المنتج غير موجود");
+
+        // Validation: Category must exist
+        var category = await _unitOfWork.Categories.GetByIdAsync(request.CategoryId);
+        if (category == null)
+            return ApiResponse<ProductDto>.Fail("التصنيف غير موجود");
 
         product.Name = request.Name;
         product.NameEn = request.NameEn;
@@ -127,13 +185,23 @@ public class ProductService : IProductService
         {
             Id = product.Id,
             Name = product.Name,
-            Price = product.Price
+            NameEn = product.NameEn,
+            Price = product.Price,
+            Cost = product.Cost,
+            TaxRate = product.TaxRate,
+            TaxInclusive = product.TaxInclusive,
+            IsActive = product.IsActive,
+            TrackInventory = product.TrackInventory,
+            StockQuantity = product.StockQuantity,
+            CategoryId = product.CategoryId
         }, "تم تحديث المنتج بنجاح");
     }
 
     public async Task<ApiResponse<bool>> DeleteAsync(int id)
     {
-        var product = await _unitOfWork.Products.GetByIdAsync(id);
+        var tenantId = _currentUser.TenantId;
+        var product = await _unitOfWork.Products.Query()
+            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
         if (product == null)
             return ApiResponse<bool>.Fail("المنتج غير موجود");
 

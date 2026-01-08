@@ -1,9 +1,13 @@
 namespace KasserPro.Application.DTOs.Orders;
 
+using KasserPro.Domain.Enums;
+
 public class CreateOrderRequest
 {
+    public OrderType OrderType { get; set; } = OrderType.DineIn;
     public string? CustomerName { get; set; }
     public string? CustomerPhone { get; set; }
+    public int? CustomerId { get; set; }
     public string? Notes { get; set; }
     public List<CreateOrderItemRequest> Items { get; set; } = new();
 }
@@ -24,7 +28,12 @@ public class AddOrderItemRequest
 
 public class CompleteOrderRequest
 {
-    public decimal AmountPaid { get; set; }
-    public string PaymentMethod { get; set; } = "Cash";
-    public string? PaymentReference { get; set; }
+    public List<PaymentRequest> Payments { get; set; } = new();
+}
+
+public class PaymentRequest
+{
+    public string Method { get; set; } = "Cash";
+    public decimal Amount { get; set; }
+    public string? Reference { get; set; }
 }

@@ -10,6 +10,8 @@ import CategoriesPage from "./pages/categories/CategoriesPage"
 import OrdersPage from "./pages/orders/OrdersPage"
 import ShiftPage from "./pages/shifts/ShiftPage"
 import DailyReportPage from "./pages/reports/DailyReportPage"
+import AuditLogPage from "./pages/audit/AuditLogPage"
+import SettingsPage from "./pages/settings/SettingsPage"
 import NotFound from "./pages/NotFound"
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -72,6 +74,22 @@ const AppRoutes = () => (
         element={
           <AdminRoute>
             <DailyReportPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/audit"
+        element={
+          <AdminRoute>
+            <AuditLogPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <AdminRoute>
+            <SettingsPage />
           </AdminRoute>
         }
       />

@@ -4,5 +4,5 @@ public enum PaymentMethod
 {
     Cash = 0,
     Card = 1,
-    Mada = 2
+    Fawry = 2
 }

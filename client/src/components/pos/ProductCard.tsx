@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { Product } from "@/types/product.types";
+import { Category } from "@/types/category.types";
 import { useCart } from "@/hooks/useCart";
 import { formatCurrency } from "@/utils/formatters";
 
 interface ProductCardProps {
   product: Product;
+  category?: Category;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, category }: ProductCardProps) => {
   const { addItem } = useCart();
+  const [imageError, setImageError] = useState(false);
 
   const handleClick = () => {
     if (product.isActive) {
@@ -23,14 +27,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     >
       {/* Image */}
       <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-        {product.imageUrl ? (
+        {product.imageUrl && !imageError ? (
           <img
             src={product.imageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
           />
         ) : (
-          <span className="text-4xl">📦</span>
+          <span className="text-4xl">{category?.imageUrl || "📦"}</span>
         )}
       </div>
 

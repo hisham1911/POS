@@ -38,24 +38,8 @@ export const useAuth = () => {
         toast.error(result.message || "فشل تسجيل الدخول");
       }
     } catch (error: unknown) {
-      // Fallback to mock login for development
-      if (credentials.email === "admin@kasserpro.com" && credentials.password === "Admin@123") {
-        dispatch(setCredentials({
-          user: { id: 1, name: "مدير النظام", email: credentials.email, role: "Admin" },
-          token: "mock-token-admin",
-        }));
-        toast.success("تم تسجيل الدخول بنجاح (وضع التطوير)");
-        navigate("/pos");
-      } else if (credentials.email === "ahmed@kasserpro.com" && credentials.password === "123456") {
-        dispatch(setCredentials({
-          user: { id: 2, name: "أحمد الكاشير", email: credentials.email, role: "Cashier" },
-          token: "mock-token-cashier",
-        }));
-        toast.success("تم تسجيل الدخول بنجاح (وضع التطوير)");
-        navigate("/pos");
-      } else {
-        toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
-      }
+      const errorMessage = (error as any)?.data?.message || "فشل تسجيل الدخول";
+      toast.error(errorMessage);
     }
   };
 

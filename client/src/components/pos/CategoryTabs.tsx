@@ -9,7 +9,7 @@ interface CategoryTabsProps {
 
 export const CategoryTabs = ({ categories, selectedId, onSelect }: CategoryTabsProps) => {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+    <div className="flex flex-wrap gap-2">
       {/* All */}
       <button
         onClick={() => onSelect(null)}

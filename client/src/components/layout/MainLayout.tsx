@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LogOut,
@@ -12,25 +12,34 @@ import {
   Timer,
   BarChart3,
   X,
+  FileText,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
+import { BranchSelector } from "./BranchSelector";
 
 const navItems = [
   { path: "/pos", label: "نقطة البيع", icon: ShoppingCart },
   { path: "/orders", label: "الطلبات", icon: ClipboardList },
   { path: "/shift", label: "الوردية", icon: Timer },
   { path: "/products", label: "المنتجات", icon: Package, adminOnly: true },
-  { path: "/categories", label: "التصنيفات", icon: FolderOpen, adminOnly: true },
+  {
+    path: "/categories",
+    label: "التصنيفات",
+    icon: FolderOpen,
+    adminOnly: true,
+  },
   { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
+  { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
+  { path: "/settings", label: "الإعدادات", icon: Settings, adminOnly: true },
 ];
 
 export const MainLayout = () => {
   const { user, logout, isAdmin } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
 
-  const currentTime = new Date().toLocaleTimeString("ar-SA", {
+  const currentTime = new Date().toLocaleTimeString("ar-EG", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -40,9 +49,9 @@ export const MainLayout = () => {
   );
 
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="h-screen flex w-full overflow-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex w-64 bg-gray-900 text-white flex-col">
+      <aside className="hidden lg:flex w-64 bg-gray-900 text-white flex-col shrink-0 border-l border-gray-800">
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center gap-3">
@@ -161,7 +170,7 @@ export const MainLayout = () => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -181,6 +190,8 @@ export const MainLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <BranchSelector />
+            
             <div className="hidden sm:flex items-center gap-2 text-gray-500">
               <Clock className="w-4 h-4" />
               <span className="text-sm">{currentTime}</span>
@@ -188,7 +199,9 @@ export const MainLayout = () => {
 
             <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
               <User className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium hidden sm:inline">{user?.name}</span>
+              <span className="text-sm font-medium hidden sm:inline">
+                {user?.name}
+              </span>
               {user?.role === "Admin" && (
                 <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full hidden sm:inline">
                   مدير
@@ -207,7 +220,7 @@ export const MainLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-hidden bg-gray-50">
           <Outlet />
         </main>
       </div>

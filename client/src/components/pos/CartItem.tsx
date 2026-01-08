@@ -49,7 +49,7 @@ export const CartItemComponent = ({ item }: CartItemProps) => {
       </div>
 
       {/* Total */}
-      <div className="text-left">
+      <div className="text-start shrink-0">
         <p className="font-bold text-primary-600">{formatCurrency(total)}</p>
         <button
           onClick={() => removeItem(product.id)}

@@ -5,6 +5,9 @@ using KasserPro.Domain.Enums;
 
 public class User : BaseEntity
 {
+    public int TenantId { get; set; }
+    public int? BranchId { get; set; }
+    
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
@@ -13,6 +16,9 @@ public class User : BaseEntity
     public bool IsActive { get; set; } = true;
     public string? PinCode { get; set; }
 
+    // Navigation
+    public Tenant Tenant { get; set; } = null!;
+    public Branch? Branch { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Shift> Shifts { get; set; } = new List<Shift>();
 }

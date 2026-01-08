@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Product, CreateProductRequest } from "@/types/product.types";
+import { Product, CreateProductRequest, UpdateProductRequest } from "@/types/product.types";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
@@ -17,7 +17,7 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
   const { categories } = useCategories();
   const isEditing = !!product;
 
-  const [formData, setFormData] = useState<CreateProductRequest>({
+  const [formData, setFormData] = useState({
     name: product?.name || "",
     nameEn: product?.nameEn || "",
     description: product?.description || "",
@@ -28,15 +28,43 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
     categoryId: product?.categoryId || categories[0]?.id || 0,
     trackInventory: product?.trackInventory || false,
     stockQuantity: product?.stockQuantity || 0,
+    isActive: product?.isActive ?? true, // الحفاظ على حالة التفعيل
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isEditing && product) {
-      await updateProduct(product.id, formData);
+      // تحديث المنتج - يجب إرسال isActive
+      const updateData: UpdateProductRequest = {
+        name: formData.name,
+        nameEn: formData.nameEn,
+        description: formData.description,
+        sku: formData.sku,
+        barcode: formData.barcode,
+        price: formData.price,
+        cost: formData.cost,
+        categoryId: formData.categoryId,
+        trackInventory: formData.trackInventory,
+        stockQuantity: formData.stockQuantity,
+        isActive: formData.isActive, // مهم جداً!
+      };
+      await updateProduct(product.id, updateData);
     } else {
-      await createProduct(formData);
+      // إنشاء منتج جديد
+      const createData: CreateProductRequest = {
+        name: formData.name,
+        nameEn: formData.nameEn,
+        description: formData.description,
+        sku: formData.sku,
+        barcode: formData.barcode,
+        price: formData.price,
+        cost: formData.cost,
+        categoryId: formData.categoryId,
+        trackInventory: formData.trackInventory,
+        stockQuantity: formData.stockQuantity,
+      };
+      await createProduct(createData);
     }
 
     onClose();

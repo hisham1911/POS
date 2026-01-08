@@ -10,11 +10,20 @@ export interface Shift {
   notes?: string;
   totalCash: number;
   totalCard: number;
-  totalMada: number;
   totalOrders: number;
-  totalSales: number;
-  userId: number;
   userName?: string;
+  orders?: ShiftOrder[];
+}
+
+export interface ShiftOrder {
+  id: number;
+  orderNumber: string;
+  status: string;
+  orderType?: string;
+  total: number;
+  customerName?: string;
+  createdAt: string;
+  completedAt?: string;
 }
 
 export interface OpenShiftRequest {

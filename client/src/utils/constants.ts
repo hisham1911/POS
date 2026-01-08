@@ -1,5 +1,5 @@
-// نسبة الضريبة
-export const TAX_RATE = 15;
+// نسبة الضريبة (ضريبة القيمة المضافة المصرية)
+export const TAX_RATE = 14;
 
 // حالات الطلب
 export const ORDER_STATUS = {
@@ -14,7 +14,7 @@ export const ORDER_STATUS = {
 export const PAYMENT_METHODS = {
   Cash: { label: "نقدي", icon: "💵" },
   Card: { label: "بطاقة", icon: "💳" },
-  Mada: { label: "مدى", icon: "💳" },
+  Fawry: { label: "فوري", icon: "💳" },
 } as const;
 
 // صلاحيات المستخدمين

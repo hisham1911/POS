@@ -1,5 +1,7 @@
 namespace KasserPro.Application.DTOs.Shifts;
 
+using KasserPro.Application.DTOs.Orders;
+
 public class ShiftDto
 {
     public int Id { get; set; }
@@ -15,6 +17,24 @@ public class ShiftDto
     public decimal TotalCard { get; set; }
     public int TotalOrders { get; set; }
     public string UserName { get; set; } = string.Empty;
+    
+    // Orders in this shift
+    public List<ShiftOrderDto> Orders { get; set; } = new();
+}
+
+/// <summary>
+/// Simplified order DTO for shift context (less data than full OrderDto)
+/// </summary>
+public class ShiftOrderDto
+{
+    public int Id { get; set; }
+    public string OrderNumber { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string OrderType { get; set; } = string.Empty;
+    public decimal Total { get; set; }
+    public string? CustomerName { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }
 
 public class OpenShiftRequest

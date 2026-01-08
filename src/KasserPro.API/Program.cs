@@ -7,13 +7,26 @@ using KasserPro.Application.Services.Implementations;
 using KasserPro.Application.Services.Interfaces;
 using KasserPro.Infrastructure.Data;
 using KasserPro.Infrastructure.Repositories;
+using KasserPro.Infrastructure.Services;
 using KasserPro.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// HttpContextAccessor for CurrentUserService
+builder.Services.AddHttpContextAccessor();
+
+// Current User Service (extracts TenantId, BranchId, UserId from JWT)
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// Audit Interceptor
+builder.Services.AddSingleton<AuditSaveChangesInterceptor>();
+
 // Database
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
+});
 
 // Repositories
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -25,6 +38,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -45,6 +61,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache(); // For Idempotency
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -59,14 +76,18 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Initialize Database
-using (var scope = app.Services.CreateScope())
+// Initialize Database (skip in Testing environment)
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbInitializer.InitializeAsync(context);
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await DbInitializer.InitializeAsync(context);
+    }
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseIdempotency(); // Idempotency for critical operations
 
 if (app.Environment.IsDevelopment())
 {

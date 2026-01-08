@@ -14,9 +14,9 @@ export const shiftsApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Shifts", id: "CURRENT" }],
     }),
 
-    // جلب كل الورديات
+    // جلب سجل الورديات
     getShifts: builder.query<ApiResponse<Shift[]>, void>({
-      query: () => "/shifts",
+      query: () => "/shifts/history",
       providesTags: ["Shifts"],
     }),
 

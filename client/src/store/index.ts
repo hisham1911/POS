@@ -7,6 +7,7 @@ import { baseApi } from "../api/baseApi"
 import authReducer from "./slices/authSlice"
 import cartReducer from "./slices/cartSlice"
 import uiReducer from "./slices/uiSlice"
+import branchReducer from "./slices/branchSlice"
 
 const authPersistConfig = {
   key: "auth",
@@ -14,11 +15,18 @@ const authPersistConfig = {
   whitelist: ["token", "user", "isAuthenticated"],
 }
 
+const branchPersistConfig = {
+  key: "branch",
+  storage,
+  whitelist: ["currentBranch"],
+}
+
 const rootReducer = combineReducers({
   [baseApi.reducerPath]: baseApi.reducer,
   auth: persistReducer(authPersistConfig, authReducer),
   cart: cartReducer,
   ui: uiReducer,
+  branch: persistReducer(branchPersistConfig, branchReducer),
 })
 
 export const store = configureStore({

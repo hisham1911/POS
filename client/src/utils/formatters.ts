@@ -1,6 +1,24 @@
+// Cairo timezone for Egypt
+const TIMEZONE = "Africa/Cairo";
+
+/**
+ * Parse date string from API (assumes UTC if no timezone specified)
+ * Backend stores DateTime.UtcNow but JSON doesn't include 'Z' suffix
+ */
+const parseApiDate = (date: string | Date): Date => {
+  if (date instanceof Date) return date;
+  
+  // If the date string doesn't have timezone info, assume it's UTC
+  // Add 'Z' suffix to indicate UTC if not present
+  if (!date.endsWith('Z') && !date.includes('+') && !date.includes('-', 10)) {
+    return new Date(date + 'Z');
+  }
+  return new Date(date);
+};
+
 // تنسيق العملة
-export const formatCurrency = (amount: number, currency = "SAR"): string => {
-  return new Intl.NumberFormat("ar-SA", {
+export const formatCurrency = (amount: number, currency = "EGP"): string => {
+  return new Intl.NumberFormat("ar-EG", {
     style: "currency",
     currency,
     minimumFractionDigits: 2,
@@ -8,40 +26,71 @@ export const formatCurrency = (amount: number, currency = "SAR"): string => {
   }).format(amount);
 };
 
-// تنسيق بسيط للريال
+// تنسيق بسيط للجنيه
 export const formatPrice = (amount: number): string => {
-  return `${amount.toFixed(2)} ر.س`;
+  return `${amount.toFixed(2)} ج.م`;
 };
 
-// تنسيق التاريخ
+// تنسيق التاريخ (Cairo timezone)
 export const formatDate = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-SA", {
+  return new Intl.DateTimeFormat("ar-EG", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  }).format(new Date(date));
+    timeZone: TIMEZONE,
+  }).format(parseApiDate(date));
 };
 
-// تنسيق التاريخ والوقت
+// تنسيق التاريخ والوقت (Cairo timezone)
 export const formatDateTime = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-SA", {
+  return new Intl.DateTimeFormat("ar-EG", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+    timeZone: TIMEZONE,
+  }).format(parseApiDate(date));
 };
 
-// تنسيق الوقت فقط
-export const formatTime = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-SA", {
+// تنسيق التاريخ والوقت المختصر (Cairo timezone)
+export const formatDateTimeShort = (date: string | Date): string => {
+  return new Intl.DateTimeFormat("ar-EG", {
+    month: "numeric",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+    timeZone: TIMEZONE,
+  }).format(parseApiDate(date));
+};
+
+// تنسيق الوقت فقط (Cairo timezone)
+export const formatTime = (date: string | Date): string => {
+  return new Intl.DateTimeFormat("ar-EG", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TIMEZONE,
+  }).format(parseApiDate(date));
+};
+
+// تنسيق الوقت النسبي (منذ X دقائق)
+export const formatRelativeTime = (date: string | Date): string => {
+  const now = new Date();
+  const then = parseApiDate(date);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "الآن";
+  if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+  if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+  if (diffDays < 7) return `منذ ${diffDays} يوم`;
+  
+  return formatDateTime(date);
 };
 
 // تنسيق الأرقام
 export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat("ar-SA").format(num);
+  return new Intl.NumberFormat("ar-EG").format(num);
 };

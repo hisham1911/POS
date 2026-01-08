@@ -47,9 +47,9 @@ export const OrdersPage = () => {
   }
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="h-full flex flex-col p-6 overflow-hidden gap-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">الطلبات</h1>
           <p className="text-gray-500">عرض وإدارة الطلبات</p>
@@ -73,7 +73,7 @@ export const OrdersPage = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 shrink-0">
         <Card>
           <p className="text-sm text-gray-500">إجمالي الطلبات</p>
           <p className="text-2xl font-bold text-gray-800">{filteredOrders.length}</p>
@@ -103,21 +103,22 @@ export const OrdersPage = () => {
       </div>
 
       {/* Search */}
-      <Card className="mb-6">
+      <Card className="shrink-0">
         <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             placeholder="بحث برقم الطلب أو اسم العميل..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10"
+            className="pl-10"
           />
         </div>
       </Card>
 
       {/* Table */}
-      <Card padding="none" className="flex-1 overflow-auto">
-        <table className="w-full">
+      <Card padding="none" className="flex-1 min-h-0 flex flex-col">
+        <div className="overflow-auto flex-1">
+          <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b">
               <th className="px-4 py-3 text-right font-semibold text-gray-600">رقم الطلب</th>
@@ -186,6 +187,7 @@ export const OrdersPage = () => {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {/* Order Details Modal */}

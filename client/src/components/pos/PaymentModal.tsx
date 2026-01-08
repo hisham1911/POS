@@ -12,10 +12,14 @@ interface PaymentModalProps {
   onClose: () => void;
 }
 
-const paymentMethods: { id: PaymentMethod; label: string; icon: React.ReactNode }[] = [
+const paymentMethods: {
+  id: PaymentMethod;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
   { id: "Cash", label: "نقدي", icon: <Banknote className="w-8 h-8" /> },
   { id: "Card", label: "بطاقة", icon: <CreditCard className="w-8 h-8" /> },
-  { id: "Mada", label: "مدى", icon: <Building2 className="w-8 h-8" /> },
+  { id: "Fawry", label: "فوري", icon: <Building2 className="w-8 h-8" /> },
 ];
 
 export const PaymentModal = ({ onClose }: PaymentModalProps) => {
@@ -54,24 +58,32 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
     try {
       // 1. إنشاء الطلب أولاً
       const order = await createOrder();
-      if (!order) return;
+      if (!order) {
+        // فشل إنشاء الطلب - لا نغلق النافذة، السلة محفوظة
+        return;
+      }
 
       // 2. إكمال الطلب بالدفع
       const completedOrder = await completeOrder(order.id, {
-        payments: [{
-          method: selectedMethod,
-          amount: numericAmount,
-        }],
+        payments: [
+          {
+            method: selectedMethod,
+            amount: numericAmount,
+          },
+        ],
       });
 
       if (completedOrder) {
+        // نجاح - عرض الباقي إن وجد
         if (change > 0) {
-          toast.success(`تم إكمال الطلب! الباقي: ${formatCurrency(change)}`);
+          toast.success(`تم إتمام الدفع! الباقي: ${formatCurrency(change)}`);
         }
         onClose();
       }
+      // فشل إكمال الطلب - لا نغلق النافذة، السلة محفوظة
     } catch {
-      toast.error("حدث خطأ أثناء إتمام الطلب");
+      // خطأ غير متوقع - لا نغلق النافذة
+      toast.error("حدث خطأ غير متوقع");
     }
   };
 
@@ -95,12 +107,16 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
           {/* Total Amount */}
           <div className="text-center p-6 bg-gray-50 rounded-xl">
             <p className="text-gray-500 mb-1">الإجمالي المطلوب</p>
-            <p className="text-4xl font-bold text-primary-600">{formatCurrency(total)}</p>
+            <p className="text-4xl font-bold text-primary-600">
+              {formatCurrency(total)}
+            </p>
           </div>
 
           {/* Payment Methods */}
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-3">طريقة الدفع</p>
+            <p className="text-sm font-medium text-gray-500 mb-3">
+              طريقة الدفع
+            </p>
             <div className="grid grid-cols-3 gap-3">
               {paymentMethods.map((method) => (
                 <button
@@ -124,10 +140,13 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
           {selectedMethod === "Cash" && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-3">المبلغ المدفوع</p>
+                <p className="text-sm font-medium text-gray-500 mb-3">
+                  المبلغ المدفوع
+                </p>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <p className="text-3xl font-bold">
-                    {amountPaid || "0"} <span className="text-lg text-gray-400">ر.س</span>
+                    {amountPaid || "0"}{" "}
+                    <span className="text-lg text-gray-400">ج.م</span>
                   </p>
                 </div>
               </div>
@@ -153,27 +172,42 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
 
               {/* Numpad */}
               <div className="grid grid-cols-4 gap-2">
-                {["7", "8", "9", "←", "4", "5", "6", "C", "1", "2", "3", ".", "0", "00"].map(
-                  (key) => (
-                    <button
-                      key={key}
-                      onClick={() => handleNumpadClick(key)}
-                      className={clsx(
-                        "h-14 rounded-lg bg-gray-100 font-semibold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors",
-                        key === "0" && "col-span-2"
-                      )}
-                    >
-                      {key}
-                    </button>
-                  )
-                )}
+                {[
+                  "7",
+                  "8",
+                  "9",
+                  "←",
+                  "4",
+                  "5",
+                  "6",
+                  "C",
+                  "1",
+                  "2",
+                  "3",
+                  ".",
+                  "0",
+                  "00",
+                ].map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => handleNumpadClick(key)}
+                    className={clsx(
+                      "h-14 rounded-lg bg-gray-100 font-semibold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors",
+                      key === "0" && "col-span-2"
+                    )}
+                  >
+                    {key}
+                  </button>
+                ))}
               </div>
 
               {/* Change */}
               {change > 0 && (
                 <div className="text-center p-4 bg-success-50 rounded-xl border border-success-200">
                   <p className="text-gray-500 text-sm">الباقي</p>
-                  <p className="text-2xl font-bold text-success-500">{formatCurrency(change)}</p>
+                  <p className="text-2xl font-bold text-success-500">
+                    {formatCurrency(change)}
+                  </p>
                 </div>
               )}
             </div>
@@ -186,10 +220,10 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
             className="w-full"
             onClick={handleComplete}
             isLoading={isCreating || isCompleting}
-            disabled={numericAmount < total}
+            disabled={isCreating || isCompleting || numericAmount < total}
             rightIcon={<Check className="w-5 h-5" />}
           >
-            إتمام الدفع
+            {isCreating ? "جاري إنشاء الطلب..." : isCompleting ? "جاري الدفع..." : "إتمام الدفع"}
           </Button>
         </div>
       </div>

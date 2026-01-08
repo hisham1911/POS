@@ -31,4 +31,17 @@ export interface CreateProductRequest {
   stockQuantity?: number;
 }
 
-export interface UpdateProductRequest extends Partial<CreateProductRequest> {}
+export interface UpdateProductRequest {
+  name: string;
+  nameEn?: string;
+  description?: string;
+  sku?: string;
+  barcode?: string;
+  price: number;
+  cost?: number;
+  imageUrl?: string;
+  categoryId: number;
+  trackInventory?: boolean;
+  stockQuantity?: number;
+  isActive: boolean; // مطلوب لمنع إلغاء تفعيل المنتج عند التحديث
+}

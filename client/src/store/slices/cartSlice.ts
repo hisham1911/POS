@@ -10,13 +10,13 @@ export interface CartItem {
 interface CartState {
   items: CartItem[];
   taxRate: number;
+  isTaxEnabled: boolean;
 }
-
-const TAX_RATE = 15; // VAT 15%
 
 const initialState: CartState = {
   items: [],
-  taxRate: TAX_RATE,
+  taxRate: 14, // Default VAT 14% (الضريبة المصرية) - will be updated from tenant
+  isTaxEnabled: true,
 };
 
 const cartSlice = createSlice({
@@ -78,40 +78,82 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
     },
+    
+    // تحديث إعدادات الضريبة من بيانات الشركة
+    setTaxSettings: (
+      state,
+      action: PayloadAction<{ taxRate: number; isTaxEnabled: boolean }>
+    ) => {
+      state.taxRate = action.payload.taxRate;
+      state.isTaxEnabled = action.payload.isTaxEnabled;
+    },
   },
 });
 
-export const { addItem, removeItem, updateQuantity, updateNotes, clearCart } =
+export const { addItem, removeItem, updateQuantity, updateNotes, clearCart, setTaxSettings } =
   cartSlice.actions;
 
 // Selectors
 export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 export const selectTaxRate = (state: { cart: CartState }) => state.cart.taxRate;
+export const selectIsTaxEnabled = (state: { cart: CartState }) => state.cart.isTaxEnabled;
 
 export const selectItemsCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
+/**
+ * Subtotal = Sum of all item prices (Net, before tax)
+ * Product.price is the NET price (excluding tax)
+ */
 export const selectSubtotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
+  Math.round(
+    state.cart.items.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    ) * 100
+  ) / 100;
 
+/**
+ * Tax Exclusive (Additive): Tax is calculated on top of Net price
+ * TaxAmount = Subtotal * (TaxRate / 100)
+ * 
+ * Example (100 EGP Net with 14% VAT):
+ *   TaxAmount = 100 * 0.14 = 14 EGP
+ */
 export const selectTaxAmount = (state: { cart: CartState }) => {
+  // If tax is disabled, return 0
+  if (!state.cart.isTaxEnabled) return 0;
+  
   const subtotal = state.cart.items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  return (subtotal * state.cart.taxRate) / 100;
+  
+  // Tax Exclusive: TaxAmount = Subtotal * (Rate / 100)
+  const taxAmount = subtotal * (state.cart.taxRate / 100);
+  return Math.round(taxAmount * 100) / 100;
 };
 
+/**
+ * Total = Subtotal + Tax
+ * 
+ * Example (100 EGP Net with 14% VAT):
+ *   Total = 100 + 14 = 114 EGP
+ */
 export const selectTotal = (state: { cart: CartState }) => {
   const subtotal = state.cart.items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  const taxAmount = (subtotal * state.cart.taxRate) / 100;
-  return subtotal + taxAmount;
+  
+  // If tax is disabled, Total = Subtotal
+  if (!state.cart.isTaxEnabled) {
+    return Math.round(subtotal * 100) / 100;
+  }
+  
+  // Tax Exclusive: Total = Subtotal + Tax
+  const taxAmount = subtotal * (state.cart.taxRate / 100);
+  return Math.round((subtotal + taxAmount) * 100) / 100;
 };
 
 export default cartSlice.reducer;

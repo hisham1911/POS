@@ -10,6 +10,8 @@ import {
   selectSubtotal,
   selectTaxAmount,
   selectTotal,
+  selectTaxRate,
+  selectIsTaxEnabled,
 } from "../store/slices/cartSlice";
 import { Product } from "../types/product.types";
 
@@ -21,6 +23,8 @@ export const useCart = () => {
   const subtotal = useAppSelector(selectSubtotal);
   const taxAmount = useAppSelector(selectTaxAmount);
   const total = useAppSelector(selectTotal);
+  const taxRate = useAppSelector(selectTaxRate);
+  const isTaxEnabled = useAppSelector(selectIsTaxEnabled);
 
   const add = (product: Product, quantity = 1) => {
     dispatch(addItem({ product, quantity }));
@@ -48,6 +52,8 @@ export const useCart = () => {
     subtotal,
     taxAmount,
     total,
+    taxRate,
+    isTaxEnabled,
     addItem: add,
     removeItem: remove,
     updateQuantity: setQuantity,

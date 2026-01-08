@@ -15,6 +15,13 @@ public class OrdersController : ControllerBase
     public OrdersController(IOrderService orderService) => _orderService = orderService;
 
     [HttpGet]
+    public async Task<IActionResult> GetAllOrders()
+    {
+        var result = await _orderService.GetTodayOrdersAsync();
+        return Ok(result);
+    }
+
+    [HttpGet("today")]
     public async Task<IActionResult> GetTodayOrders()
     {
         var result = await _orderService.GetTodayOrdersAsync();

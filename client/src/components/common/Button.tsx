@@ -72,9 +72,9 @@ export const Button = ({
         </>
       ) : (
         <>
-          {rightIcon && <span>{rightIcon}</span>}
-          {children}
           {leftIcon && <span>{leftIcon}</span>}
+          {children}
+          {rightIcon && <span>{rightIcon}</span>}
         </>
       )}
     </button>

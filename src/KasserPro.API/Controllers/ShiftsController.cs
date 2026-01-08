@@ -14,10 +14,19 @@ public class ShiftsController : ControllerBase
 
     public ShiftsController(IShiftService shiftService) => _shiftService = shiftService;
 
+    private int GetUserId()
+    {
+        var claim = User.FindFirst("userId");
+        return claim != null && int.TryParse(claim.Value, out var id) ? id : 0;
+    }
+
     [HttpGet("current")]
     public async Task<IActionResult> GetCurrent()
     {
-        var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+        var userId = GetUserId();
+        if (userId <= 0)
+            return Unauthorized(new { success = false, message = "معرف المستخدم غير صالح في التوكن" });
+        
         var result = await _shiftService.GetCurrentAsync(userId);
         return result.Success ? Ok(result) : NotFound(result);
     }
@@ -25,7 +34,10 @@ public class ShiftsController : ControllerBase
     [HttpPost("open")]
     public async Task<IActionResult> Open([FromBody] OpenShiftRequest request)
     {
-        var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+        var userId = GetUserId();
+        if (userId <= 0)
+            return Unauthorized(new { success = false, message = "معرف المستخدم غير صالح في التوكن" });
+        
         var result = await _shiftService.OpenAsync(request, userId);
         return result.Success ? Ok(result) : BadRequest(result);
     }
@@ -33,7 +45,10 @@ public class ShiftsController : ControllerBase
     [HttpPost("close")]
     public async Task<IActionResult> Close([FromBody] CloseShiftRequest request)
     {
-        var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+        var userId = GetUserId();
+        if (userId <= 0)
+            return Unauthorized(new { success = false, message = "معرف المستخدم غير صالح في التوكن" });
+        
         var result = await _shiftService.CloseAsync(request, userId);
         return result.Success ? Ok(result) : BadRequest(result);
     }
@@ -41,7 +56,10 @@ public class ShiftsController : ControllerBase
     [HttpGet("history")]
     public async Task<IActionResult> GetHistory()
     {
-        var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+        var userId = GetUserId();
+        if (userId <= 0)
+            return Unauthorized(new { success = false, message = "معرف المستخدم غير صالح في التوكن" });
+        
         var result = await _shiftService.GetUserShiftsAsync(userId);
         return Ok(result);
     }

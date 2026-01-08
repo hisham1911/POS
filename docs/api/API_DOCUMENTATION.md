@@ -4,9 +4,43 @@
 
 > هذا الدليل يحتوي على جميع الـ API Endpoints المطلوبة لبناء نظام كاشير احترافي مشابه لـ Foodics
 >
-> **Base URL:** `https://api.kasserpro.com/v1`
+> **Base URL:** `https://localhost:5243/api` (Development)
 >
 > **Content-Type:** `application/json`
+
+---
+
+## 🆕 ملخص التحديثات الأخيرة (Phase 1)
+
+### ✅ ICurrentUserService و تبديل الفروع
+- استخدام `ICurrentUserService` لاستخراج TenantId و BranchId من JWT و Headers
+- دعم تبديل الفروع عبر `X-Branch-Id` header
+- جميع الـ Queries تُفلتر تلقائياً حسب TenantId و BranchId
+
+### ✅ Price & Tax Snapshots
+- حفظ snapshot كامل للمنتج عند إنشاء الطلب (الاسم، SKU، الباركود، السعر)
+- حفظ snapshot للفرع (الاسم، العنوان، الهاتف)
+- حفظ snapshot للمستخدم (الاسم)
+- حفظ معدل الضريبة و TaxInclusive لكل OrderItem
+
+### ✅ ربط الطلبات بالورديات (Shift-Order Linking)
+- كل طلب يُربط تلقائياً بالوردية المفتوحة (`shift_id`)
+- يجب فتح وردية قبل إنشاء أي طلب (Error: `NO_OPEN_SHIFT`)
+- حساب إجماليات الوردية ديناميكياً من الطلبات المكتملة
+
+### ✅ Audit Log محسّن
+- تسجيل `user_id` و `user_name` من JWT claims
+- تسجيل `ip_address` من HTTP headers
+- حفظ `entity_id` الصحيح للكيانات الجديدة (بعد الإنشاء)
+
+### ✅ المنطقة الزمنية (Timezone)
+- Backend: يخزن بتوقيت UTC
+- Frontend: يعرض بتوقيت القاهرة (Africa/Cairo)
+
+### ✅ ضريبة القيمة المضافة (Egypt VAT)
+- نسبة الضريبة: 14%
+- Tax Inclusive: السعر يشمل الضريبة
+- العملة: الجنيه المصري (EGP)
 
 ---
 
@@ -65,7 +99,7 @@
 23. [Notifications (الإشعارات)](#23--notifications-الإشعارات)
 24. [Settings (الإعدادات)](#24--settings-الإعدادات)
 25. [Sync (المزامنة)](#25--sync-المزامنة---للـ-offline)
-26. [ZATCA E-Invoicing (الفوترة الإلكترونية)](#26--zatca-e-invoicing-الفوترة-الإلكترونية)
+26. [ETA E-Invoicing (الفوترة الإلكترونية)](#26--eta-e-invoicing-الفوترة-الإلكترونية)
 27. [Webhooks](#27--webhooks)
 28. [ERP Integration (الربط)](#28--erp-integration-للربط-مع-erp)
 
@@ -500,10 +534,13 @@ async executeWithRetry<T>(
       "product_id": 100,
       "product_snapshot": {
         "name": "برجر كلاسيك",
+        "name_en": "Classic Burger",
         "sku": "BRG001",
+        "barcode": "6281000000001",
         "original_price": 25.0
       },
       "unit_price": 25.0,
+      "unit_cost": 12.0,
       "quantity": 2,
       "discount_amount": 2.5,
       "discount_snapshot": {
@@ -512,14 +549,17 @@ async executeWithRetry<T>(
         "type": "percentage",
         "value": 10
       },
-      "tax_amount": 3.38,
+      "tax_rate": 14.0,
+      "tax_amount": 6.14,
+      "tax_inclusive": true,
       "tax_snapshot": {
         "tax_id": 1,
-        "name": "VAT",
-        "rate": 15.0,
+        "name": "ضريبة القيمة المضافة",
+        "rate": 14.0,
         "is_inclusive": true
       },
-      "line_total": 47.5,
+      "subtotal": 50.0,
+      "total": 47.5,
       "modifiers_snapshot": [
         {
           "modifier_id": 1,
@@ -532,12 +572,29 @@ async executeWithRetry<T>(
 }
 ```
 
+### 💰 حساب الضريبة (Tax Inclusive - مصر)
+
+في مصر، الأسعار تشمل ضريبة القيمة المضافة (14%). الحساب كالتالي:
+
+```
+السعر الإجمالي (شامل الضريبة) = unit_price × quantity
+السعر الصافي = السعر الإجمالي ÷ (1 + tax_rate/100)
+مبلغ الضريبة = السعر الإجمالي - السعر الصافي
+
+مثال:
+- السعر: 25 جنيه (شامل الضريبة)
+- الكمية: 2
+- الإجمالي: 50 جنيه
+- السعر الصافي: 50 ÷ 1.14 = 43.86 جنيه
+- مبلغ الضريبة: 50 - 43.86 = 6.14 جنيه
+```
+
 ### لماذا Snapshot؟
 
 1. ✅ السعر وقت البيع مسجل حتى لو تغير لاحقاً
 2. ✅ الضريبة محسوبة صح حتى لو تغير المعدل
 3. ✅ التقارير المالية دقيقة
-4. ✅ الامتثال الضريبي (ZATCA)
+4. ✅ الامتثال الضريبي (مصلحة الضرائب المصرية)
 5. ✅ حل النزاعات مع العملاء
 
 ### 📊 Database Schemas (SQL)
@@ -562,7 +619,7 @@ CREATE TABLE orders (
     customer_phone VARCHAR(20),
 
     -- ✅ PRICING SNAPSHOT
-    currency_code VARCHAR(3) DEFAULT 'SAR',
+    currency_code VARCHAR(3) DEFAULT 'EGP',
     subtotal DECIMAL(12,2) NOT NULL,
 
     -- Discount Snapshot
@@ -776,26 +833,26 @@ permission = {resource}.{action}
       "max_percent": 10,
       "max_amount": 50,
       "requires_reason": true,
-      "description": "الكاشير يمكنه تطبيق خصم حتى 10% أو 50 ريال كحد أقصى"
+      "description": "الكاشير يمكنه تطبيق خصم حتى 10% أو 50 جنيه كحد أقصى"
     },
     "cashier.pos.refund": {
       "max_amount": 100,
       "time_limit_hours": 24,
       "same_shift_only": true,
       "requires_reason": true,
-      "description": "الكاشير يمكنه استرجاع حتى 100 ريال في نفس الوردية"
+      "description": "الكاشير يمكنه استرجاع حتى 100 جنيه في نفس الوردية"
     },
     "supervisor.order.refund": {
       "max_amount": 500,
       "time_limit_hours": 48,
       "requires_reason": true,
-      "description": "المشرف يمكنه استرجاع حتى 500 ريال خلال 48 ساعة"
+      "description": "المشرف يمكنه استرجاع حتى 500 جنيه خلال 48 ساعة"
     },
     "supervisor.shift.cash_out": {
       "max_amount": 200,
       "requires_reason": true,
       "daily_limit": 500,
-      "description": "المشرف يمكنه سحب حتى 200 ريال بحد يومي 500 ريال"
+      "description": "المشرف يمكنه سحب حتى 200 جنيه بحد يومي 500 جنيه"
     },
     "supervisor.inventory.adjust": {
       "max_quantity": 50,
@@ -884,7 +941,7 @@ interface AuthResult {
       "limit": 500,
       "requested": 750
     },
-    "suggestion": "يرجى طلب موافقة المدير للمبالغ أعلى من 500 ريال"
+    "suggestion": "يرجى طلب موافقة المدير للمبالغ أعلى من 500 جنيه"
   }
 }
 ```
@@ -898,14 +955,15 @@ interface AuthResult {
 ```json
 {
   "success": false,
-  "error_code": "SHIFT_NOT_OPEN",
+  "error_code": "NO_OPEN_SHIFT",
   "message": "يجب فتح وردية قبل إنشاء طلب",
   "details": {
     "branch_id": 1,
-    "last_shift_closed_at": "2024-01-15T22:00:00Z"
+    "user_id": 2
   },
   "trace_id": "req_abc123"
 }
+```
 ```
 
 ### Error Code Categories
@@ -960,6 +1018,7 @@ enum ErrorCategory {
 | 3006 | `ORDER_INVALID_STATE` | 400 | حالة الطلب لا تسمح بهذا الإجراء | Invalid order state | راجع lifecycle |
 | 3007 | `ORDER_REFUND_EXPIRED` | 400 | انتهت مدة الاسترجاع | Refund period expired | تجاوز الوقت المسموح |
 | 3008 | `ORDER_ITEMS_REQUIRED` | 400 | الطلب فارغ | Order items required | أضف منتجات |
+| 3009 | `NO_OPEN_SHIFT` | 400 | يجب فتح وردية قبل إنشاء طلب | No open shift | افتح وردية أولاً |
 | 3010 | `SHIFT_NOT_OPEN` | 400 | لا توجد وردية مفتوحة | No open shift | افتح وردية أولاً |
 | 3011 | `SHIFT_ALREADY_OPEN` | 400 | توجد وردية مفتوحة بالفعل | Shift already open | أغلق الوردية الحالية |
 | 3012 | `SHIFT_BELONGS_TO_OTHER` | 403 | الوردية تخص موظف آخر | Shift belongs to another | سجل دخول بحسابك |
@@ -1061,30 +1120,25 @@ API-Version: 2024-01-15
 
 ```json
 {
-  "id": "audit_abc123",
+  "id": 1,
   "tenant_id": 1,
   "branch_id": 1,
-  "user_id": 5,
+  "user_id": 2,
   "user_name": "أحمد محمد",
-  "action": "order.refund",
-  "entity_type": "order",
+  "action": "Update",
+  "entity_type": "Order",
   "entity_id": 123,
-  "old_values": {
-    "status": "completed",
-    "total": 150.0
-  },
-  "new_values": {
-    "status": "refunded",
-    "refund_amount": 50.0
-  },
-  "metadata": {
-    "reason": "منتج تالف",
-    "approved_by": 2,
-    "ip_address": "192.168.1.1",
-    "device_id": "POS-001"
-  },
-  "created_at": "2024-01-15T10:30:00Z"
+  "old_values": "{\"Status\":\"Draft\"}",
+  "new_values": "{\"Status\":\"Completed\",\"CompletedAt\":\"2026-01-07T10:45:00Z\"}",
+  "ip_address": "192.168.1.100",
+  "created_at": "2026-01-07T10:45:00Z"
 }
+```
+
+**ملاحظات:**
+- `user_id` و `user_name` يُستخرجان من JWT claims
+- `ip_address` يُستخرج من headers (X-Forwarded-For, X-Real-IP, أو RemoteIpAddress)
+- `entity_id` للكيانات الجديدة يُحفظ بعد الإنشاء (في SavedChangesAsync)
 ```
 
 ### Data Ownership
@@ -1243,9 +1297,35 @@ Content-Type: application/json
 Accept: application/json
 Accept-Language: ar|en
 X-Tenant-Id: {tenant_id}      # مطلوب - لتحديد الشركة
-X-Branch-Id: {branch_id}      # اختياري - لتحديد الفرع
+X-Branch-Id: {branch_id}      # مطلوب - لتحديد الفرع (يمكن تبديله للتنقل بين الفروع)
 X-Device-Id: {device_uuid}    # مطلوب للـ POS
 Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
+```
+
+### 🔄 تبديل الفرع (Branch Switching)
+
+يمكن للمستخدم التنقل بين الفروع المصرح له بها عبر تغيير `X-Branch-Id` header:
+
+```http
+X-Branch-Id: 2
+```
+
+**ملاحظات:**
+- يتم التحقق من صلاحية المستخدم للوصول للفرع المحدد
+- جميع العمليات (الطلبات، الورديات، التقارير) تُفلتر تلقائياً حسب الفرع المحدد
+- يتم استخدام `ICurrentUserService` في الـ Backend لاستخراج TenantId و BranchId من الـ JWT و Headers
+
+### 🕐 المنطقة الزمنية (Timezone)
+
+- **Backend**: يخزن جميع التواريخ بتوقيت UTC
+- **Frontend**: يعرض التواريخ بتوقيت القاهرة (Africa/Cairo)
+- **تحويل التاريخ**: استخدم `parseApiDate()` helper لتحويل التواريخ من UTC إلى توقيت القاهرة
+
+```typescript
+// Frontend: تحويل التاريخ من UTC إلى توقيت القاهرة
+const cairoDate = new Date(utcDate).toLocaleString('ar-EG', {
+  timeZone: 'Africa/Cairo'
+});
 ```
 
 ### Response Format
@@ -1479,8 +1559,8 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
       "max_products": 1000
     },
     "settings": {
-      "currency": "SAR",
-      "timezone": "Asia/Riyadh",
+      "currency": "EGP",
+      "timezone": "Africa/Cairo",
       "language": "ar"
     },
     "created_at": "2024-01-01T00:00:00Z"
@@ -1502,8 +1582,8 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
   "name_en": "Updated Happiness Restaurant",
   "logo": "base64_or_url",
   "settings": {
-    "currency": "SAR",
-    "timezone": "Asia/Riyadh"
+    "currency": "EGP",
+    "timezone": "Africa/Cairo"
   }
 }
 ```
@@ -1741,7 +1821,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
         "receipt_header": "مرحباً بكم",
         "receipt_footer": "شكراً لزيارتكم",
         "default_tax_id": 1,
-        "currency": "SAR"
+        "currency": "EGP"
       },
       "created_at": "2024-01-01T00:00:00Z"
     }
@@ -2349,6 +2429,22 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 
 ## 8. 🛒 Orders/Sales (الطلبات/المبيعات)
 
+### ⚠️ متطلبات إنشاء الطلب
+
+قبل إنشاء أي طلب، يجب التحقق من:
+
+1. **وردية مفتوحة**: يجب أن يكون للمستخدم وردية مفتوحة في الفرع الحالي
+2. **ربط الطلب بالوردية**: كل طلب يُربط تلقائياً بالوردية المفتوحة (`shift_id`)
+
+```json
+// خطأ: لا توجد وردية مفتوحة
+{
+  "success": false,
+  "error_code": "NO_OPEN_SHIFT",
+  "message": "يجب فتح وردية قبل إنشاء طلب"
+}
+```
+
 ### GET `/api/orders`
 
 قائمة الطلبات
@@ -2442,48 +2538,32 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 
 إنشاء طلب جديد (الأهم في نظام الكاشير)
 
+**⚠️ متطلبات:**
+- يجب أن يكون للمستخدم وردية مفتوحة في الفرع الحالي
+- الطلب يُربط تلقائياً بالوردية المفتوحة
+
 **Request:**
 
 ```json
 {
-  "branch_id": 1,
   "customer_id": 1,
+  "customer_name": "محمد أحمد",
+  "customer_phone": "+201234567890",
   "order_type": "dine_in",
   "table_id": 5,
   "items": [
     {
       "product_id": 1,
       "quantity": 2,
-      "unit_price": 25.0,
-      "discount": 0,
-      "discount_type": "fixed",
       "modifiers": [{ "modifier_option_id": 1, "quantity": 1 }],
       "notes": "بدون بصل"
     },
     {
       "product_id": 3,
-      "quantity": 1,
-      "unit_price": 15.0
+      "quantity": 1
     }
   ],
-  "discount": {
-    "type": "percentage",
-    "value": 10,
-    "reason": "خصم عميل VIP"
-  },
-  "payments": [
-    {
-      "method": "cash",
-      "amount": 50.0
-    },
-    {
-      "method": "card",
-      "amount": 8.25,
-      "reference": "TXN123456"
-    }
-  ],
-  "notes": "طلب مستعجل",
-  "print_receipt": true
+  "notes": "طلب مستعجل"
 }
 ```
 
@@ -2494,18 +2574,93 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
   "success": true,
   "data": {
     "id": 124,
-    "order_number": "ORD-2024-00124",
-    "status": "completed",
-    "payment_status": "paid",
+    "order_number": "ORD-20260107-ABC123",
+    "status": "Draft",
+    "order_type": "dine_in",
+    "shift_id": 5,
+    "branch_id": 1,
+    "branch_name": "الفرع الرئيسي",
+    "branch_address": "القاهرة، مصر",
+    "branch_phone": "+20223456789",
+    "user_id": 2,
+    "user_name": "أحمد محمد",
+    "currency_code": "EGP",
+    "items": [
+      {
+        "id": 1,
+        "product_id": 1,
+        "product_name": "برجر كلاسيك",
+        "product_name_en": "Classic Burger",
+        "product_sku": "BRG001",
+        "product_barcode": "6281000000001",
+        "unit_price": 25.00,
+        "original_price": 25.00,
+        "quantity": 2,
+        "tax_rate": 14.0,
+        "tax_amount": 6.14,
+        "tax_inclusive": true,
+        "subtotal": 50.00,
+        "total": 50.00
+      }
+    ],
     "subtotal": 65.0,
-    "discount_amount": 6.5,
-    "tax_amount": 8.78,
-    "total": 67.28,
-    "change_due": 0,
-    "receipt_url": "https://...",
-    "created_at": "2024-01-15T11:00:00Z"
+    "discount_amount": 0,
+    "tax_amount": 7.98,
+    "total": 65.0,
+    "amount_paid": 0,
+    "amount_due": 65.0,
+    "created_at": "2026-01-07T11:00:00Z"
   },
   "message": "تم إنشاء الطلب بنجاح"
+}
+```
+
+**Snapshots المحفوظة:**
+- **Branch Snapshot**: `branch_name`, `branch_address`, `branch_phone`
+- **User Snapshot**: `user_name`
+- **Product Snapshot**: `product_name`, `product_name_en`, `product_sku`, `product_barcode`, `unit_price`, `original_price`
+- **Tax Snapshot**: `tax_rate`, `tax_amount`, `tax_inclusive`
+
+---
+
+### POST `/api/orders/{id}/complete`
+
+إكمال الطلب مع الدفع
+
+**Request:**
+
+```json
+{
+  "payments": [
+    {
+      "method": "Cash",
+      "amount": 50.0
+    },
+    {
+      "method": "Card",
+      "amount": 15.0,
+      "reference": "TXN123456"
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 124,
+    "order_number": "ORD-20260107-ABC123",
+    "status": "Completed",
+    "total": 65.0,
+    "amount_paid": 65.0,
+    "amount_due": 0,
+    "change_amount": 0,
+    "completed_at": "2026-01-07T11:15:00Z"
+  },
+  "message": "تم إتمام الدفع وإغلاق الطلب"
 }
 ```
 
@@ -2662,10 +2817,10 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
     },
     {
       "id": 3,
-      "code": "mada",
-      "name": "مدى",
-      "name_en": "Mada",
-      "icon": "mada",
+      "code": "fawry",
+      "name": "فوري",
+      "name_en": "Fawry",
+      "icon": "fawry",
       "is_active": true,
       "requires_reference": true
     },
@@ -2715,7 +2870,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `branch_id` | integer | فلترة حسب الفرع |
-| `method` | string | cash, card, mada, etc. |
+| `method` | string | cash, card, fawry, etc. |
 | `from_date` | date | من تاريخ |
 | `to_date` | date | إلى تاريخ |
 
@@ -2758,7 +2913,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
     "by_method": [
       { "method": "cash", "amount": 8000.0, "count": 45 },
       { "method": "card", "amount": 5000.0, "count": 30 },
-      { "method": "mada", "amount": 2000.0, "count": 15 }
+      { "method": "fawry", "amount": 2000.0, "count": 15 }
     ],
     "refunds": {
       "total": 500.0,
@@ -3109,6 +3264,34 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 
 ## 12. 💰 Cash Register/Shifts (الكاشير/الورديات)
 
+### 🔗 ربط الطلبات بالورديات
+
+كل طلب يُنشأ يُربط تلقائياً بالوردية المفتوحة للمستخدم في الفرع الحالي:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Shift-Order Relationship                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Shift (وردية)                                                   │
+│  ├── id: 5                                                       │
+│  ├── user_id: 2                                                  │
+│  ├── branch_id: 1                                                │
+│  ├── is_closed: false                                            │
+│  └── orders: [                                                   │
+│        ├── Order #1 (shift_id: 5, status: Completed)             │
+│        ├── Order #2 (shift_id: 5, status: Completed)             │
+│        └── Order #3 (shift_id: 5, status: Draft)                 │
+│      ]                                                           │
+│                                                                  │
+│  عند إغلاق الوردية:                                              │
+│  - total_orders = عدد الطلبات المكتملة (Completed)               │
+│  - total_cash = مجموع المدفوعات النقدية                          │
+│  - total_card = مجموع المدفوعات بالبطاقة                         │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### POST `/api/shifts/open`
 
 فتح وردية
@@ -3186,7 +3369,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
     "payments_summary": {
       "cash": 2000.0,
       "card": 1200.0,
-      "mada": 300.0
+      "fawry": 300.0
     },
     "orders_count": 45,
     "status": "closed",
@@ -3200,7 +3383,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 
 ### GET `/api/shifts/current`
 
-الوردية الحالية
+الوردية الحالية مع الطلبات
 
 **Response:**
 
@@ -3208,18 +3391,48 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 {
   "success": true,
   "data": {
-    "id": 1,
-    "shift_number": "SH-2024-001",
-    "status": "open",
-    "opening_cash": 500.0,
-    "current_cash": 1850.0,
-    "total_sales": 2500.0,
-    "orders_count": 30,
-    "opened_at": "2024-01-15T08:00:00Z",
-    "duration": "6 ساعات"
+    "id": 5,
+    "opening_balance": 500.0,
+    "closing_balance": null,
+    "expected_balance": 2350.0,
+    "difference": null,
+    "opened_at": "2026-01-07T08:00:00Z",
+    "closed_at": null,
+    "is_closed": false,
+    "notes": null,
+    "total_cash": 1850.0,
+    "total_card": 650.0,
+    "total_orders": 8,
+    "user_name": "أحمد محمد",
+    "orders": [
+      {
+        "id": 124,
+        "order_number": "ORD-20260107-ABC123",
+        "status": "Completed",
+        "order_type": "dine_in",
+        "total": 65.0,
+        "customer_name": "محمد أحمد",
+        "created_at": "2026-01-07T10:30:00Z",
+        "completed_at": "2026-01-07T10:45:00Z"
+      },
+      {
+        "id": 125,
+        "order_number": "ORD-20260107-DEF456",
+        "status": "Draft",
+        "order_type": "takeaway",
+        "total": 45.0,
+        "customer_name": null,
+        "created_at": "2026-01-07T11:00:00Z",
+        "completed_at": null
+      }
+    ]
   }
 }
 ```
+
+**ملاحظات:**
+- `total_orders`, `total_cash`, `total_card` تُحسب ديناميكياً من الطلبات المكتملة للورديات المفتوحة
+- عند إغلاق الوردية، تُحفظ هذه القيم في قاعدة البيانات
 
 ---
 
@@ -3349,7 +3562,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
     "by_payment_method": [
       { "method": "cash", "amount": 80000.0, "percentage": 53.33 },
       { "method": "card", "amount": 50000.0, "percentage": 33.33 },
-      { "method": "mada", "amount": 20000.0, "percentage": 13.34 }
+      { "method": "fawry", "amount": 20000.0, "percentage": 13.34 }
     ],
     "by_order_type": [
       { "type": "dine_in", "amount": 100000.0, "count": 300 },
@@ -3613,7 +3826,26 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 
 ## 13. 🧾 Taxes (الضرائب)
 
-> **ملاحظة:** راجع قسم [ZATCA E-Invoicing](#26--zatca-e-invoicing-الفوترة-الإلكترونية) للفوترة الإلكترونية
+> **ملاحظة:** راجع قسم [ETA E-Invoicing](#26--eta-e-invoicing-الفوترة-الإلكترونية) للفوترة الإلكترونية
+
+### 💰 ضريبة القيمة المضافة في مصر (Egypt VAT)
+
+- **نسبة الضريبة**: 14%
+- **نوع الضريبة**: Tax Inclusive (السعر يشمل الضريبة)
+- **العملة**: الجنيه المصري (EGP)
+
+### حساب الضريبة (Tax Inclusive)
+
+```
+السعر الإجمالي (شامل الضريبة) = السعر المعروض
+السعر الصافي = السعر الإجمالي ÷ (1 + 14/100) = السعر الإجمالي ÷ 1.14
+مبلغ الضريبة = السعر الإجمالي - السعر الصافي
+
+مثال:
+- السعر المعروض: 100 جنيه (شامل الضريبة)
+- السعر الصافي: 100 ÷ 1.14 = 87.72 جنيه
+- مبلغ الضريبة: 100 - 87.72 = 12.28 جنيه
+```
 
 ### GET `/api/taxes`
 
@@ -3629,7 +3861,7 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
       "id": 1,
       "name": "ضريبة القيمة المضافة",
       "name_en": "VAT",
-      "rate": 15.0,
+      "rate": 14.0,
       "type": "percentage",
       "is_inclusive": true,
       "is_default": true,
@@ -3637,10 +3869,11 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
       "applies_to": "all",
       "product_ids": [],
       "category_ids": [],
-      "created_at": "2024-01-01T00:00:00Z"
+      "created_at": "2026-01-01T00:00:00Z"
     }
   ]
 }
+```
 ```
 
 ---
@@ -4996,6 +5229,21 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 
 ## 22. 🔍 Audit Logs (سجل التدقيق)
 
+### 📝 الحقول المسجلة
+
+كل عملية تدقيق تسجل المعلومات التالية:
+
+| الحقل | الوصف |
+|-------|-------|
+| `user_id` | معرف المستخدم (من JWT claims) |
+| `user_name` | اسم المستخدم (من JWT claims) |
+| `ip_address` | عنوان IP للعميل (من X-Forwarded-For أو X-Real-IP أو RemoteIpAddress) |
+| `entity_type` | نوع الكيان (Order, Product, Shift, etc.) |
+| `entity_id` | معرف الكيان (يُحفظ بعد الإنشاء للكيانات الجديدة) |
+| `action` | نوع العملية (Create, Update, Delete) |
+| `old_values` | القيم القديمة (JSON) |
+| `new_values` | القيم الجديدة (JSON) |
+
 ### GET `/api/audit-logs`
 
 سجل التدقيق
@@ -5004,11 +5252,11 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `user_id` | integer | فلترة حسب المستخدم |
-| `action` | string | order.create, order.refund, etc. |
-| `entity_type` | string | order, payment, inventory, etc. |
+| `action` | string | Create, Update, Delete |
+| `entity_type` | string | Order, Payment, Shift, Product, etc. |
 | `entity_id` | integer | معرف الكيان |
-| `from_date` | datetime | من تاريخ |
-| `to_date` | datetime | إلى تاريخ |
+| `from_date` | datetime | من تاريخ (YYYY-MM-DD) |
+| `to_date` | datetime | إلى تاريخ (YYYY-MM-DD) |
 | `branch_id` | integer | الفرع |
 
 **Response:**
@@ -5018,33 +5266,61 @@ Idempotency-Key: {uuid}       # مطلوب للعمليات الحساسة
   "success": true,
   "data": [
     {
-      "id": "audit_abc123",
-      "user": {
-        "id": 5,
-        "name": "أحمد محمد"
-      },
-      "action": "order.refund",
-      "entity_type": "order",
+      "id": 1,
+      "tenant_id": 1,
+      "branch_id": 1,
+      "user_id": 2,
+      "user_name": "أحمد محمد",
+      "action": "Update",
+      "entity_type": "Order",
       "entity_id": 123,
-      "old_values": {
-        "status": "completed",
-        "total": 150.00
-      },
-      "new_values": {
-        "status": "refunded",
-        "refund_amount": 50.00
-      },
-      "metadata": {
-        "reason": "منتج تالف",
-        "approved_by": 2,
-        "ip_address": "192.168.1.1",
-        "device_id": "POS-001"
-      },
-      "created_at": "2024-01-15T10:30:00Z"
+      "old_values": "{\"Status\":\"Draft\",\"Total\":150.00}",
+      "new_values": "{\"Status\":\"Completed\",\"Total\":150.00,\"CompletedAt\":\"2026-01-07T10:45:00Z\"}",
+      "ip_address": "192.168.1.100",
+      "created_at": "2026-01-07T10:45:00Z"
+    },
+    {
+      "id": 2,
+      "tenant_id": 1,
+      "branch_id": 1,
+      "user_id": 2,
+      "user_name": "أحمد محمد",
+      "action": "Create",
+      "entity_type": "Payment",
+      "entity_id": 45,
+      "old_values": null,
+      "new_values": "{\"OrderId\":123,\"Amount\":150.00,\"Method\":\"Cash\"}",
+      "ip_address": "192.168.1.100",
+      "created_at": "2026-01-07T10:45:00Z"
     }
   ],
   "meta": { ... }
 }
+```
+
+### 🏷️ وصف العمليات بالعربية
+
+للعرض في الواجهة، يمكن تحويل العمليات التقنية إلى وصف عربي مفهوم:
+
+| Entity | Action | Condition | الوصف بالعربية |
+|--------|--------|-----------|----------------|
+| Order | Create | - | إنشاء طلب جديد |
+| Order | Update | Status → Completed | تم إتمام الدفع وإغلاق الطلب |
+| Order | Update | Status → Cancelled | إلغاء الطلب |
+| Order | Update | Other | تعديل بيانات الطلب |
+| Payment | Create | - | تسجيل دفعة |
+| Shift | Create | - | فتح وردية |
+| Shift | Update | IsClosed → true | إغلاق الوردية |
+| Product | Create | - | إضافة منتج جديد |
+| Product | Update | - | تعديل بيانات المنتج |
+
+### 🏷️ حالات الطلب (Status Badges)
+
+| Status | Badge | اللون |
+|--------|-------|-------|
+| Completed | مكتمل | أخضر |
+| Cancelled | ملغي | أحمر |
+| Draft | مسودة | رمادي |
 ```
 
 ---
@@ -5251,23 +5527,28 @@ socket.on("table_update", (data) => {
       "name": "كاشير برو",
       "name_en": "KasserPro",
       "logo_url": "https://...",
-      "tax_number": "300000000000003",
-      "address": "الرياض، المملكة العربية السعودية",
-      "phone": "+966112345678",
+      "tax_number": "123456789",
+      "address": "القاهرة، جمهورية مصر العربية",
+      "phone": "+20223456789",
       "email": "info@kasserpro.com",
       "website": "https://kasserpro.com"
     },
     "currency": {
-      "code": "SAR",
-      "symbol": "ر.س",
+      "code": "EGP",
+      "symbol": "ج.م",
       "position": "after",
       "decimal_places": 2
     },
     "locale": {
       "language": "ar",
-      "timezone": "Asia/Riyadh",
+      "timezone": "Africa/Cairo",
       "date_format": "DD/MM/YYYY",
       "time_format": "HH:mm"
+    },
+    "tax": {
+      "default_rate": 14.0,
+      "is_inclusive": true,
+      "name": "ضريبة القيمة المضافة"
     },
     "pos": {
       "default_order_type": "dine_in",
@@ -5515,13 +5796,15 @@ logo: [file]
 
 ---
 
-## 26. 🧾 ZATCA E-Invoicing (الفوترة الإلكترونية)
+## 26. 🧾 ETA E-Invoicing (الفوترة الإلكترونية المصرية)
 
-> **ملاحظة مهمة:** هذا القسم خاص بمتطلبات هيئة الزكاة والضريبة والجمارك السعودية للفوترة الإلكترونية (فاتورة).
+> **ملاحظة مهمة:** هذا القسم خاص بمتطلبات مصلحة الضرائب المصرية للفوترة الإلكترونية (منظومة الفاتورة الإلكترونية).
+>
+> **ملاحظة للمطورين:** الـ APIs التالية مصممة للتكامل مع منظومة الفاتورة الإلكترونية المصرية (ETA). يمكن تعديل الأسماء والمسارات حسب المتطلبات الفعلية.
 
-### GET `/api/zatca/status`
+### GET `/api/eta/status`
 
-حالة الربط مع زاتكا
+حالة الربط مع منظومة الفاتورة الإلكترونية
 
 **Response:**
 
@@ -5554,24 +5837,25 @@ logo: [file]
 
 ---
 
-### POST `/api/zatca/onboarding`
+### POST `/api/eta/onboarding`
 
-تسجيل الجهاز (Onboarding)
+تسجيل النظام (Onboarding)
 
 **Request:**
 
 ```json
 {
-  "otp": "123456",
+  "client_id": "123456",
+  "client_secret": "...",
   "branch_id": 1,
   "device_serial": "POS-001",
-  "csr_data": {
+  "registration_data": {
     "common_name": "KasserPro POS",
-    "organization_unit": "فرع الرياض",
+    "organization_unit": "فرع القاهرة",
     "organization_name": "شركة كاشير برو",
-    "country": "SA",
-    "invoice_type": "1100",
-    "location": "الرياض",
+    "country": "EG",
+    "tax_id": "123456789",
+    "location": "القاهرة",
     "industry": "مطاعم"
   }
 }
@@ -5593,7 +5877,7 @@ logo: [file]
 
 ---
 
-### POST `/api/zatca/invoices/report`
+### POST `/api/eta/invoices/report`
 
 إرسال فاتورة للزاتكا (Reporting - B2C)
 
@@ -5614,7 +5898,7 @@ logo: [file]
   "success": true,
   "data": {
     "invoice_id": 123,
-    "zatca_status": "reported",
+    "eta_status": "reported",
     "reporting_status": "SUCCESS",
     "invoice_hash": "...",
     "qr_code": "base64...",
@@ -5626,7 +5910,7 @@ logo: [file]
 
 ---
 
-### POST `/api/zatca/invoices/clear`
+### POST `/api/eta/invoices/clear`
 
 اعتماد فاتورة ضريبية (Clearance - B2B)
 
@@ -5637,7 +5921,7 @@ logo: [file]
   "order_id": 124,
   "invoice_type": "standard",
   "invoice_subtype": "0100000",
-  "customer_vat_number": "300000000000003"
+  "customer_tax_id": "123456789"
 }
 ```
 
@@ -5648,12 +5932,12 @@ logo: [file]
   "success": true,
   "data": {
     "invoice_id": 124,
-    "zatca_status": "cleared",
+    "eta_status": "cleared",
     "clearance_status": "CLEARED",
     "cleared_invoice": "base64...",
     "invoice_hash": "...",
     "qr_code": "base64...",
-    "zatca_uuid": "...",
+    "eta_uuid": "...",
     "cleared_at": "2024-01-15T10:30:00Z"
   }
 }
@@ -5661,9 +5945,9 @@ logo: [file]
 
 ---
 
-### GET `/api/zatca/invoices/{id}`
+### GET `/api/eta/invoices/{id}`
 
-حالة فاتورة في زاتكا
+حالة فاتورة في منظومة الفاتورة الإلكترونية
 
 **Response:**
 
@@ -5674,8 +5958,8 @@ logo: [file]
     "order_id": 123,
     "invoice_number": "INV-2024-00123",
     "invoice_type": "simplified",
-    "zatca_status": "reported",
-    "zatca_uuid": "...",
+    "eta_status": "reported",
+    "eta_uuid": "...",
     "invoice_hash": "...",
     "qr_code": "base64...",
     "xml_invoice": "base64...",
@@ -5690,7 +5974,7 @@ logo: [file]
 
 ---
 
-### POST `/api/zatca/invoices/credit-note`
+### POST `/api/eta/invoices/credit-note`
 
 إشعار دائن (Credit Note)
 
@@ -5707,7 +5991,7 @@ logo: [file]
 
 ---
 
-### POST `/api/zatca/invoices/debit-note`
+### POST `/api/eta/invoices/debit-note`
 
 إشعار مدين (Debit Note)
 
@@ -5724,7 +6008,7 @@ logo: [file]
 
 ---
 
-### GET `/api/zatca/invoices`
+### GET `/api/eta/invoices`
 
 قائمة الفواتير المرسلة للزاتكا
 
@@ -5738,7 +6022,7 @@ logo: [file]
 
 ---
 
-### POST `/api/zatca/invoices/retry`
+### POST `/api/eta/invoices/retry`
 
 إعادة إرسال فاتورة فاشلة
 
@@ -5752,7 +6036,7 @@ logo: [file]
 
 ---
 
-### GET `/api/zatca/settings`
+### GET `/api/eta/settings`
 
 إعدادات زاتكا
 
@@ -5786,7 +6070,7 @@ logo: [file]
 
 ---
 
-### PUT `/api/zatca/settings`
+### PUT `/api/eta/settings`
 
 تحديث إعدادات زاتكا
 
@@ -6199,9 +6483,9 @@ X-RateLimit-Reset: 1705312800
 | 3   | Branches                       | 🔴 Critical | Multi-branch support    |
 | 4   | Products & Categories          | 🔴 Critical | Core catalog            |
 | 5   | Orders (CRUD)                  | 🔴 Critical | Main functionality      |
-| 6   | Payments                       | 🔴 Critical | Cash, Card, Mada        |
+| 6   | Payments                       | 🔴 Critical | Cash, Card, Fawry       |
 | 7   | Shifts & Cash Register         | 🔴 Critical | Daily operations        |
-| 8   | Basic Taxes                    | 🔴 Critical | VAT 15%                 |
+| 8   | Basic Taxes                    | 🔴 Critical | VAT 14% (مصر)           |
 | 9   | Basic Reports                  | 🟡 High     | Sales, Daily summary    |
 | 10  | Audit Logs                     | 🟡 High     | Security & compliance   |
 
@@ -6215,7 +6499,7 @@ X-RateLimit-Reset: 1705312800
 | 14  | Modifiers              | 🟡 High     | Product add-ons                |
 | 15  | Suppliers              | 🟡 High     | Supplier management            |
 | 16  | Purchase Orders        | 🟡 High     | Stock replenishment            |
-| 17  | ZATCA E-Invoicing      | 🔴 Critical | Saudi compliance (إلزامي)      |
+| 17  | ETA E-Invoicing        | 🔴 Critical | Egypt compliance (إلزامي)      |
 | 18  | Advanced Reports       | 🟢 Medium   | Products, Inventory, Employees |
 
 ### المرحلة الثالثة (Restaurant Features) ⏱️ 4-6 أسابيع
@@ -6255,11 +6539,11 @@ X-RateLimit-Reset: 1705312800
 
 | #   | Issue                                     | Priority    | Impact                 | Status |
 | --- | ----------------------------------------- | ----------- | ---------------------- | ------ |
-| 1   | Add `tenant_id` to all entities           | 🔴 Critical | Data isolation         | ⬜     |
+| 1   | Add `tenant_id` to all entities           | 🔴 Critical | Data isolation         | ✅     |
 | 2   | Implement Idempotency for orders/payments | 🔴 Critical | Prevent double charges | ⬜     |
-| 3   | Add price/tax snapshots to orders         | 🔴 Critical | Financial accuracy     | ⬜     |
-| 4   | Define order state machine                | 🔴 Critical | Business logic         | ⬜     |
-| 5   | Implement audit logging                   | 🔴 Critical | Compliance             | ⬜     |
+| 3   | Add price/tax snapshots to orders         | 🔴 Critical | Financial accuracy     | ✅     |
+| 4   | Define order state machine                | 🔴 Critical | Business logic         | ✅     |
+| 5   | Implement audit logging                   | 🔴 Critical | Compliance             | ✅     |
 
 ### 🟡 Must Fix Before Launch (مطلوب قبل الإطلاق)
 
@@ -6267,7 +6551,7 @@ X-RateLimit-Reset: 1705312800
 | --- | ---------------------------------- | -------- | ---------------- | ------ |
 | 6   | Implement sync conflict resolution | 🟡 High  | Offline support  | ⬜     |
 | 7   | Add permission constraints         | 🟡 High  | Security         | ⬜     |
-| 8   | Define complete error codes        | 🟡 High  | Frontend UX      | ⬜     |
+| 8   | Define complete error codes        | 🟡 High  | Frontend UX      | ✅     |
 | 9   | Set up rate limiting               | 🟡 High  | System stability | ⬜     |
 | 10  | API versioning strategy            | 🟡 High  | Future updates   | ⬜     |
 
@@ -6290,7 +6574,7 @@ X-RateLimit-Reset: 1705312800
 3. **Define State Machines** للطلبات والورديات والمخزون
 4. **Build Sync Engine** مع conflict resolution
 5. **Create Permission System** مع constraints
-6. **Setup ZATCA Integration** للفوترة الإلكترونية
+6. **Setup ETA Integration** للفوترة الإلكترونية
 
 ---
 
@@ -6298,18 +6582,18 @@ X-RateLimit-Reset: 1705312800
 
 ### Security ✅
 
-- [ ] JWT with refresh tokens
-- [ ] Role-based access control
-- [ ] Audit logging
+- [x] JWT with refresh tokens
+- [x] Role-based access control
+- [x] Audit logging
 - [ ] Rate limiting
-- [ ] Input validation
-- [ ] SQL injection prevention
-- [ ] XSS prevention
+- [x] Input validation
+- [x] SQL injection prevention
+- [x] XSS prevention
 
 ### Multi-Tenant ✅
 
-- [ ] Tenant isolation
-- [ ] Global query filters
+- [x] Tenant isolation
+- [x] Global query filters
 - [ ] Tenant-aware caching
 - [ ] Data backup per tenant
 
@@ -6322,15 +6606,15 @@ X-RateLimit-Reset: 1705312800
 
 ### Compliance ✅
 
-- [ ] ZATCA Phase 2 ready
+- [ ] ETA E-Invoicing ready (منظومة الفاتورة الإلكترونية المصرية)
 - [ ] Invoice QR codes
-- [ ] Tax snapshots
-- [ ] Audit trail
+- [x] Tax snapshots
+- [x] Audit trail
 
 ### Performance ✅
 
-- [ ] Database indexing
-- [ ] Pagination
+- [x] Database indexing
+- [x] Pagination
 - [ ] Caching strategy
 - [ ] Response compression
 
@@ -6341,5 +6625,5 @@ X-RateLimit-Reset: 1705312800
 > - ✅ Multi-Tenant SaaS
 > - ✅ Offline-First Architecture
 > - ✅ Multi-Branch Operations
-> - ✅ ZATCA E-Invoicing Compliance
+> - ✅ ETA E-Invoicing Compliance (الفوترة الإلكترونية المصرية)
 > - ✅ Restaurant & Retail Support

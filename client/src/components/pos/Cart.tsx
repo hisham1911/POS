@@ -60,7 +60,7 @@ export const Cart = ({ onCheckout }: CartProps) => {
         className="w-full mt-4"
         onClick={onCheckout}
       >
-        💳 الدفع - {formatCurrency(total)}
+        💳 الدفع  {formatCurrency(total)}
       </Button>
     </div>
   );

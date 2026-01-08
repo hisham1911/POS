@@ -8,10 +8,21 @@ import { Loading } from "@/components/common/Loading";
 import { Menu } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 
+import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
+
 export const POSPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+
+  // Shortcuts
+  usePOSShortcuts({
+    onCheckout: () => setShowPayment(true),
+    onSearch: () => {
+      // TODO: Implement search focus
+      console.log("Search shortcut triggered");
+    },
+  });
 
   const { products, isLoading } = useProducts();
   const { categories } = useCategories();
@@ -31,9 +42,9 @@ export const POSPage = () => {
   }
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex overflow-hidden">
       {/* Products Section */}
-      <div className="flex-1 flex flex-col bg-gray-50 p-4 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-gray-50 p-4 min-w-0">
         {/* Categories */}
         <div className="flex items-center justify-between mb-4">
           <CategoryTabs
@@ -57,13 +68,13 @@ export const POSPage = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
-          <ProductGrid products={filteredProducts} />
+        <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0">
+          <ProductGrid products={filteredProducts} categories={categories} />
         </div>
       </div>
 
       {/* Cart Section - Desktop */}
-      <div className="hidden lg:block w-96 bg-white border-r border-gray-200 p-4 overflow-hidden">
+      <div className="hidden lg:flex w-96 bg-white border-l border-gray-200 p-4 flex-col shrink-0">
         <Cart onCheckout={() => setShowPayment(true)} />
       </div>
 
@@ -74,7 +85,7 @@ export const POSPage = () => {
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileCart(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white p-4 animate-slide-in-right shadow-2xl">
+          <div className="absolute right-0 top-0 bottom-0 w-80 bg-white p-4 animate-slide-in-right shadow-2xl flex flex-col">
             <Cart
               onCheckout={() => {
                 setShowMobileCart(false);

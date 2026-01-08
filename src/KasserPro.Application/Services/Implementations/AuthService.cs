@@ -93,6 +93,8 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new("userId", user.Id.ToString()),
+            new("tenantId", user.TenantId.ToString()),
+            new("branchId", user.BranchId?.ToString() ?? "1"),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Role, user.Role.ToString())
