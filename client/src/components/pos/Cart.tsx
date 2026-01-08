@@ -4,28 +4,46 @@ import { CartItemComponent } from "./CartItem";
 import { OrderSummary } from "./OrderSummary";
 import { Button } from "@/components/common/Button";
 import { formatCurrency } from "@/utils/formatters";
+import { CustomerSearch } from "./CustomerSearch";
+import { Customer } from "@/types/customer.types";
 
 interface CartProps {
   onCheckout: () => void;
+  selectedCustomer: Customer | null;
+  onCustomerSelect: (customer: Customer | null) => void;
 }
 
-export const Cart = ({ onCheckout }: CartProps) => {
+export const Cart = ({ onCheckout, selectedCustomer, onCustomerSelect }: CartProps) => {
   const { items, clearCart, total, itemsCount } = useCart();
 
   if (items.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-gray-400">
-        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-          <ShoppingCart className="w-10 h-10" />
+      <div className="h-full flex flex-col">
+        {/* Customer Search - Always visible */}
+        <CustomerSearch
+          selectedCustomer={selectedCustomer}
+          onCustomerSelect={onCustomerSelect}
+        />
+        
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <ShoppingCart className="w-10 h-10" />
+          </div>
+          <p className="text-lg font-medium">السلة فارغة</p>
+          <p className="text-sm">اضغط على المنتجات لإضافتها</p>
         </div>
-        <p className="text-lg font-medium">السلة فارغة</p>
-        <p className="text-sm">اضغط على المنتجات لإضافتها</p>
       </div>
     );
   }
 
   return (
     <div className="h-full flex flex-col">
+      {/* Customer Search */}
+      <CustomerSearch
+        selectedCustomer={selectedCustomer}
+        onCustomerSelect={onCustomerSelect}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b">
         <div className="flex items-center gap-2">

@@ -28,7 +28,7 @@ export const useOrders = () => {
   const orders = ordersData?.data || [];
   const todayOrders = todayOrdersData?.data || [];
 
-  const createOrder = async (): Promise<Order | null> => {
+  const createOrder = async (customerId?: number): Promise<Order | null> => {
     if (items.length === 0) {
       toast.error("السلة فارغة");
       return null;
@@ -41,7 +41,10 @@ export const useOrders = () => {
     }));
 
     try {
-      const result = await createMutation({ items: orderItems }).unwrap();
+      const result = await createMutation({ 
+        items: orderItems,
+        customerId,
+      }).unwrap();
       if (result.success && result.data) {
         return result.data;
       }

@@ -97,6 +97,7 @@ export const ProductsPage = () => {
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">المنتج</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">التصنيف</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">السعر</th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">الكمية</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">الحالة</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">الإجراءات</th>
               </tr>
@@ -118,6 +119,20 @@ export const ProductsPage = () => {
                     <td className="px-4 py-3 text-gray-600">{category?.name || "-"}</td>
                     <td className="px-4 py-3 font-semibold text-primary-600">
                       {formatCurrency(product.price)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={clsx(
+                          "px-2.5 py-1 rounded-full text-xs font-medium",
+                          (product.stockQuantity ?? 0) <= 0
+                            ? "bg-danger-50 text-danger-600"
+                            : (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 5)
+                            ? "bg-warning-50 text-warning-600"
+                            : "bg-gray-100 text-gray-700"
+                        )}
+                      >
+                        {product.stockQuantity ?? 0}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span

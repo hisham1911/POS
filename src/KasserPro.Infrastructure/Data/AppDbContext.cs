@@ -24,6 +24,11 @@ public class AppDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    
+    // Sellable V1: New entities
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<RefundLog> RefundLogs => Set<RefundLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +46,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Payment>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Shift>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<AuditLog>().HasQueryFilter(e => !e.IsDeleted);
+        
+        // Sellable V1: Soft delete filters for new entities
+        modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<StockMovement>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RefundLog>().HasQueryFilter(e => !e.IsDeleted);
 
         // Tenant relationships
         modelBuilder.Entity<Branch>()
@@ -149,6 +159,94 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
         modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.TenantId, a.CreatedAt });
         modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // SELLABLE V1: Customer, StockMovement, RefundLog configurations
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // Customer relationships
+        modelBuilder.Entity<Customer>()
+            .HasOne(c => c.Tenant)
+            .WithMany()
+            .HasForeignKey(c => c.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Customer>()
+            .HasMany(c => c.Orders)
+            .WithOne(o => o.Customer)
+            .HasForeignKey(o => o.CustomerId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // Customer indexes (phone lookup is primary use case)
+        modelBuilder.Entity<Customer>()
+            .HasIndex(c => new { c.TenantId, c.Phone })
+            .IsUnique();
+        
+        // StockMovement relationships
+        modelBuilder.Entity<StockMovement>()
+            .HasOne(sm => sm.Tenant)
+            .WithMany()
+            .HasForeignKey(sm => sm.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<StockMovement>()
+            .HasOne(sm => sm.Branch)
+            .WithMany()
+            .HasForeignKey(sm => sm.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<StockMovement>()
+            .HasOne(sm => sm.Product)
+            .WithMany(p => p.StockMovements)
+            .HasForeignKey(sm => sm.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<StockMovement>()
+            .HasOne(sm => sm.User)
+            .WithMany()
+            .HasForeignKey(sm => sm.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        // StockMovement indexes (history queries)
+        modelBuilder.Entity<StockMovement>()
+            .HasIndex(sm => new { sm.ProductId, sm.CreatedAt });
+        
+        // RefundLog relationships
+        modelBuilder.Entity<RefundLog>()
+            .HasOne(rl => rl.Tenant)
+            .WithMany()
+            .HasForeignKey(rl => rl.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<RefundLog>()
+            .HasOne(rl => rl.Branch)
+            .WithMany()
+            .HasForeignKey(rl => rl.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<RefundLog>()
+            .HasOne(rl => rl.Order)
+            .WithOne(o => o.RefundLog)
+            .HasForeignKey<RefundLog>(rl => rl.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<RefundLog>()
+            .HasOne(rl => rl.User)
+            .WithMany()
+            .HasForeignKey(rl => rl.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        // RefundLog indexes
+        modelBuilder.Entity<RefundLog>()
+            .HasIndex(rl => rl.OrderId)
+            .IsUnique();
+        
+        // Product indexes for barcode/SKU lookup (POS scanning)
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => new { p.TenantId, p.Barcode });
+        
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => new { p.TenantId, p.Sku });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

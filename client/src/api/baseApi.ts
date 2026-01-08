@@ -69,6 +69,10 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
         api.dispatch({ type: "api/invalidateTags", payload: ["Shifts"] })
       } else if (errorData?.errorCode === "SHIFT_BRANCH_MISMATCH") {
         toast.error("الوردية لا تنتمي للفرع الحالي")
+      } else if (errorData?.errorCode === "INSUFFICIENT_STOCK") {
+        toast.error(message, { duration: 5000 })
+        // Invalidate products cache to get updated stock
+        api.dispatch({ type: "api/invalidateTags", payload: ["Products"] })
       } else {
         toast.error(message)
       }
@@ -89,6 +93,6 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Products", "Categories", "Orders", "Shifts", "User", "Branches", "Tenant", "AuditLogs", "Reports"],
+  tagTypes: ["Products", "Categories", "Orders", "Shifts", "User", "Branches", "Tenant", "AuditLogs", "Reports", "Customers", "Inventory"],
   endpoints: () => ({}),
 })

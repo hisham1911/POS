@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { X, Check, Banknote, CreditCard, Building2 } from "lucide-react";
+import { X, Check, Banknote, CreditCard, Building2, User, Phone, Star } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useOrders } from "@/hooks/useOrders";
 import { formatCurrency } from "@/utils/formatters";
 import { PaymentMethod } from "@/types/order.types";
+import { Customer } from "@/types/customer.types";
 import { Button } from "@/components/common/Button";
 import { toast } from "sonner";
 import clsx from "clsx";
 
 interface PaymentModalProps {
   onClose: () => void;
+  selectedCustomer?: Customer | null;
+  onOrderComplete?: () => void;
 }
 
 const paymentMethods: {
@@ -22,12 +25,14 @@ const paymentMethods: {
   { id: "Fawry", label: "فوري", icon: <Building2 className="w-8 h-8" /> },
 ];
 
-export const PaymentModal = ({ onClose }: PaymentModalProps) => {
+export const PaymentModal = ({ onClose, selectedCustomer, onOrderComplete }: PaymentModalProps) => {
   const { total, clearCart } = useCart();
   const { createOrder, completeOrder, isCreating, isCompleting } = useOrders();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("Cash");
   const [amountPaid, setAmountPaid] = useState<string>(total.toFixed(2));
   const [showError, setShowError] = useState(false);
+
+  const customerId = selectedCustomer?.id;
 
   const numericAmount = parseFloat(amountPaid) || 0;
   const change = numericAmount - total;
@@ -59,8 +64,8 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
     }
 
     try {
-      // 1. إنشاء الطلب أولاً
-      const order = await createOrder();
+      // 1. إنشاء الطلب أولاً (مع العميل إن وجد)
+      const order = await createOrder(customerId);
       if (!order) {
         // فشل إنشاء الطلب - لا نغلق النافذة، السلة محفوظة
         return;
@@ -81,6 +86,8 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
         if (change > 0) {
           toast.success(`تم إتمام الدفع! الباقي: ${formatCurrency(change)}`);
         }
+        // مسح العميل المحدد
+        onOrderComplete?.();
         onClose();
       }
       // فشل إكمال الطلب - لا نغلق النافذة، السلة محفوظة
@@ -107,6 +114,38 @@ export const PaymentModal = ({ onClose }: PaymentModalProps) => {
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Customer Info */}
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <p className="text-sm font-medium text-gray-500 mb-2">معلومات العميل</p>
+            {selectedCustomer ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary-500" />
+                  <span className="font-medium text-gray-800">
+                    {selectedCustomer.name || selectedCustomer.phone}
+                  </span>
+                </div>
+                {selectedCustomer.phone && selectedCustomer.name && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <span dir="ltr">{selectedCustomer.phone}</span>
+                  </div>
+                )}
+                {(selectedCustomer.loyaltyPoints ?? 0) > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-amber-600">
+                    <Star className="w-4 h-4 text-amber-500" />
+                    <span>{selectedCustomer.loyaltyPoints} نقطة ولاء</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-gray-500">
+                <User className="w-4 h-4" />
+                <span>عميل نقدي</span>
+              </div>
+            )}
+          </div>
+
           {/* Total Amount */}
           <div className="text-center p-6 bg-gray-50 rounded-xl">
             <p className="text-gray-500 mb-1">الإجمالي المطلوب</p>

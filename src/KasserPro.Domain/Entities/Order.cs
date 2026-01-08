@@ -51,6 +51,13 @@ public class Order : BaseEntity
     public DateTime? CompletedAt { get; set; }
     public DateTime? CancelledAt { get; set; }
     public string? CancellationReason { get; set; }
+    
+    // Refund Information
+    public DateTime? RefundedAt { get; set; }
+    public string? RefundReason { get; set; }
+    public int? RefundedByUserId { get; set; }
+    public string? RefundedByUserName { get; set; }
+    public decimal RefundAmount { get; set; } = 0;
 
     public int UserId { get; set; }
     public string? UserName { get; set; } // Snapshot
@@ -62,6 +69,8 @@ public class Order : BaseEntity
     public Branch Branch { get; set; } = null!;
     public User User { get; set; } = null!;
     public Shift? Shift { get; set; }
+    public Customer? Customer { get; set; }
+    public RefundLog? RefundLog { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

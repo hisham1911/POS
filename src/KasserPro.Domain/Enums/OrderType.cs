@@ -13,5 +13,8 @@ public enum OrderType
     Takeaway = 1,
     
     /// <summary>Delivery order (توصيل)</summary>
-    Delivery = 2
+    Delivery = 2,
+    
+    /// <summary>Return order (مرتجع) - Created when processing refunds</summary>
+    Return = 3
 }

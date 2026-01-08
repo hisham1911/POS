@@ -6,6 +6,23 @@ import {
 } from "../types/order.types";
 import { ApiResponse } from "../types/api.types";
 
+// Paged Result for customer orders
+interface OrdersPagedResult {
+  items: Order[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+interface CustomerOrdersParams {
+  customerId: number;
+  page?: number;
+  pageSize?: number;
+}
+
 export const ordersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // جلب كل الطلبات
@@ -33,6 +50,17 @@ export const ordersApi = baseApi.injectEndpoints({
     getTodayOrders: builder.query<ApiResponse<Order[]>, void>({
       query: () => "/orders/today",
       providesTags: [{ type: "Orders", id: "LIST" }],
+    }),
+
+    // جلب طلبات عميل معين
+    getCustomerOrders: builder.query<ApiResponse<OrdersPagedResult>, CustomerOrdersParams>({
+      query: ({ customerId, page = 1, pageSize = 10 }) => ({
+        url: `/orders/by-customer/${customerId}`,
+        params: { page, pageSize },
+      }),
+      providesTags: (_result, _error, { customerId }) => [
+        { type: "Orders", id: `CUSTOMER_${customerId}` },
+      ],
     }),
 
     // إنشاء طلب جديد
@@ -118,6 +146,29 @@ export const ordersApi = baseApi.injectEndpoints({
         { type: "Orders", id: "LIST" },
       ],
     }),
+
+    // استرجاع الطلب (Full or Partial Refund)
+    refundOrder: builder.mutation<
+      ApiResponse<Order>,
+      { orderId: number; reason?: string; items?: { itemId: number; quantity: number; reason?: string }[] }
+    >({
+      query: ({ orderId, reason, items }) => ({
+        url: `/orders/${orderId}/refund`,
+        method: "POST",
+        body: { reason, items },
+        headers: {
+          "Idempotency-Key": `refund-${orderId}-${Date.now()}`,
+        },
+      }),
+      // Invalidate Orders AND Inventory (stock is restored on refund)
+      invalidatesTags: (_result, _error, { orderId }) => [
+        { type: "Orders", id: orderId },
+        { type: "Orders", id: "LIST" },
+        { type: "Inventory", id: "LOW_STOCK" },
+        { type: "Products", id: "LIST" },
+        "Shifts",
+      ],
+    }),
   }),
 });
 
@@ -125,9 +176,11 @@ export const {
   useGetOrdersQuery,
   useGetOrderQuery,
   useGetTodayOrdersQuery,
+  useGetCustomerOrdersQuery,
   useCreateOrderMutation,
   useAddOrderItemMutation,
   useRemoveOrderItemMutation,
   useCompleteOrderMutation,
   useCancelOrderMutation,
+  useRefundOrderMutation,
 } = ordersApi;

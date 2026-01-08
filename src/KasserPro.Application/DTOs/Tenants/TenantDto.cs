@@ -22,6 +22,11 @@ public class TenantDto
     /// </summary>
     public bool IsTaxEnabled { get; set; } = true;
     
+    /// <summary>
+    /// هل يُسمح بالمخزون السالب؟
+    /// </summary>
+    public bool AllowNegativeStock { get; set; } = false;
+    
     public DateTime CreatedAt { get; set; }
 }
 
@@ -43,4 +48,9 @@ public class UpdateTenantDto
     /// هل الضريبة مفعلة؟
     /// </summary>
     public bool? IsTaxEnabled { get; set; }
+    
+    /// <summary>
+    /// هل يُسمح بالمخزون السالب؟
+    /// </summary>
+    public bool? AllowNegativeStock { get; set; }
 }

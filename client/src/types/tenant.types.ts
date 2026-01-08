@@ -10,6 +10,8 @@ export interface Tenant {
   // Tax Settings
   taxRate: number;
   isTaxEnabled: boolean;
+  // Inventory Settings
+  allowNegativeStock: boolean;
   createdAt: string;
 }
 
@@ -22,4 +24,6 @@ export interface UpdateTenantRequest {
   // Tax Settings
   taxRate?: number;
   isTaxEnabled?: boolean;
+  // Inventory Settings
+  allowNegativeStock?: boolean;
 }

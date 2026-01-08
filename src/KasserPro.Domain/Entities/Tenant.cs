@@ -22,6 +22,12 @@ public class Tenant : BaseEntity
     /// هل الضريبة مفعلة؟ إذا كانت false، لا يتم احتساب ضريبة
     /// </summary>
     public bool IsTaxEnabled { get; set; } = true;
+    
+    // Inventory Settings
+    /// <summary>
+    /// هل يُسمح بالمخزون السالب؟ إذا كانت false، لن يتم السماح بالبيع عند نفاذ المخزون
+    /// </summary>
+    public bool AllowNegativeStock { get; set; } = false;
 
     // Navigation
     public ICollection<Branch> Branches { get; set; } = new List<Branch>();

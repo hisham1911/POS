@@ -42,6 +42,10 @@ builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
+// Sellable V1: New services for inventory and customer management
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

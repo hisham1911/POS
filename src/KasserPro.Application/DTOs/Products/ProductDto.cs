@@ -18,4 +18,14 @@ public class ProductDto
     public int? StockQuantity { get; set; }
     public int CategoryId { get; set; }
     public string? CategoryName { get; set; }
+    
+    // Sellable V1: Inventory management fields
+    public int? LowStockThreshold { get; set; }
+    public int? ReorderPoint { get; set; }
+    public DateTime? LastStockUpdate { get; set; }
+    
+    /// <summary>
+    /// Indicates if product is below low stock threshold
+    /// </summary>
+    public bool IsLowStock => TrackInventory && LowStockThreshold.HasValue && StockQuantity < LowStockThreshold;
 }

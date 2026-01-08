@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Percent, ToggleLeft, ToggleRight, Save, Building2 } from "lucide-react";
+import { Settings, Percent, ToggleLeft, ToggleRight, Save, Building2, Package } from "lucide-react";
 import { useGetCurrentTenantQuery, useUpdateCurrentTenantMutation } from "@/api/branchesApi";
 import { useAppDispatch } from "@/store/hooks";
 import { setTaxSettings } from "@/store/slices/cartSlice";
@@ -22,6 +22,7 @@ export const SettingsPage = () => {
   const [nameEn, setNameEn] = useState<string>("");
   const [currency, setCurrency] = useState<string>("EGP");
   const [timezone, setTimezone] = useState<string>("Africa/Cairo");
+  const [allowNegativeStock, setAllowNegativeStock] = useState<boolean>(false);
 
   // Initialize form with tenant data
   useEffect(() => {
@@ -32,6 +33,7 @@ export const SettingsPage = () => {
       setNameEn(tenant.nameEn || "");
       setCurrency(tenant.currency);
       setTimezone(tenant.timezone);
+      setAllowNegativeStock(tenant.allowNegativeStock ?? false);
     }
   }, [tenant]);
 
@@ -50,6 +52,7 @@ export const SettingsPage = () => {
         timezone,
         taxRate,
         isTaxEnabled,
+        allowNegativeStock,
       }).unwrap();
 
       if (result.success) {
@@ -224,6 +227,49 @@ export const SettingsPage = () => {
                 <p>• قيمة الضريبة ({taxRate}%): {(100 * taxRate / 100).toFixed(2)} ج.م</p>
                 <p>• الإجمالي (شامل الضريبة): {(100 + 100 * taxRate / 100).toFixed(2)} ج.م</p>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Inventory Settings Card */}
+        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <Package className="w-5 h-5 text-gray-500" />
+            <span>إعدادات المخزون</span>
+          </div>
+
+          {/* Allow Negative Stock Toggle */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium">السماح بالمخزون السالب (Sale below 0)</p>
+              <p className="text-sm text-gray-500">
+                {allowNegativeStock 
+                  ? "مسموح - يمكن البيع حتى لو كان المخزون صفر أو سالب" 
+                  : "غير مسموح - سيقوم النظام برفض البيع عند نفاد المخزون"}
+              </p>
+            </div>
+            <button
+              onClick={() => setAllowNegativeStock(!allowNegativeStock)}
+              className={clsx(
+                "p-2 rounded-lg transition-colors",
+                allowNegativeStock 
+                  ? "bg-success-100 text-success-600" 
+                  : "bg-gray-200 text-gray-500"
+              )}
+            >
+              {allowNegativeStock ? (
+                <ToggleRight className="w-8 h-8" />
+              ) : (
+                <ToggleLeft className="w-8 h-8" />
+              )}
+            </button>
+          </div>
+
+          {!allowNegativeStock && (
+            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-sm text-amber-800">
+                <strong>تنبيه:</strong> عند إيقاف هذا الخيار، لن يتمكن الكاشير من إتمام عمليات البيع للمنتجات التي نفد مخزونها.
+              </p>
             </div>
           )}
         </div>

@@ -50,6 +50,13 @@ public class OrderDto
     public DateTime? CancelledAt { get; set; }
     public string? CancellationReason { get; set; }
     
+    // Refund Information
+    public DateTime? RefundedAt { get; set; }
+    public string? RefundReason { get; set; }
+    public decimal RefundAmount { get; set; }
+    public int? RefundedByUserId { get; set; }
+    public string? RefundedByUserName { get; set; }
+    
     public List<OrderItemDto> Items { get; set; } = new();
     public List<PaymentDto> Payments { get; set; } = new();
 }

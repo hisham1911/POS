@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ClipboardList, Eye, XCircle, Search, Calendar } from "lucide-react";
+import { ClipboardList, Eye, XCircle, Search, Calendar, Undo2 } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { Card } from "@/components/common/Card";
 import { Loading } from "@/components/common/Loading";
 import { formatCurrency, formatDateTime } from "@/utils/formatters";
-import { ORDER_STATUS, PAYMENT_METHODS } from "@/utils/constants";
+import { ORDER_STATUS, PAYMENT_METHODS, ORDER_TYPES } from "@/utils/constants";
 import { Order } from "@/types/order.types";
 import { OrderDetailsModal } from "@/components/orders/OrderDetailsModal";
 import clsx from "clsx";
@@ -31,10 +31,13 @@ export const OrdersPage = () => {
       Pending: "bg-warning-50 text-warning-500",
       Cancelled: "bg-danger-50 text-danger-500",
       Refunded: "bg-gray-100 text-gray-500",
+      PartiallyRefunded: "bg-amber-50 text-amber-600",
       Draft: "bg-gray-100 text-gray-500",
     };
     return colors[status] || "bg-gray-100 text-gray-500";
   };
+
+  const isReturnOrder = (order: Order) => order.orderType === "Return";
 
   const handleCancel = async (orderId: number) => {
     if (confirm("هل أنت متأكد من إلغاء هذا الطلب؟")) {
@@ -140,19 +143,39 @@ export const OrdersPage = () => {
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono font-medium">#{order.orderNumber}</td>
+                <tr 
+                  key={order.id} 
+                  className={clsx(
+                    "border-b hover:bg-gray-50",
+                    isReturnOrder(order) && "bg-orange-50/50"
+                  )}
+                >
+                  <td className="px-4 py-3 font-mono font-medium">
+                    <div className="flex items-center gap-2">
+                      {isReturnOrder(order) && (
+                        <Undo2 className="w-4 h-4 text-orange-500" />
+                      )}
+                      <span className={clsx(isReturnOrder(order) && "text-orange-600")}>
+                        #{order.orderNumber}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {formatDateTime(order.createdAt)}
                   </td>
                   <td className="px-4 py-3">{order.customerName || "-"}</td>
-                  <td className="px-4 py-3 font-semibold text-primary-600">
+                  <td className={clsx(
+                    "px-4 py-3 font-semibold",
+                    isReturnOrder(order) ? "text-orange-600" : "text-primary-600"
+                  )}>
                     {formatCurrency(order.total)}
                   </td>
                   <td className="px-4 py-3">
-                    {order.payments.length > 0
-                      ? order.payments.map((p) => PAYMENT_METHODS[p.method]?.label).join(", ")
-                      : "-"}
+                    {isReturnOrder(order) 
+                      ? <span className="text-orange-500">{ORDER_TYPES.Return.icon} {ORDER_TYPES.Return.label}</span>
+                      : order.payments.length > 0
+                        ? order.payments.map((p) => PAYMENT_METHODS[p.method]?.label).join(", ")
+                        : "-"}
                   </td>
                   <td className="px-4 py-3">
                     <span

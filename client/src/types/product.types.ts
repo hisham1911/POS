@@ -13,6 +13,7 @@ export interface Product {
   categoryName?: string;
   trackInventory: boolean;
   stockQuantity?: number;
+  lowStockThreshold?: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -29,6 +30,7 @@ export interface CreateProductRequest {
   categoryId: number;
   trackInventory?: boolean;
   stockQuantity?: number;
+  lowStockThreshold?: number;
 }
 
 export interface UpdateProductRequest {
@@ -43,5 +45,6 @@ export interface UpdateProductRequest {
   categoryId: number;
   trackInventory?: boolean;
   stockQuantity?: number;
-  isActive: boolean; // مطلوب لمنع إلغاء تفعيل المنتج عند التحديث
+  lowStockThreshold?: number;
+  isActive: boolean;
 }

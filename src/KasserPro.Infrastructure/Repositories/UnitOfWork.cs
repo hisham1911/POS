@@ -22,6 +22,11 @@ public class UnitOfWork : IUnitOfWork
         Payments = new GenericRepository<Payment>(context);
         Shifts = new GenericRepository<Shift>(context);
         AuditLogs = new GenericRepository<AuditLog>(context);
+        
+        // Sellable V1: New repositories
+        Customers = new GenericRepository<Customer>(context);
+        StockMovements = new GenericRepository<StockMovement>(context);
+        RefundLogs = new GenericRepository<RefundLog>(context);
     }
 
     public IRepository<Tenant> Tenants { get; }
@@ -34,6 +39,11 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Payment> Payments { get; }
     public IRepository<Shift> Shifts { get; }
     public IRepository<AuditLog> AuditLogs { get; }
+    
+    // Sellable V1: New repository properties
+    public IRepository<Customer> Customers { get; }
+    public IRepository<StockMovement> StockMovements { get; }
+    public IRepository<RefundLog> RefundLogs { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

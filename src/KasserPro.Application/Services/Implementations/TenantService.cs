@@ -52,6 +52,12 @@ public class TenantService : ITenantService
         {
             tenant.IsTaxEnabled = dto.IsTaxEnabled.Value;
         }
+        
+        // Update inventory settings if provided
+        if (dto.AllowNegativeStock.HasValue)
+        {
+            tenant.AllowNegativeStock = dto.AllowNegativeStock.Value;
+        }
 
         _unitOfWork.Tenants.Update(tenant);
         await _unitOfWork.SaveChangesAsync();
@@ -71,6 +77,7 @@ public class TenantService : ITenantService
         IsActive = tenant.IsActive,
         TaxRate = tenant.TaxRate,
         IsTaxEnabled = tenant.IsTaxEnabled,
+        AllowNegativeStock = tenant.AllowNegativeStock,
         CreatedAt = tenant.CreatedAt
     };
 }

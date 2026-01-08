@@ -41,7 +41,11 @@ public class ProductService : IProductService
                 TrackInventory = p.TrackInventory,
                 StockQuantity = p.StockQuantity,
                 CategoryId = p.CategoryId,
-                CategoryName = p.Category.Name
+                CategoryName = p.Category.Name,
+                // Sellable V1: Inventory management fields
+                LowStockThreshold = p.LowStockThreshold,
+                ReorderPoint = p.ReorderPoint,
+                LastStockUpdate = p.LastStockUpdate
             })
             .ToListAsync();
 
@@ -75,7 +79,11 @@ public class ProductService : IProductService
             TrackInventory = product.TrackInventory,
             StockQuantity = product.StockQuantity,
             CategoryId = product.CategoryId,
-            CategoryName = product.Category.Name
+            CategoryName = product.Category.Name,
+            // Sellable V1: Inventory management fields
+            LowStockThreshold = product.LowStockThreshold,
+            ReorderPoint = product.ReorderPoint,
+            LastStockUpdate = product.LastStockUpdate
         });
     }
 
@@ -128,7 +136,12 @@ public class ProductService : IProductService
             Price = request.Price,
             Cost = request.Cost,
             ImageUrl = request.ImageUrl,
-            CategoryId = request.CategoryId
+            CategoryId = request.CategoryId,
+            // Inventory fields - always track inventory
+            TrackInventory = true,
+            StockQuantity = request.StockQuantity,
+            LowStockThreshold = request.LowStockThreshold,
+            LastStockUpdate = DateTime.UtcNow
         };
 
         await _unitOfWork.Products.AddAsync(product);
@@ -177,6 +190,11 @@ public class ProductService : IProductService
         product.ImageUrl = request.ImageUrl;
         product.IsActive = request.IsActive;
         product.CategoryId = request.CategoryId;
+        // Inventory fields
+        product.TrackInventory = true;
+        product.StockQuantity = request.StockQuantity;
+        product.LowStockThreshold = request.LowStockThreshold;
+        product.LastStockUpdate = DateTime.UtcNow;
 
         _unitOfWork.Products.Update(product);
         await _unitOfWork.SaveChangesAsync();

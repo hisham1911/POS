@@ -19,6 +19,21 @@ public class Product : BaseEntity
     public bool IsActive { get; set; } = true;
     public bool TrackInventory { get; set; } = false;
     public int? StockQuantity { get; set; }
+    
+    /// <summary>
+    /// Alert threshold - show warning when stock falls below this level
+    /// </summary>
+    public int? LowStockThreshold { get; set; }
+    
+    /// <summary>
+    /// Suggested reorder level for inventory management
+    /// </summary>
+    public int? ReorderPoint { get; set; }
+    
+    /// <summary>
+    /// Last time stock was updated (for audit trail)
+    /// </summary>
+    public DateTime? LastStockUpdate { get; set; }
 
     public int CategoryId { get; set; }
     
@@ -26,4 +41,5 @@ public class Product : BaseEntity
     public Tenant Tenant { get; set; } = null!;
     public Category Category { get; set; } = null!;
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 }

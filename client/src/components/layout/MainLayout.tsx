@@ -14,6 +14,7 @@ import {
   X,
   FileText,
   Settings,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
@@ -23,6 +24,7 @@ const navItems = [
   { path: "/pos", label: "نقطة البيع", icon: ShoppingCart },
   { path: "/orders", label: "الطلبات", icon: ClipboardList },
   { path: "/shift", label: "الوردية", icon: Timer },
+  { path: "/customers", label: "العملاء", icon: Users, adminOnly: true },
   { path: "/products", label: "المنتجات", icon: Package, adminOnly: true },
   {
     path: "/categories",

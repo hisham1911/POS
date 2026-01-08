@@ -3,11 +3,19 @@ export type OrderStatus =
   | "Pending"
   | "Completed"
   | "Cancelled"
-  | "Refunded";
+  | "Refunded"
+  | "PartiallyRefunded";
 
-export type OrderType = "DineIn" | "Takeaway" | "Delivery";
+export type OrderType = "DineIn" | "Takeaway" | "Delivery" | "Return";
 
 export type PaymentMethod = "Cash" | "Card" | "Fawry";
+
+// Partial refund item request
+export interface RefundItemRequest {
+  itemId: number;
+  quantity: number;
+  reason?: string;
+}
 
 export interface OrderItem {
   id: number;
@@ -74,6 +82,14 @@ export interface Order {
   completedAt?: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  // Refund Information
+  refundedAt?: string;
+  refundReason?: string;
+  refundAmount: number;
+  refundedByUserId?: number;
+  refundedByUserName?: string;
+  // Shift
+  shiftId?: number;
   items: OrderItem[];
   payments: Payment[];
 }

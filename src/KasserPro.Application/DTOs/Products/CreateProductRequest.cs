@@ -11,4 +11,8 @@ public class CreateProductRequest
     public decimal? Cost { get; set; }
     public string? ImageUrl { get; set; }
     public int CategoryId { get; set; }
+    
+    // Inventory fields
+    public int StockQuantity { get; set; } = 0;
+    public int LowStockThreshold { get; set; } = 5;
 }

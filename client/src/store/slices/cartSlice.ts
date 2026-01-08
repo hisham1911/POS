@@ -32,8 +32,27 @@ const cartSlice = createSlice({
         (item) => item.product.id === product.id
       );
 
+      // Check stock availability
+      const currentQty = existingItem?.quantity ?? 0;
+      const newQty = currentQty + quantity;
+      const availableStock = product.stockQuantity ?? Infinity;
+      
+      // Don't allow adding if track inventory and exceeds stock
+      if (product.trackInventory && newQty > availableStock) {
+        // Limit to available stock
+        const maxAddable = Math.max(0, availableStock - currentQty);
+        if (maxAddable <= 0) return; // Can't add more
+        
+        if (existingItem) {
+          existingItem.quantity = availableStock;
+        } else {
+          state.items.push({ product, quantity: maxAddable });
+        }
+        return;
+      }
+
       if (existingItem) {
-        existingItem.quantity += quantity;
+        existingItem.quantity = newQty;
       } else {
         state.items.push({ product, quantity });
       }
@@ -60,7 +79,13 @@ const cartSlice = createSlice({
 
       const item = state.items.find((item) => item.product.id === productId);
       if (item) {
-        item.quantity = quantity;
+        // Check stock availability
+        const availableStock = item.product.stockQuantity ?? Infinity;
+        if (item.product.trackInventory && quantity > availableStock) {
+          item.quantity = availableStock; // Limit to available stock
+        } else {
+          item.quantity = quantity;
+        }
       }
     },
 

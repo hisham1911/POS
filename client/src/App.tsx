@@ -9,6 +9,7 @@ import ProductsPage from "./pages/products/ProductsPage"
 import CategoriesPage from "./pages/categories/CategoriesPage"
 import OrdersPage from "./pages/orders/OrdersPage"
 import ShiftPage from "./pages/shifts/ShiftPage"
+import CustomersPage from "./pages/customers/CustomersPage"
 import DailyReportPage from "./pages/reports/DailyReportPage"
 import AuditLogPage from "./pages/audit/AuditLogPage"
 import SettingsPage from "./pages/settings/SettingsPage"
@@ -53,6 +54,14 @@ const AppRoutes = () => (
       <Route path="/pos" element={<POSPage />} />
       <Route path="/orders" element={<OrdersPage />} />
       <Route path="/shift" element={<ShiftPage />} />
+      <Route
+        path="/customers"
+        element={
+          <AdminRoute>
+            <CustomersPage />
+          </AdminRoute>
+        }
+      />
       <Route
         path="/products"
         element={

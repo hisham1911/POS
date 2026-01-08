@@ -26,16 +26,16 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
     price: product?.price || 0,
     cost: product?.cost || 0,
     categoryId: product?.categoryId || categories[0]?.id || 0,
-    trackInventory: product?.trackInventory || false,
-    stockQuantity: product?.stockQuantity || 0,
-    isActive: product?.isActive ?? true, // الحفاظ على حالة التفعيل
+    stockQuantity: product?.stockQuantity ?? 0,
+    lowStockThreshold: product?.lowStockThreshold ?? 5,
+    isActive: product?.isActive ?? true,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isEditing && product) {
-      // تحديث المنتج - يجب إرسال isActive
+      // تحديث المنتج
       const updateData: UpdateProductRequest = {
         name: formData.name,
         nameEn: formData.nameEn,
@@ -45,9 +45,10 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
         price: formData.price,
         cost: formData.cost,
         categoryId: formData.categoryId,
-        trackInventory: formData.trackInventory,
+        trackInventory: true,
         stockQuantity: formData.stockQuantity,
-        isActive: formData.isActive, // مهم جداً!
+        lowStockThreshold: formData.lowStockThreshold,
+        isActive: formData.isActive,
       };
       await updateProduct(product.id, updateData);
     } else {
@@ -61,8 +62,9 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
         price: formData.price,
         cost: formData.cost,
         categoryId: formData.categoryId,
-        trackInventory: formData.trackInventory,
+        trackInventory: true,
         stockQuantity: formData.stockQuantity,
+        lowStockThreshold: formData.lowStockThreshold,
       };
       await createProduct(createData);
     }
@@ -144,37 +146,23 @@ export const ProductFormModal = ({ product, onClose }: ProductFormModalProps) =>
           />
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-          <div>
-            <p className="font-medium text-gray-700">تتبع المخزون</p>
-            <p className="text-sm text-gray-500">تفعيل إدارة الكميات</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setFormData({ ...formData, trackInventory: !formData.trackInventory })}
-            className={clsx(
-              "w-12 h-6 rounded-full transition-colors relative",
-              formData.trackInventory ? "bg-primary-600" : "bg-gray-300"
-            )}
-          >
-            <span
-              className={clsx(
-                "absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow",
-                formData.trackInventory ? "right-0.5" : "left-0.5"
-              )}
-            />
-          </button>
-        </div>
-
-        {formData.trackInventory && (
+        <div className="grid grid-cols-2 gap-4">
           <Input
-            label="الكمية الحالية"
+            label="الكمية المتاحة *"
             type="number"
             min="0"
             value={formData.stockQuantity}
             onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+            required
           />
-        )}
+          <Input
+            label="حد التنبيه (المخزون المنخفض)"
+            type="number"
+            min="0"
+            value={formData.lowStockThreshold}
+            onChange={(e) => setFormData({ ...formData, lowStockThreshold: parseInt(e.target.value) || 5 })}
+          />
+        </div>
 
         <div className="flex gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={onClose} className="flex-1">

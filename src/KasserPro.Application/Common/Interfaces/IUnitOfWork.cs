@@ -15,6 +15,11 @@ public interface IUnitOfWork : IDisposable
     IRepository<Payment> Payments { get; }
     IRepository<Shift> Shifts { get; }
     IRepository<AuditLog> AuditLogs { get; }
+    
+    // Sellable V1: New repositories
+    IRepository<Customer> Customers { get; }
+    IRepository<StockMovement> StockMovements { get; }
+    IRepository<RefundLog> RefundLogs { get; }
 
     Task<int> SaveChangesAsync();
     

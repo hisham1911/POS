@@ -8,6 +8,15 @@ export const ORDER_STATUS = {
   Completed: { label: "مكتمل", color: "success" },
   Cancelled: { label: "ملغي", color: "danger" },
   Refunded: { label: "مسترجع", color: "danger" },
+  PartiallyRefunded: { label: "مسترجع جزئياً", color: "warning" },
+} as const;
+
+// أنواع الطلب
+export const ORDER_TYPES = {
+  DineIn: { label: "تناول في المكان", icon: "🍽️" },
+  Takeaway: { label: "تيك أواي", icon: "🥡" },
+  Delivery: { label: "توصيل", icon: "🚚" },
+  Return: { label: "مرتجع", icon: "↩️" },
 } as const;
 
 // طرق الدفع
