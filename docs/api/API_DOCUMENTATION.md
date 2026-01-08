@@ -65,13 +65,13 @@
 
 ### قواعد التطوير الذهبية
 
-| Rule | Description |
-|------|-------------|
-| 📝 **Document First** | وثّق الـ API في هذا الملف قبل كتابة الكود |
-| 🔄 **Types Match** | Frontend Types = Backend DTOs (نفس الأسماء والأنواع) |
-| ✅ **Test Before Merge** | لا merge بدون E2E tests passing |
-| 🚫 **No Magic Strings** | استخدم Enums دائماً |
-| 💰 **Tax Exclusive** | الأسعار صافية + الضريبة تُضاف |
+| Rule                     | Description                                          |
+| ------------------------ | ---------------------------------------------------- |
+| 📝 **Document First**    | وثّق الـ API في هذا الملف قبل كتابة الكود            |
+| 🔄 **Types Match**       | Frontend Types = Backend DTOs (نفس الأسماء والأنواع) |
+| ✅ **Test Before Merge** | لا merge بدون E2E tests passing                      |
+| 🚫 **No Magic Strings**  | استخدم Enums دائماً                                  |
+| 💰 **Tax Exclusive**     | الأسعار صافية + الضريبة تُضاف                        |
 
 ### Checklist لكل Feature جديدة
 
@@ -79,12 +79,14 @@
 ## Feature: [اسم الميزة]
 
 ### Pre-Development
+
 - [ ] تم توثيق الـ API endpoints
 - [ ] تم تحديد الـ DTOs
 - [ ] تم تحديد الـ Frontend Types
 - [ ] تم مراجعة الـ Architecture Rules
 
 ### Backend
+
 - [ ] Entity created/updated
 - [ ] Migration created
 - [ ] Repository implemented
@@ -94,7 +96,8 @@
 - [ ] Integration test written
 
 ### Frontend
-- [ ] Types added to types/*.ts
+
+- [ ] Types added to types/\*.ts
 - [ ] RTK Query API added
 - [ ] Redux slice updated (if needed)
 - [ ] Components created
@@ -102,6 +105,7 @@
 - [ ] E2E test added
 
 ### Verification
+
 - [ ] Integration tests pass
 - [ ] E2E tests pass
 - [ ] Manual testing done
@@ -113,47 +117,47 @@
 
 ### Phase 1: MVP ✅ COMPLETED
 
-| Feature | Backend | Frontend | E2E Test |
-|---------|:-------:|:--------:|:--------:|
-| Authentication | ✅ | ✅ | ✅ |
-| Products CRUD | ✅ | ✅ | ✅ |
-| Categories CRUD | ✅ | ✅ | ✅ |
-| Orders (Create, Complete) | ✅ | ✅ | ✅ |
-| Payments (Cash, Card) | ✅ | ✅ | ✅ |
-| Shifts (Open, Close) | ✅ | ✅ | ✅ |
-| Daily Reports | ✅ | ✅ | ✅ |
-| Tax Configuration | ✅ | ✅ | ✅ |
-| Audit Logs | ✅ | ✅ | - |
+| Feature                   | Backend | Frontend | E2E Test |
+| ------------------------- | :-----: | :------: | :------: |
+| Authentication            |   ✅    |    ✅    |    ✅    |
+| Products CRUD             |   ✅    |    ✅    |    ✅    |
+| Categories CRUD           |   ✅    |    ✅    |    ✅    |
+| Orders (Create, Complete) |   ✅    |    ✅    |    ✅    |
+| Payments (Cash, Card)     |   ✅    |    ✅    |    ✅    |
+| Shifts (Open, Close)      |   ✅    |    ✅    |    ✅    |
+| Daily Reports             |   ✅    |    ✅    |    ✅    |
+| Tax Configuration         |   ✅    |    ✅    |    ✅    |
+| Audit Logs                |   ✅    |    ✅    |    -     |
 
 ### Phase 2: Enhanced Features 📋 PLANNED
 
-| Feature | Backend | Frontend | E2E Test |
-|---------|:-------:|:--------:|:--------:|
-| Customers & Loyalty | ⏳ | ⏳ | ⏳ |
-| Discounts & Promotions | ⏳ | ⏳ | ⏳ |
-| Inventory Management | ⏳ | ⏳ | ⏳ |
-| Order Refunds | ⏳ | ⏳ | ⏳ |
-| Receipt Printing | ⏳ | ⏳ | ⏳ |
+| Feature                | Backend | Frontend | E2E Test |
+| ---------------------- | :-----: | :------: | :------: |
+| Customers & Loyalty    |   ⏳    |    ⏳    |    ⏳    |
+| Discounts & Promotions |   ⏳    |    ⏳    |    ⏳    |
+| Inventory Management   |   ⏳    |    ⏳    |    ⏳    |
+| Order Refunds          |   ⏳    |    ⏳    |    ⏳    |
+| Receipt Printing       |   ⏳    |    ⏳    |    ⏳    |
 
 ### Phase 3: Advanced Features 📋 PLANNED
 
-| Feature | Backend | Frontend | E2E Test |
-|---------|:-------:|:--------:|:--------:|
-| Multi-Branch | ⏳ | ⏳ | ⏳ |
-| Kitchen Display | ⏳ | ⏳ | ⏳ |
-| Tables Management | ⏳ | ⏳ | ⏳ |
-| Modifiers | ⏳ | ⏳ | ⏳ |
-| Advanced Reports | ⏳ | ⏳ | ⏳ |
+| Feature           | Backend | Frontend | E2E Test |
+| ----------------- | :-----: | :------: | :------: |
+| Multi-Branch      |   ⏳    |    ⏳    |    ⏳    |
+| Kitchen Display   |   ⏳    |    ⏳    |    ⏳    |
+| Tables Management |   ⏳    |    ⏳    |    ⏳    |
+| Modifiers         |   ⏳    |    ⏳    |    ⏳    |
+| Advanced Reports  |   ⏳    |    ⏳    |    ⏳    |
 
 ### Phase 4: Enterprise 📋 PLANNED
 
-| Feature | Backend | Frontend | E2E Test |
-|---------|:-------:|:--------:|:--------:|
-| ETA E-Invoicing | ⏳ | ⏳ | ⏳ |
-| Offline Mode | ⏳ | ⏳ | ⏳ |
-| Multi-Tenant | ⏳ | ⏳ | ⏳ |
-| Webhooks | ⏳ | ⏳ | ⏳ |
-| ERP Integration | ⏳ | ⏳ | ⏳ |
+| Feature         | Backend | Frontend | E2E Test |
+| --------------- | :-----: | :------: | :------: |
+| ETA E-Invoicing |   ⏳    |    ⏳    |    ⏳    |
+| Offline Mode    |   ⏳    |    ⏳    |    ⏳    |
+| Multi-Tenant    |   ⏳    |    ⏳    |    ⏳    |
+| Webhooks        |   ⏳    |    ⏳    |    ⏳    |
+| ERP Integration |   ⏳    |    ⏳    |    ⏳    |
 
 ---
 
@@ -171,6 +175,30 @@ const totalAmount = netTotal + taxAmount;
 const taxAmount = total / (1 + taxRate / 100); // NEVER
 ```
 
+### Snapshots Pattern (Data Integrity)
+
+Orders save snapshots of related data at creation time to preserve historical accuracy:
+
+```typescript
+// Order saves:
+-branchName,
+  branchAddress,
+  branchPhone - // Branch info at order time
+    userName - // Cashier name at order time
+    currencyCode - // Currency at order time
+    taxRate - // Tax rate at order time
+    // OrderItem saves:
+    productName,
+  productNameEn - // Product names at order time
+    productSku,
+  productBarcode - // Product identifiers
+    unitPrice,
+  originalPrice - // Prices at order time
+    taxRate; // Tax rate at order time
+```
+
+> **Why?** If a product price changes tomorrow, historical orders still show the correct price at the time of sale.
+
 ### Multi-Tenancy
 
 ```csharp
@@ -186,8 +214,8 @@ var tenantId = 1; // NEVER
 
 ```typescript
 // ✅ صحيح - استخدم Enums
-type OrderType = 'DineIn' | 'Takeaway' | 'Delivery';
-type PaymentMethod = 'Cash' | 'Card' | 'Fawry';
+type OrderType = "DineIn" | "Takeaway" | "Delivery";
+type PaymentMethod = "Cash" | "Card" | "Fawry";
 
 // ❌ ممنوع - Magic Strings
 const orderType = "dine_in"; // NEVER
@@ -195,14 +223,14 @@ const orderType = "dine_in"; // NEVER
 
 ### Validation Rules
 
-| Entity | Rule | Error Code |
-|--------|------|------------|
-| Product.Price | `>= 0` | `PRODUCT_INVALID_PRICE` |
-| OrderItem.Quantity | `> 0` | `ORDER_INVALID_QUANTITY` |
-| Order.Items | `length > 0` | `ORDER_EMPTY` |
-| Order.Status | Cannot modify if `!= Draft` | `ORDER_NOT_EDITABLE` |
-| Product.IsActive | Cannot sell if `false` | `PRODUCT_INACTIVE` |
-| Shift | Must be open for orders | `NO_OPEN_SHIFT` |
+| Entity             | Rule                        | Error Code               |
+| ------------------ | --------------------------- | ------------------------ |
+| Product.Price      | `>= 0`                      | `PRODUCT_INVALID_PRICE`  |
+| OrderItem.Quantity | `> 0`                       | `ORDER_INVALID_QUANTITY` |
+| Order.Items        | `length > 0`                | `ORDER_EMPTY`            |
+| Order.Status       | Cannot modify if `!= Draft` | `ORDER_NOT_EDITABLE`     |
+| Product.IsActive   | Cannot sell if `false`      | `PRODUCT_INACTIVE`       |
+| Shift              | Must be open for orders     | `NO_OPEN_SHIFT`          |
 
 ---
 
@@ -240,26 +268,26 @@ interface PaginatedResponse<T> {
 
 ### HTTP Status Codes
 
-| Code | Usage |
-|------|-------|
-| 200 | Success (GET, PUT) |
-| 201 | Created (POST) |
-| 204 | No Content (DELETE) |
-| 400 | Bad Request (Validation Error) |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not Found |
-| 409 | Conflict |
-| 500 | Server Error |
+| Code | Usage                          |
+| ---- | ------------------------------ |
+| 200  | Success (GET, PUT)             |
+| 201  | Created (POST)                 |
+| 204  | No Content (DELETE)            |
+| 400  | Bad Request (Validation Error) |
+| 401  | Unauthorized                   |
+| 403  | Forbidden                      |
+| 404  | Not Found                      |
+| 409  | Conflict                       |
+| 500  | Server Error                   |
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Endpoints | kebab-case | `/api/order-items` |
-| Query Params | camelCase | `?pageSize=10` |
-| Request Body | camelCase | `{ "orderType": "DineIn" }` |
-| Response Body | camelCase | `{ "totalAmount": 100 }` |
+| Type          | Convention | Example                     |
+| ------------- | ---------- | --------------------------- |
+| Endpoints     | kebab-case | `/api/order-items`          |
+| Query Params  | camelCase  | `?pageSize=10`              |
+| Request Body  | camelCase  | `{ "orderType": "DineIn" }` |
+| Response Body | camelCase  | `{ "totalAmount": 100 }`    |
 
 ---
 
@@ -278,33 +306,30 @@ interface LoginRequest {
 
 // Response
 interface LoginResponse {
-  token: string;
-  refreshToken: string;
+  accessToken: string; // JWT Token
+  expiresAt: string; // ISO DateTime
   user: {
     id: number;
-    email: string;
     name: string;
-    role: 'Admin' | 'Cashier';
-    tenantId: number;
-    branchId: number;
+    email: string;
+    role: "Admin" | "Cashier";
   };
 }
 ```
 
-#### POST /api/auth/refresh
+#### GET /api/auth/me
 
 ```typescript
-// Request
-interface RefreshRequest {
-  refreshToken: string;
-}
-
-// Response
-interface RefreshResponse {
-  token: string;
-  refreshToken: string;
+// Response - Returns current authenticated user info
+interface UserInfo {
+  id: number;
+  name: string;
+  email: string;
+  role: "Admin" | "Cashier";
 }
 ```
+
+> **Note:** Refresh Token functionality is planned for Phase 2.
 
 ---
 
@@ -449,37 +474,97 @@ interface OrdersQuery {
   pageSize?: number;
 }
 
-type OrderStatus = 'Draft' | 'Pending' | 'Completed' | 'Cancelled' | 'Refunded';
-type OrderType = 'DineIn' | 'Takeaway' | 'Delivery';
+type OrderStatus = "Draft" | "Pending" | "Completed" | "Cancelled" | "Refunded";
+type OrderType = "DineIn" | "Takeaway" | "Delivery";
+type PaymentMethod = "Cash" | "Card" | "Fawry";
 
 interface OrderDto {
   id: number;
   orderNumber: string;
-  orderType: OrderType;
   status: OrderStatus;
+  orderType: OrderType;
+
+  // Branch Snapshot (saved at order time)
+  branchId: number;
+  branchName?: string;
+  branchAddress?: string;
+  branchPhone?: string;
+
+  // Currency
+  currencyCode: string; // Default: "EGP"
+
+  // Totals
   subtotal: number;
-  taxAmount: number;
+  discountType?: string;
+  discountValue?: number;
   discountAmount: number;
+  discountCode?: string;
+  taxRate: number;
+  taxAmount: number;
+  serviceChargePercent: number;
+  serviceChargeAmount: number;
   total: number;
+  amountPaid: number;
+  amountDue: number;
+  changeAmount: number;
+
+  // Customer
+  customerName?: string;
+  customerPhone?: string;
+  customerId?: number;
   notes?: string;
-  items: OrderItemDto[];
-  payments: PaymentDto[];
+
+  // User & Shift
+  userId: number;
+  userName?: string; // Snapshot
   shiftId?: number;
+
+  // Timestamps
   createdAt: string;
   completedAt?: string;
-  createdByName: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+
+  items: OrderItemDto[];
+  payments: PaymentDto[];
 }
 
 interface OrderItemDto {
   id: number;
   productId: number;
+
+  // Product Snapshot (saved at order time)
   productName: string;
+  productNameEn?: string;
+  productSku?: string;
+  productBarcode?: string;
+
+  // Price Snapshot
+  unitPrice: number; // Net price (excluding tax)
+  originalPrice: number;
   quantity: number;
-  unitPrice: number;
+
+  // Discount
+  discountType?: string;
+  discountValue?: number;
+  discountAmount: number;
+  discountReason?: string;
+
+  // Tax (Tax Exclusive model)
   taxRate: number;
   taxAmount: number;
-  subtotal: number;
-  total: number;
+  taxInclusive: boolean; // Always false
+
+  subtotal: number; // unitPrice * quantity
+  total: number; // subtotal + taxAmount
+  notes?: string;
+}
+
+interface PaymentDto {
+  id: number;
+  method: PaymentMethod;
+  amount: number;
+  reference?: string;
 }
 ```
 
@@ -487,16 +572,27 @@ interface OrderItemDto {
 
 ```typescript
 interface CreateOrderRequest {
-  orderType: OrderType;
-  notes?: string;
+  orderType?: OrderType; // Default: 'DineIn'
   items: CreateOrderItemRequest[];
+  customerName?: string;
+  customerPhone?: string;
+  customerId?: number;
+  notes?: string;
 }
 
 interface CreateOrderItemRequest {
   productId: number;
   quantity: number; // Must be > 0
+  notes?: string;
 }
 ```
+
+> **Validation Rules:**
+>
+> - `items` must have at least 1 item (`ORDER_EMPTY`)
+> - Each `quantity` must be > 0 (`ORDER_INVALID_QUANTITY`)
+> - Product must exist and be active (`PRODUCT_NOT_FOUND`, `PRODUCT_INACTIVE`)
+> - User must have an open shift (`NO_OPEN_SHIFT`)
 
 #### POST /api/orders/{id}/items
 
@@ -526,7 +622,7 @@ interface PaymentRequest {
   amount: number;
 }
 
-type PaymentMethod = 'Cash' | 'Card' | 'Fawry';
+type PaymentMethod = "Cash" | "Card" | "Fawry";
 ```
 
 #### POST /api/orders/{id}/cancel
@@ -542,19 +638,41 @@ Note: Only works if order.status != 'Completed'
 
 #### GET /api/shifts/current
 
+Returns the current open shift for the authenticated user in the current branch.
+
 ```typescript
 interface ShiftDto {
   id: number;
+  openingBalance: number;
+  closingBalance: number;
+  expectedBalance: number; // openingBalance + totalCash
+  difference: number; // closingBalance - expectedBalance
   openedAt: string;
   closedAt?: string;
-  openingBalance: number;
-  closingBalance?: number;
+  isClosed: boolean;
+  notes?: string;
+
+  // Totals
   totalCash: number;
   totalCard: number;
   totalOrders: number;
-  notes?: string;
-  openedByName: string;
-  closedByName?: string;
+
+  // User
+  userName: string;
+
+  // Orders in this shift (simplified view)
+  orders: ShiftOrderDto[];
+}
+
+interface ShiftOrderDto {
+  id: number;
+  orderNumber: string;
+  status: string;
+  orderType?: string;
+  total: number;
+  customerName?: string;
+  createdAt: string;
+  completedAt?: string;
 }
 ```
 
@@ -562,7 +680,7 @@ interface ShiftDto {
 
 ```typescript
 interface OpenShiftRequest {
-  openingBalance: number;
+  openingBalance: number; // Must be >= 0
 }
 ```
 
@@ -570,10 +688,12 @@ interface OpenShiftRequest {
 
 ```typescript
 interface CloseShiftRequest {
-  closingBalance: number;
+  closingBalance: number; // Actual cash in drawer
   notes?: string;
 }
 ```
+
+> **Concurrency:** Shifts use optimistic locking (RowVersion). If another user modifies the shift, you'll receive `SHIFT_CONCURRENCY_CONFLICT` error.
 
 ---
 
@@ -583,19 +703,30 @@ interface CloseShiftRequest {
 
 ```typescript
 interface DailyReportDto {
-  date: string;
-  branchName: string;
+  date: string; // ISO Date (YYYY-MM-DD)
+  branchId: number;
+  branchName?: string;
+
+  // Order Counts
   totalOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  totalSales: number;
-  netSales: number;
-  totalTax: number;
+  pendingOrders: number;
+
+  // Sales Totals (Tax Exclusive model)
+  grossSales: number; // Subtotal before discounts
   totalDiscount: number;
+  netSales: number; // After discounts, before tax
+  totalTax: number;
+  totalSales: number; // Final total (netSales + totalTax)
+
+  // Payment Breakdown
   totalCash: number;
   totalCard: number;
   totalFawry: number;
   totalOther: number;
+
+  // Analytics
   topProducts: TopProductDto[];
   hourlySales: HourlySalesDto[];
 }
@@ -608,9 +739,30 @@ interface TopProductDto {
 }
 
 interface HourlySalesDto {
-  hour: number;
+  hour: number; // 0-23
   orderCount: number;
   sales: number;
+}
+```
+
+#### GET /api/reports/sales?fromDate={date}&toDate={date}
+
+```typescript
+interface SalesReportDto {
+  fromDate: string;
+  toDate: string;
+  totalSales: number;
+  totalCost: number;
+  grossProfit: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  dailySales: DailySalesDto[];
+}
+
+interface DailySalesDto {
+  date: string;
+  sales: number;
+  orders: number;
 }
 ```
 
@@ -718,7 +870,7 @@ interface CreateCustomerRequest {
 // PUT /api/discounts/{id}
 // DELETE /api/discounts/{id}
 
-type DiscountType = 'Percentage' | 'FixedAmount';
+type DiscountType = "Percentage" | "FixedAmount";
 
 interface DiscountDto {
   id: number;
@@ -766,7 +918,7 @@ interface InventoryAdjustmentRequest {
 ```typescript
 // POST /api/orders/{id}/refund
 
-type RefundType = 'Full' | 'Partial';
+type RefundType = "Full" | "Partial";
 
 interface RefundRequest {
   type: RefundType;
@@ -792,7 +944,7 @@ interface TableDto {
   id: number;
   number: string;
   capacity: number;
-  status: 'Available' | 'Occupied' | 'Reserved';
+  status: "Available" | "Occupied" | "Reserved";
   currentOrderId?: number;
   section?: string;
 }
@@ -828,7 +980,7 @@ interface KitchenOrderDto {
   tableName?: string;
   items: KitchenItemDto[];
   createdAt: string;
-  priority: 'Normal' | 'Rush';
+  priority: "Normal" | "Rush";
 }
 
 interface KitchenItemDto {
@@ -837,7 +989,7 @@ interface KitchenItemDto {
   quantity: number;
   modifiers: string[];
   notes?: string;
-  status: 'Pending' | 'Preparing' | 'Ready';
+  status: "Pending" | "Preparing" | "Ready";
 }
 ```
 
@@ -853,7 +1005,7 @@ interface KitchenItemDto {
 interface ETAInvoiceResponse {
   uuid: string;
   submissionId: string;
-  status: 'Submitted' | 'Valid' | 'Invalid' | 'Rejected';
+  status: "Submitted" | "Valid" | "Invalid" | "Rejected";
   qrCode: string;
 }
 ```
@@ -873,13 +1025,13 @@ interface WebhookDto {
   secret: string;
 }
 
-type WebhookEvent = 
-  | 'order.created'
-  | 'order.completed'
-  | 'order.cancelled'
-  | 'shift.opened'
-  | 'shift.closed'
-  | 'inventory.low';
+type WebhookEvent =
+  | "order.created"
+  | "order.completed"
+  | "order.cancelled"
+  | "shift.opened"
+  | "shift.closed"
+  | "inventory.low";
 ```
 
 ---
@@ -888,41 +1040,41 @@ type WebhookEvent =
 
 ### Authentication Errors (1xxx)
 
-| Code | Constant | Message |
-|------|----------|---------|
+| Code | Constant                   | Message                 |
+| ---- | -------------------------- | ----------------------- |
 | 1001 | `AUTH_INVALID_CREDENTIALS` | بيانات الدخول غير صحيحة |
-| 1002 | `AUTH_TOKEN_EXPIRED` | انتهت صلاحية الجلسة |
-| 1003 | `AUTH_UNAUTHORIZED` | غير مصرح |
+| 1002 | `AUTH_TOKEN_EXPIRED`       | انتهت صلاحية الجلسة     |
+| 1003 | `AUTH_UNAUTHORIZED`        | غير مصرح                |
 
 ### Validation Errors (2xxx)
 
-| Code | Constant | Message |
-|------|----------|---------|
-| 2001 | `VALIDATION_REQUIRED` | حقل مطلوب |
+| Code | Constant                    | Message        |
+| ---- | --------------------------- | -------------- |
+| 2001 | `VALIDATION_REQUIRED`       | حقل مطلوب      |
 | 2002 | `VALIDATION_INVALID_FORMAT` | صيغة غير صحيحة |
 
 ### Business Errors (3xxx)
 
-| Code | Constant | Message |
-|------|----------|---------|
-| 3001 | `NO_OPEN_SHIFT` | يجب فتح وردية أولاً |
-| 3002 | `SHIFT_ALREADY_OPEN` | يوجد وردية مفتوحة بالفعل |
-| 3003 | `ORDER_EMPTY` | لا يمكن إنشاء طلب فارغ |
-| 3004 | `ORDER_NOT_EDITABLE` | لا يمكن تعديل هذا الطلب |
-| 3005 | `PRODUCT_INACTIVE` | المنتج غير متاح |
-| 3006 | `PRODUCT_INVALID_PRICE` | سعر المنتج غير صالح |
+| Code | Constant                 | Message                        |
+| ---- | ------------------------ | ------------------------------ |
+| 3001 | `NO_OPEN_SHIFT`          | يجب فتح وردية أولاً            |
+| 3002 | `SHIFT_ALREADY_OPEN`     | يوجد وردية مفتوحة بالفعل       |
+| 3003 | `ORDER_EMPTY`            | لا يمكن إنشاء طلب فارغ         |
+| 3004 | `ORDER_NOT_EDITABLE`     | لا يمكن تعديل هذا الطلب        |
+| 3005 | `PRODUCT_INACTIVE`       | المنتج غير متاح                |
+| 3006 | `PRODUCT_INVALID_PRICE`  | سعر المنتج غير صالح            |
 | 3007 | `ORDER_INVALID_QUANTITY` | الكمية يجب أن تكون أكبر من صفر |
-| 3008 | `PAYMENT_INSUFFICIENT` | المبلغ المدفوع أقل من الإجمالي |
-| 3009 | `CATEGORY_HAS_PRODUCTS` | لا يمكن حذف تصنيف يحتوي منتجات |
+| 3008 | `PAYMENT_INSUFFICIENT`   | المبلغ المدفوع أقل من الإجمالي |
+| 3009 | `CATEGORY_HAS_PRODUCTS`  | لا يمكن حذف تصنيف يحتوي منتجات |
 
 ### Not Found Errors (4xxx)
 
-| Code | Constant | Message |
-|------|----------|---------|
-| 4001 | `PRODUCT_NOT_FOUND` | المنتج غير موجود |
-| 4002 | `CATEGORY_NOT_FOUND` | التصنيف غير موجود |
-| 4003 | `ORDER_NOT_FOUND` | الطلب غير موجود |
-| 4004 | `SHIFT_NOT_FOUND` | الوردية غير موجودة |
+| Code | Constant             | Message            |
+| ---- | -------------------- | ------------------ |
+| 4001 | `PRODUCT_NOT_FOUND`  | المنتج غير موجود   |
+| 4002 | `CATEGORY_NOT_FOUND` | التصنيف غير موجود  |
+| 4003 | `ORDER_NOT_FOUND`    | الطلب غير موجود    |
+| 4004 | `SHIFT_NOT_FOUND`    | الوردية غير موجودة |
 
 ---
 
@@ -942,14 +1094,14 @@ type WebhookEvent =
 
 ### E2E Test Scenarios
 
-| Scene | Description | File |
-|-------|-------------|------|
-| Scene 1 | Admin Setup - Tax Config | `complete-flow.spec.ts` |
-| Scene 2 | Cashier Workday - Full Order | `complete-flow.spec.ts` |
-| Scene 3a | Empty Cart Prevention | `complete-flow.spec.ts` |
-| Scene 3b | No Shift Prevention | `complete-flow.spec.ts` |
-| Scene 4 | Report Verification | `complete-flow.spec.ts` |
-| Cleanup | Reset Tax Rate | `complete-flow.spec.ts` |
+| Scene    | Description                  | File                    |
+| -------- | ---------------------------- | ----------------------- |
+| Scene 1  | Admin Setup - Tax Config     | `complete-flow.spec.ts` |
+| Scene 2  | Cashier Workday - Full Order | `complete-flow.spec.ts` |
+| Scene 3a | Empty Cart Prevention        | `complete-flow.spec.ts` |
+| Scene 3b | No Shift Prevention          | `complete-flow.spec.ts` |
+| Scene 4  | Report Verification          | `complete-flow.spec.ts` |
+| Cleanup  | Reset Tax Rate               | `complete-flow.spec.ts` |
 
 ### Running Tests
 
@@ -967,10 +1119,10 @@ dotnet test
 
 ### Test Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@kasserpro.com | Admin@123 |
-| Cashier | ahmed@kasserpro.com | 123456 |
+| Role    | Email               | Password  |
+| ------- | ------------------- | --------- |
+| Admin   | admin@kasserpro.com | Admin@123 |
+| Cashier | ahmed@kasserpro.com | 123456    |
 
 ---
 
@@ -978,19 +1130,19 @@ dotnet test
 
 ### Ports
 
-| Service | Port |
-|---------|------|
-| Backend API | 5243 |
+| Service      | Port |
+| ------------ | ---- |
+| Backend API  | 5243 |
 | Frontend Dev | 3000 |
 
 ### Tax Configuration
 
-| Setting | Value |
-|---------|-------|
-| Default Rate | 14% |
-| Model | Tax Exclusive (Additive) |
-| Currency | EGP |
-| Timezone | Africa/Cairo |
+| Setting      | Value                    |
+| ------------ | ------------------------ |
+| Default Rate | 14%                      |
+| Model        | Tax Exclusive (Additive) |
+| Currency     | EGP                      |
+| Timezone     | Africa/Cairo             |
 
 ---
 
