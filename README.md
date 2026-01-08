@@ -2,17 +2,18 @@
 
 # 🏪 KasserPro
 
-### Modern Point of Sale System
+### Modern Point of Sale System | نظام نقاط البيع الحديث
 
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-A full-featured, modern Point of Sale system built with Clean Architecture principles.
+A full-featured, production-ready Point of Sale system built with Clean Architecture principles.
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Screenshots](#-screenshots)
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Testing](#-testing)
 
 </div>
 
@@ -24,34 +25,36 @@ A full-featured, modern Point of Sale system built with Clean Architecture princ
 |---------|-------------|
 | 🛒 **POS Interface** | Fast, intuitive sales interface with real-time cart |
 | 📦 **Product Management** | Full CRUD for products and categories |
-| 📋 **Order Management** | Track and manage all orders |
+| 📋 **Order Management** | Track and manage all orders with status workflow |
 | ⏰ **Shift Management** | Open/close shifts with cash tracking |
-| 📊 **Reports** | Daily sales reports and analytics |
+| 📊 **Daily Reports** | Sales reports with payment breakdown |
+| 💰 **Tax Management** | Configurable tax rates (Tax Exclusive model) |
 | 🌐 **RTL Support** | Full Arabic language support |
 | 📱 **Responsive** | Works on desktop, tablet, and mobile |
-| 🔐 **Authentication** | JWT-based auth with role management |
+| 🔐 **Authentication** | JWT-based auth with role management (Admin/Cashier) |
+| 🏢 **Multi-Tenant** | Built-in multi-tenancy support |
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Frontend                              │
-│                   React + TypeScript                         │
+│              React 18 + TypeScript + Vite                    │
 │              Redux Toolkit + RTK Query                       │
 └─────────────────────────┬───────────────────────────────────┘
-                          │ REST API
+                          │ REST API (JWT Auth)
 ┌─────────────────────────▼───────────────────────────────────┐
 │                      API Layer                               │
-│                   ASP.NET Core 8                             │
+│                   ASP.NET Core 9                             │
 ├─────────────────────────────────────────────────────────────┤
 │                  Application Layer                           │
-│              Business Logic & Services                       │
+│              Services, DTOs, Validators                      │
 ├─────────────────────────────────────────────────────────────┤
 │                    Domain Layer                              │
-│              Entities & Interfaces                           │
+│              Entities, Enums, Interfaces                     │
 ├─────────────────────────────────────────────────────────────┤
 │                Infrastructure Layer                          │
-│           EF Core + SQLite + External Services               │
+│           EF Core + SQLite + Audit Interceptors              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -63,34 +66,32 @@ KasserPro/
 │   ├── KasserPro.API/               # REST API & Controllers
 │   ├── KasserPro.Application/       # Business Logic & DTOs
 │   ├── KasserPro.Domain/            # Entities & Interfaces
-│   └── KasserPro.Infrastructure/    # Data Access & Services
+│   ├── KasserPro.Infrastructure/    # Data Access & Services
+│   └── KasserPro.Tests/             # Unit & Integration Tests
 │
 ├── client/                           # Frontend Source
 │   ├── src/
-│   │   ├── api/                     # API Integration (RTK Query)
+│   │   ├── api/                     # RTK Query APIs
 │   │   ├── components/              # Reusable Components
 │   │   ├── hooks/                   # Custom React Hooks
 │   │   ├── pages/                   # Page Components
 │   │   ├── store/                   # Redux Store & Slices
 │   │   ├── types/                   # TypeScript Definitions
 │   │   └── utils/                   # Helper Functions
-│   └── ...
+│   └── e2e/                         # Playwright E2E Tests
+│       └── pages/                   # Page Objects
 │
-├── docs/                             # Documentation
-│   ├── api/                         # API Documentation
-│   ├── guides/                      # Development Guides
-│   └── design/                      # Design System
-│
-├── scripts/                          # Build & Deploy Scripts
-├── .github/                          # GitHub Actions & Templates
-└── docker/                           # Docker Configuration
+└── docs/                             # Documentation
+    ├── api/                         # API Documentation
+    ├── guides/                      # Development Guides
+    └── design/                      # Design System
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Node.js 18+](https://nodejs.org/)
 - [Git](https://git-scm.com/)
 
@@ -117,59 +118,89 @@ npm run dev
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:3000 |
-| Backend API | http://localhost:5000/api |
-| Swagger Docs | http://localhost:5000/swagger |
+| Backend API | http://localhost:5243/api |
+| Swagger Docs | http://localhost:5243/swagger |
 
 ### Demo Credentials
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@kasserpro.com | admin123 |
-| Cashier | cashier@kasserpro.com | cashier123 |
+| Admin | admin@kasserpro.com | Admin@123 |
+| Cashier | ahmed@kasserpro.com | 123456 |
+
+## 🧪 Testing
+
+### E2E Tests (Playwright)
+
+```bash
+cd client
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run with browser visible
+npm run test:e2e:headed
+
+# Run with Playwright UI
+npm run test:e2e:ui
+```
+
+### Integration Tests (.NET)
+
+```bash
+cd src/KasserPro.Tests
+dotnet test
+```
+
+### Test Scenarios
+
+| Scene | Description |
+|-------|-------------|
+| Scene 1 | Admin Setup - Tax configuration |
+| Scene 2 | Cashier Workday - Full order flow |
+| Scene 3 | Security Guard - Negative testing |
+| Scene 4 | Report Verification |
 
 ## 📖 Documentation
 
 | Document | Description |
 |----------|-------------|
+| [Architecture Manifest](docs/KASSERPRO_ARCHITECTURE_MANIFEST.md) | **المرجع الأساسي** - القواعد والمعايير |
 | [API Reference](docs/api/API_DOCUMENTATION.md) | Complete API documentation |
-| [Backend Guide](docs/guides/BACKEND_GUIDE.md) | Backend development guide |
-| [Frontend Guide](docs/guides/FRONTEND_GUIDE.md) | Frontend development guide |
+| [System Health Report](docs/SYSTEM_HEALTH_REPORT.md) | Audit findings and fixes |
 | [Design System](docs/design/DESIGN_SYSTEM.md) | UI/UX design guidelines |
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- **.NET 8** - Web API Framework
-- **Entity Framework Core** - ORM
+- **.NET 9** - Web API Framework
+- **Entity Framework Core 9** - ORM
 - **SQLite** - Database
 - **JWT** - Authentication
-- **AutoMapper** - Object Mapping
-- **FluentValidation** - Input Validation
+- **Clean Architecture** - Design Pattern
 
 ### Frontend
 - **React 18** - UI Library
-- **TypeScript** - Type Safety
+- **TypeScript 5.7** - Type Safety
 - **Redux Toolkit** - State Management
 - **RTK Query** - Data Fetching
 - **TailwindCSS** - Styling
-- **React Router** - Navigation
-- **Vite** - Build Tool
+- **Vite 6** - Build Tool
+- **Playwright** - E2E Testing
 
-## 📸 Screenshots
+## 💰 Financial Logic
 
-<details>
-<summary>Click to view screenshots</summary>
+KasserPro uses **Tax Exclusive (Additive)** model:
 
-### Login Page
-![Login](docs/screenshots/login.png)
+```
+Net Total = Unit Price × Quantity
+Tax Amount = Net Total × (Tax Rate / 100)
+Total = Net Total + Tax Amount
+```
 
-### POS Interface
-![POS](docs/screenshots/pos.png)
-
-### Products Management
-![Products](docs/screenshots/products.png)
-
-</details>
+- Default Tax Rate: 14% (Egypt VAT)
+- Configurable per tenant via Admin settings
+- All prices stored as NET (excluding tax)
 
 ## 🤝 Contributing
 
@@ -183,6 +214,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-Made with ❤️ by [Your Name]
+**Built with ❤️ for the Egyptian Market**
 
 </div>
