@@ -15,9 +15,14 @@ public class OrdersController : ControllerBase
     public OrdersController(IOrderService orderService) => _orderService = orderService;
 
     [HttpGet]
-    public async Task<IActionResult> GetAllOrders()
+    public async Task<IActionResult> GetAllOrders(
+        [FromQuery] string? status = null,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _orderService.GetTodayOrdersAsync();
+        var result = await _orderService.GetAllAsync(status, fromDate, toDate, page, pageSize);
         return Ok(result);
     }
 

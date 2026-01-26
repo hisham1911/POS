@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Plus, Edit2, Trash2, FolderOpen } from "lucide-react";
-import { useCategories } from "@/hooks/useProducts";
+import { Plus, Edit2, Trash2, FolderOpen, Search } from "lucide-react";
+import { useGetCategoriesQuery } from "@/api/categoriesApi";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { Card } from "@/components/common/Card";
@@ -19,8 +19,16 @@ export const CategoriesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: "", nameEn: "", description: "" });
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  const { categories, isLoading } = useCategories();
+  const { data: response, isLoading } = useGetCategoriesQuery({ 
+    search: search || undefined, 
+    page, 
+    pageSize: 20 
+  });
+  const categories = response?.data || [];
+  
   const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
   const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
   const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
@@ -87,6 +95,23 @@ export const CategoriesPage = () => {
         </Button>
       </div>
 
+      {/* Search */}
+      <Card>
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="ابحث عن تصنيف..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1); // Reset to first page on search
+            }}
+            className="pr-10"
+          />
+        </div>
+      </Card>
+
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((category) => (
@@ -124,7 +149,7 @@ export const CategoriesPage = () => {
             )}
             <div className="mt-4 pt-4 border-t flex items-center justify-between">
               <span className="text-sm text-gray-500">
-                {category.productsCount || 0} منتج
+                {category.productCount || 0} منتج
               </span>
               <span
                 className={clsx(
@@ -143,10 +168,33 @@ export const CategoriesPage = () => {
         {categories.length === 0 && (
           <div className="col-span-full text-center py-12 text-gray-400">
             <FolderOpen className="w-12 h-12 mx-auto mb-3" />
-            <p>لا توجد تصنيفات</p>
+            <p>{search ? "لا توجد نتائج للبحث" : "لا توجد تصنيفات"}</p>
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {categories.length > 0 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            السابق
+          </Button>
+          <span className="px-4 py-2 text-sm text-gray-600">
+            صفحة {page}
+          </span>
+          <Button
+            variant="secondary"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={categories.length < 20}
+          >
+            التالي
+          </Button>
+        </div>
+      )}
 
       {/* Category Form Modal */}
       <Modal

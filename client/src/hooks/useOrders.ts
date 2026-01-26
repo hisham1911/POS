@@ -18,6 +18,8 @@ interface ApiErrorData {
 export const useOrders = () => {
   const { items, clearCart } = useCart();
 
+  // Note: useGetOrdersQuery now returns paginated data, but we keep it for backward compatibility
+  // For the full list with filters, use useGetOrdersQuery directly in components
   const {
     data: ordersData,
     isLoading: isLoadingOrders,
@@ -32,7 +34,8 @@ export const useOrders = () => {
   const [cancelMutation, { isLoading: isCancelling }] =
     useCancelOrderMutation();
 
-  const orders = ordersData?.data || [];
+  // Extract items from paginated response
+  const orders = ordersData?.data?.items || [];
   const todayOrders = todayOrdersData?.data || [];
 
   const createOrder = async (customerId?: number): Promise<Order | null> => {

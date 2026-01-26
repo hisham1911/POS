@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<RefundLog> RefundLogs => Set<RefundLog>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,6 +52,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<StockMovement>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<RefundLog>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Supplier>().HasQueryFilter(e => !e.IsDeleted);
 
         // Tenant relationships
         modelBuilder.Entity<Branch>()
@@ -247,6 +249,23 @@ public class AppDbContext : DbContext
         
         modelBuilder.Entity<Product>()
             .HasIndex(p => new { p.TenantId, p.Sku });
+        
+        // Supplier relationships
+        modelBuilder.Entity<Supplier>()
+            .HasOne(s => s.Tenant)
+            .WithMany()
+            .HasForeignKey(s => s.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Supplier>()
+            .HasOne(s => s.Branch)
+            .WithMany()
+            .HasForeignKey(s => s.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        // Supplier indexes
+        modelBuilder.Entity<Supplier>()
+            .HasIndex(s => new { s.TenantId, s.Name });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

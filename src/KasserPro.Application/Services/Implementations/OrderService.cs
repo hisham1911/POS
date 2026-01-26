@@ -213,6 +213,58 @@ public class OrderService : IOrderService
         return ApiResponse<List<OrderDto>>.Ok(orders.Select(MapToDto).ToList());
     }
 
+    public async Task<ApiResponse<PagedResult<OrderDto>>> GetAllAsync(string? status = null, DateTime? fromDate = null, DateTime? toDate = null, int page = 1, int pageSize = 20)
+    {
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+        
+        var query = _unitOfWork.Orders.Query()
+            .Include(o => o.Items)
+            .Include(o => o.Payments)
+            .Where(o => o.TenantId == tenantId && o.BranchId == branchId);
+
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (Enum.TryParse<OrderStatus>(status, true, out var orderStatus))
+            {
+                query = query.Where(o => o.Status == orderStatus);
+            }
+        }
+
+        // Apply date range filter
+        if (fromDate.HasValue)
+        {
+            var fromDateUtc = fromDate.Value.Date;
+            query = query.Where(o => o.CreatedAt >= fromDateUtc);
+        }
+
+        if (toDate.HasValue)
+        {
+            var toDateUtc = toDate.Value.Date.AddDays(1).AddTicks(-1); // End of day
+            query = query.Where(o => o.CreatedAt <= toDateUtc);
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync();
+
+        // Apply pagination
+        var orders = await query
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var result = new PagedResult<OrderDto>(
+            orders.Select(MapToDto).ToList(),
+            totalCount,
+            page,
+            pageSize
+        );
+
+        return ApiResponse<PagedResult<OrderDto>>.Ok(result);
+    }
+
     public async Task<ApiResponse<PagedResult<OrderDto>>> GetByCustomerIdAsync(int customerId, int page = 1, int pageSize = 10)
     {
         var tenantId = _currentUser.TenantId;

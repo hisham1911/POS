@@ -6,5 +6,5 @@ export interface Category {
   imageUrl?: string;
   sortOrder: number;
   isActive: boolean;
-  productsCount?: number;
+  productCount?: number; // Changed from productsCount to match backend
 }

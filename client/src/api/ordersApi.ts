@@ -3,6 +3,8 @@ import {
   Order,
   CreateOrderRequest,
   CompleteOrderRequest,
+  OrdersQueryParams,
+  PagedOrders,
 } from "../types/order.types";
 import { ApiResponse } from "../types/api.types";
 
@@ -25,13 +27,28 @@ interface CustomerOrdersParams {
 
 export const ordersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // جلب كل الطلبات
-    getOrders: builder.query<ApiResponse<Order[]>, void>({
-      query: () => "/orders",
+    // جلب كل الطلبات مع الفلاتر والباجنيشن
+    getOrders: builder.query<ApiResponse<PagedOrders>, OrdersQueryParams | void>({
+      query: (params) => {
+        const queryParams: Record<string, string> = {};
+        
+        if (params) {
+          if (params.status) queryParams.status = params.status;
+          if (params.fromDate) queryParams.fromDate = params.fromDate;
+          if (params.toDate) queryParams.toDate = params.toDate;
+          if (params.page) queryParams.page = params.page.toString();
+          if (params.pageSize) queryParams.pageSize = params.pageSize.toString();
+        }
+
+        return {
+          url: "/orders",
+          params: queryParams,
+        };
+      },
       providesTags: (result) =>
-        result?.data
+        result?.data?.items
           ? [
-              ...result.data.map(({ id }) => ({
+              ...result.data.items.map(({ id }) => ({
                 type: "Orders" as const,
                 id,
               })),

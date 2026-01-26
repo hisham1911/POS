@@ -9,6 +9,7 @@ using KasserPro.Infrastructure.Data;
 using KasserPro.Infrastructure.Repositories;
 using KasserPro.Infrastructure.Services;
 using KasserPro.API.Middleware;
+using KasserPro.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,7 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 // Sellable V1: New services for inventory and customer management
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -87,6 +89,12 @@ if (!app.Environment.IsEnvironment("Testing"))
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await DbInitializer.InitializeAsync(context);
+        
+        // Seed test categories for pagination testing
+        await SeedTestCategories.SeedAsync(context);
+        
+        // Seed test orders for filters and pagination testing
+        await SeedTestOrders.SeedAsync(context);
     }
 }
 

@@ -10,6 +10,7 @@ import CategoriesPage from "./pages/categories/CategoriesPage";
 import OrdersPage from "./pages/orders/OrdersPage";
 import ShiftPage from "./pages/shifts/ShiftPage";
 import CustomersPage from "./pages/customers/CustomersPage";
+import SuppliersPage from "./pages/suppliers/SuppliersPage";
 import DailyReportPage from "./pages/reports/DailyReportPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
@@ -75,6 +76,14 @@ const AppRoutes = () => (
         element={
           <AdminRoute>
             <CategoriesPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/suppliers"
+        element={
+          <AdminRoute>
+            <SuppliersPage />
           </AdminRoute>
         }
       />

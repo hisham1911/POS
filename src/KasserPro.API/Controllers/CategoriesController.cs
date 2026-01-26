@@ -15,9 +15,9 @@ public class CategoriesController : ControllerBase
     public CategoriesController(ICategoryService categoryService) => _categoryService = categoryService;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await _categoryService.GetAllAsync();
+        var result = await _categoryService.GetAllAsync(search, page, pageSize);
         return Ok(result);
     }
 

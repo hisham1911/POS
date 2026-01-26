@@ -10,6 +10,26 @@ export type OrderType = "DineIn" | "Takeaway" | "Delivery" | "Return";
 
 export type PaymentMethod = "Cash" | "Card" | "Fawry";
 
+// Query parameters for filtering orders
+export interface OrdersQueryParams {
+  status?: OrderStatus;
+  fromDate?: string; // ISO date string
+  toDate?: string; // ISO date string
+  page?: number;
+  pageSize?: number;
+}
+
+// Paged result for orders
+export interface PagedOrders {
+  items: Order[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 // Partial refund item request
 export interface RefundItemRequest {
   itemId: number;

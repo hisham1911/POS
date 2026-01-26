@@ -15,6 +15,7 @@ import {
   FileText,
   Settings,
   Users,
+  Truck,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
@@ -32,6 +33,7 @@ const navItems = [
     icon: FolderOpen,
     adminOnly: true,
   },
+  { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
   { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
   { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
   { path: "/settings", label: "الإعدادات", icon: Settings, adminOnly: true },

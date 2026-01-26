@@ -20,6 +20,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<Customer> Customers { get; }
     IRepository<StockMovement> StockMovements { get; }
     IRepository<RefundLog> RefundLogs { get; }
+    IRepository<Supplier> Suppliers { get; }
 
     Task<int> SaveChangesAsync();
     

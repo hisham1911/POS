@@ -19,13 +19,24 @@ public class CategoryService : ICategoryService
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<List<CategoryDto>>> GetAllAsync()
+    public async Task<ApiResponse<List<CategoryDto>>> GetAllAsync(string? search = null, int page = 1, int pageSize = 20)
     {
         var tenantId = _currentUser.TenantId;
-        var categories = await _unitOfWork.Categories.Query()
-            .Include(c => c.Products)
-            .Where(c => c.TenantId == tenantId && c.IsActive)
+        var query = _unitOfWork.Categories.Query()
+            .Where(c => c.TenantId == tenantId && c.IsActive);
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(c => c.Name.Contains(search) || 
+                                    (c.NameEn != null && c.NameEn.Contains(search)));
+        }
+
+        // Apply pagination and get categories with product count
+        var categories = await query
             .OrderBy(c => c.SortOrder)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new CategoryDto
             {
                 Id = c.Id,
@@ -35,7 +46,8 @@ public class CategoryService : ICategoryService
                 ImageUrl = c.ImageUrl,
                 SortOrder = c.SortOrder,
                 IsActive = c.IsActive,
-                ProductCount = c.Products.Count(p => !p.IsDeleted)
+                ProductCount = _unitOfWork.Products.Query()
+                    .Count(p => p.CategoryId == c.Id && !p.IsDeleted && p.TenantId == tenantId)
             })
             .ToListAsync();
 
