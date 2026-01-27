@@ -2,6 +2,7 @@ import type React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAppSelector } from "./store/hooks";
 import { selectIsAuthenticated, selectIsAdmin } from "./store/slices/authSlice";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
 import LoginPage from "./pages/auth/LoginPage";
 import POSPage from "./pages/pos/POSPage";
@@ -11,6 +12,7 @@ import OrdersPage from "./pages/orders/OrdersPage";
 import ShiftPage from "./pages/shifts/ShiftPage";
 import CustomersPage from "./pages/customers/CustomersPage";
 import SuppliersPage from "./pages/suppliers/SuppliersPage";
+import { BranchesPage } from "./pages/branches/BranchesPage";
 import DailyReportPage from "./pages/reports/DailyReportPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
@@ -88,6 +90,14 @@ const AppRoutes = () => (
         }
       />
       <Route
+        path="/branches"
+        element={
+          <AdminRoute>
+            <BranchesPage />
+          </AdminRoute>
+        }
+      />
+      <Route
         path="/reports"
         element={
           <AdminRoute>
@@ -117,9 +127,11 @@ const AppRoutes = () => (
 );
 
 const App = () => (
-  <BrowserRouter>
-    <AppRoutes />
-  </BrowserRouter>
+  <ErrorBoundary>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  </ErrorBoundary>
 );
 
 export default App;

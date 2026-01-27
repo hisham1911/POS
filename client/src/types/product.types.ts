@@ -14,6 +14,8 @@ export interface Product {
   trackInventory: boolean;
   stockQuantity?: number;
   lowStockThreshold?: number;
+  reorderPoint?: number;
+  lastStockUpdate?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -47,4 +49,11 @@ export interface UpdateProductRequest {
   stockQuantity?: number;
   lowStockThreshold?: number;
   isActive: boolean;
+}
+
+export interface ProductsQueryParams {
+  categoryId?: number;
+  search?: string;
+  isActive?: boolean;
+  lowStock?: boolean;
 }

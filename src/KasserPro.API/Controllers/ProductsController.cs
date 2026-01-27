@@ -15,9 +15,13 @@ public class ProductsController : ControllerBase
     public ProductsController(IProductService productService) => _productService = productService;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int? categoryId,
+        [FromQuery] string? search,
+        [FromQuery] bool? isActive,
+        [FromQuery] bool? lowStock)
     {
-        var result = await _productService.GetAllAsync();
+        var result = await _productService.GetAllAsync(categoryId, search, isActive, lowStock);
         return Ok(result);
     }
 
@@ -26,13 +30,6 @@ public class ProductsController : ControllerBase
     {
         var result = await _productService.GetByIdAsync(id);
         return result.Success ? Ok(result) : NotFound(result);
-    }
-
-    [HttpGet("category/{categoryId}")]
-    public async Task<IActionResult> GetByCategory(int categoryId)
-    {
-        var result = await _productService.GetByCategoryAsync(categoryId);
-        return Ok(result);
     }
 
     [HttpPost]

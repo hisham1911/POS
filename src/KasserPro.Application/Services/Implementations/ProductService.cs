@@ -18,12 +18,44 @@ public class ProductService : IProductService
         _currentUser = currentUser;
     }
 
-    public async Task<ApiResponse<List<ProductDto>>> GetAllAsync()
+    public async Task<ApiResponse<List<ProductDto>>> GetAllAsync(int? categoryId = null, string? search = null, bool? isActive = null, bool? lowStock = null)
     {
         var tenantId = _currentUser.TenantId;
-        var products = await _unitOfWork.Products.Query()
+        var query = _unitOfWork.Products.Query()
             .Include(p => p.Category)
-            .Where(p => p.TenantId == tenantId && p.IsActive)
+            .Where(p => p.TenantId == tenantId);
+
+        // Filter by category
+        if (categoryId.HasValue)
+        {
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+        }
+
+        // Filter by search (name or SKU or barcode)
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(p => 
+                p.Name.ToLower().Contains(searchLower) ||
+                (p.NameEn != null && p.NameEn.ToLower().Contains(searchLower)) ||
+                (p.Sku != null && p.Sku.ToLower().Contains(searchLower)) ||
+                (p.Barcode != null && p.Barcode.ToLower().Contains(searchLower))
+            );
+        }
+
+        // Filter by active status
+        if (isActive.HasValue)
+        {
+            query = query.Where(p => p.IsActive == isActive.Value);
+        }
+
+        // Filter by low stock
+        if (lowStock.HasValue && lowStock.Value)
+        {
+            query = query.Where(p => p.TrackInventory && p.StockQuantity < p.LowStockThreshold);
+        }
+
+        var products = await query
             .Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -85,33 +117,6 @@ public class ProductService : IProductService
             ReorderPoint = product.ReorderPoint,
             LastStockUpdate = product.LastStockUpdate
         });
-    }
-
-    public async Task<ApiResponse<List<ProductDto>>> GetByCategoryAsync(int categoryId)
-    {
-        var tenantId = _currentUser.TenantId;
-        var products = await _unitOfWork.Products.Query()
-            .Include(p => p.Category)
-            .Where(p => p.TenantId == tenantId && p.CategoryId == categoryId && p.IsActive)
-            .Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                NameEn = p.NameEn,
-                Price = p.Price,
-                Cost = p.Cost,
-                TaxRate = p.TaxRate,
-                TaxInclusive = p.TaxInclusive,
-                ImageUrl = p.ImageUrl,
-                IsActive = p.IsActive,
-                TrackInventory = p.TrackInventory,
-                StockQuantity = p.StockQuantity,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category.Name
-            })
-            .ToListAsync();
-
-        return ApiResponse<List<ProductDto>>.Ok(products);
     }
 
     public async Task<ApiResponse<ProductDto>> CreateAsync(CreateProductRequest request)

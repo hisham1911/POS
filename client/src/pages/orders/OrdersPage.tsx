@@ -224,10 +224,7 @@ export const OrdersPage = () => {
           <p className="text-sm text-gray-500">المرتجعات</p>
           <p className="text-2xl font-bold text-orange-600">
             {formatCurrency(
-              // مجموع المرتجعات من الطلبات الأصلية + طلبات المرتجع الكاملة
-              filteredOrders
-                .filter((o) => o.orderType !== "Return")
-                .reduce((sum, o) => sum + (o.refundAmount || 0), 0) +
+              // مجموع المرتجعات من طلبات المرتجع فقط (Return Orders)
               Math.abs(
                 filteredOrders
                   .filter((o) => o.orderType === "Return")

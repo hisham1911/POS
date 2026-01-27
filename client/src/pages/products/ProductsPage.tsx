@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
-import { useProducts, useCategories } from "@/hooks/useProducts";
+import { useGetProductsQuery, useDeleteProductMutation } from "@/api/productsApi";
+import { useCategories } from "@/hooks/useProducts";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { Card } from "@/components/common/Card";
@@ -8,25 +9,56 @@ import { Loading } from "@/components/common/Loading";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
 import { formatCurrency } from "@/utils/formatters";
 import { Product } from "@/types/product.types";
+import { toast } from "react-hot-toast";
 import clsx from "clsx";
 
 export const ProductsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const { products, isLoading, deleteProduct, isDeleting } = useProducts();
   const { categories } = useCategories();
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      !selectedCategory || product.categoryId === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Determine if we should use server-side filtering
+  // For now, always use server-side filtering for better performance
+  const useServerSideFiltering = true;
+
+  // Build query params for server-side filtering
+  const queryParams = useMemo(() => {
+    if (!useServerSideFiltering) return undefined;
+    
+    return {
+      categoryId: selectedCategory ?? undefined,
+      search: searchQuery.trim() || undefined,
+      isActive: showActiveOnly ? true : undefined,
+      lowStock: showLowStockOnly ? true : undefined,
+    };
+  }, [selectedCategory, searchQuery, showActiveOnly, showLowStockOnly, useServerSideFiltering]);
+
+  const { data: productsData, isLoading } = useGetProductsQuery(queryParams);
+  const [deleteMutation, { isLoading: isDeleting }] = useDeleteProductMutation();
+
+  const products = productsData?.data || [];
+
+  // Client-side filtering fallback (if server-side is disabled)
+  const filteredProducts = useMemo(() => {
+    if (useServerSideFiltering) return products;
+
+    return products.filter((product) => {
+      const matchesSearch = product.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesCategory =
+        !selectedCategory || product.categoryId === selectedCategory;
+      const matchesActive = !showActiveOnly || product.isActive;
+      const matchesLowStock = !showLowStockOnly || 
+        (product.trackInventory && (product.stockQuantity ?? 0) < (product.lowStockThreshold ?? 5));
+      return matchesSearch && matchesCategory && matchesActive && matchesLowStock;
+    });
+  }, [products, searchQuery, selectedCategory, showActiveOnly, showLowStockOnly, useServerSideFiltering]);
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -35,7 +67,12 @@ export const ProductsPage = () => {
 
   const handleDelete = async (id: number) => {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
-      await deleteProduct(id);
+      try {
+        await deleteMutation(id).unwrap();
+        toast.success("تم حذف المنتج بنجاح");
+      } catch (error) {
+        toast.error("فشل في حذف المنتج");
+      }
     }
   };
 
@@ -65,34 +102,58 @@ export const ProductsPage = () => {
 
       {/* Filters */}
       <Card className="shrink-0">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="بحث عن منتج..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="بحث عن منتج..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
+            <select
+              value={selectedCategory || ""}
+              onChange={(e) =>
+                setSelectedCategory(
+                  e.target.value ? Number(e.target.value) : null
+                )
+              }
+              className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">كل التصنيفات</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <select
-            value={selectedCategory || ""}
-            onChange={(e) =>
-              setSelectedCategory(
-                e.target.value ? Number(e.target.value) : null
-              )
-            }
-            className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            <option value="">كل التصنيفات</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+          
+          {/* Additional Filters */}
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showActiveOnly}
+                onChange={(e) => setShowActiveOnly(e.target.checked)}
+                className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700">نشط فقط</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showLowStockOnly}
+                onChange={(e) => setShowLowStockOnly(e.target.checked)}
+                className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700">مخزون منخفض فقط</span>
+            </label>
+          </div>
         </div>
       </Card>
 
@@ -116,6 +177,9 @@ export const ProductsPage = () => {
                 </th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">
                   الكمية
+                </th>
+                <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                  نقطة إعادة الطلب
                 </th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">
                   الحالة
@@ -161,6 +225,9 @@ export const ProductsPage = () => {
                       >
                         {product.stockQuantity ?? 0}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 text-sm">
+                      {product.reorderPoint ?? "—"}
                     </td>
                     <td className="px-4 py-3">
                       <span

@@ -18,6 +18,7 @@ public class DailyReportDto
     public decimal NetSales { get; set; }        // After discounts, before tax
     public decimal TotalTax { get; set; }
     public decimal TotalSales { get; set; }      // Final total (Net + Tax)
+    public decimal TotalRefunds { get; set; }    // Total refunds from return orders
     
     // Payment Breakdown
     public decimal TotalCash { get; set; }

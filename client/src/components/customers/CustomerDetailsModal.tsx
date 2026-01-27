@@ -12,13 +12,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { Customer } from "@/types/customer.types";
 import { useGetCustomerOrdersQuery } from "@/api/ordersApi";
+import { useGetCustomerQuery } from "@/api/customersApi";
 import { Button } from "@/components/common/Button";
 import { Loading } from "@/components/common/Loading";
 import { formatDateTime, formatCurrency } from "@/utils/formatters";
 import { CustomerFormModal } from "./CustomerFormModal";
+import { LoyaltyPointsModal } from "./LoyaltyPointsModal";
 import clsx from "clsx";
 
 interface CustomerDetailsModalProps {
@@ -29,12 +33,20 @@ interface CustomerDetailsModalProps {
 type TabType = "details" | "orders";
 
 export const CustomerDetailsModal = ({
-  customer,
+  customer: initialCustomer,
   onClose,
 }: CustomerDetailsModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("orders");
   const [ordersPage, setOrdersPage] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showLoyaltyModal, setShowLoyaltyModal] = useState(false);
+  const [loyaltyMode, setLoyaltyMode] = useState<"add" | "redeem">("add");
+
+  // Fetch customer data to get latest loyalty points
+  const { data: customerData, refetch: refetchCustomer } = useGetCustomerQuery(
+    initialCustomer.id
+  );
+  const customer = customerData?.data || initialCustomer;
 
   const ordersPageSize = 5;
   const { data: ordersData, isLoading: isLoadingOrders } =
@@ -127,6 +139,27 @@ export const CustomerDetailsModal = ({
                 <span className="font-semibold">{customer.loyaltyPoints}</span>
                 <span className="text-xs">نقطة</span>
               </div>
+              <button
+                onClick={() => {
+                  setLoyaltyMode("add");
+                  setShowLoyaltyModal(true);
+                }}
+                className="p-2 hover:bg-green-50 rounded-lg transition-colors group"
+                title="إضافة نقاط"
+              >
+                <Plus className="w-4 h-4 text-green-600 group-hover:text-green-700" />
+              </button>
+              <button
+                onClick={() => {
+                  setLoyaltyMode("redeem");
+                  setShowLoyaltyModal(true);
+                }}
+                disabled={customer.loyaltyPoints === 0}
+                className="p-2 hover:bg-orange-50 rounded-lg transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                title="استبدال نقاط"
+              >
+                <Minus className="w-4 h-4 text-orange-600 group-hover:text-orange-700" />
+              </button>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -403,6 +436,20 @@ export const CustomerDetailsModal = ({
         <CustomerFormModal
           customer={customer}
           onClose={() => setShowEditModal(false)}
+        />
+      )}
+
+      {/* Loyalty Points Modal */}
+      {showLoyaltyModal && (
+        <LoyaltyPointsModal
+          customerId={customer.id}
+          customerName={customer.name || customer.phone}
+          currentPoints={customer.loyaltyPoints}
+          mode={loyaltyMode}
+          onClose={() => setShowLoyaltyModal(false)}
+          onSuccess={() => {
+            refetchCustomer();
+          }}
         />
       )}
     </>

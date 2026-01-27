@@ -105,6 +105,21 @@ export const DailyReportPage = () => {
 
         <Card>
           <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-red-500" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">المرتجعات</p>
+              <p className="text-2xl font-bold text-red-600">
+                {formatCurrency(report?.totalRefunds || 0)}
+              </p>
+              <p className="text-xs text-gray-400">إجمالي المرتجعات</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-warning-50 rounded-xl flex items-center justify-center">
               <Receipt className="w-6 h-6 text-warning-500" />
             </div>
@@ -114,21 +129,6 @@ export const DailyReportPage = () => {
                 {formatCurrency(report?.totalTax || 0)}
               </p>
               <p className="text-xs text-gray-400">14% VAT</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-red-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">الخصومات</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {formatCurrency(report?.totalDiscount || 0)}
-              </p>
-              <p className="text-xs text-gray-400">إجمالي التخفيضات</p>
             </div>
           </div>
         </Card>
@@ -171,11 +171,11 @@ export const DailyReportPage = () => {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-gray-600" />
+            <TrendingUp className="w-8 h-8 text-purple-600" />
             <div>
-              <p className="text-sm text-gray-500">أخرى</p>
-              <p className="text-xl font-bold text-gray-600">
-                {formatCurrency(report?.totalOther || 0)}
+              <p className="text-sm text-gray-500">الخصومات</p>
+              <p className="text-xl font-bold text-purple-600">
+                {formatCurrency(report?.totalDiscount || 0)}
               </p>
             </div>
           </div>
