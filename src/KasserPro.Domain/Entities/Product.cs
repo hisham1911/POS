@@ -34,6 +34,21 @@ public class Product : BaseEntity
     /// Last time stock was updated (for audit trail)
     /// </summary>
     public DateTime? LastStockUpdate { get; set; }
+    
+    /// <summary>
+    /// Average cost price (updated from purchase invoices)
+    /// </summary>
+    public decimal? AverageCost { get; set; }
+    
+    /// <summary>
+    /// Last purchase price
+    /// </summary>
+    public decimal? LastPurchasePrice { get; set; }
+    
+    /// <summary>
+    /// Date of last purchase
+    /// </summary>
+    public DateTime? LastPurchaseDate { get; set; }
 
     public int CategoryId { get; set; }
     
@@ -42,4 +57,6 @@ public class Product : BaseEntity
     public Category Category { get; set; } = null!;
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+    public ICollection<SupplierProduct> SupplierProducts { get; set; } = new List<SupplierProduct>();
+    public ICollection<PurchaseInvoiceItem> PurchaseInvoiceItems { get; set; } = new List<PurchaseInvoiceItem>();
 }

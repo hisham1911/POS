@@ -1,0 +1,241 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useGetPurchaseInvoicesQuery, useDeletePurchaseInvoiceMutation } from '../../api/purchaseInvoiceApi';
+import { useGetSuppliersQuery } from '../../api/suppliersApi';
+import { Button } from '../../components/common/Button';
+import { Card } from '../../components/common/Card';
+import { Loading } from '../../components/common/Loading';
+import { formatCurrency, formatDate } from '../../utils/formatters';
+import { PurchaseInvoiceStatus } from '../../types/purchaseInvoice.types';
+import { toast } from 'sonner';
+
+export function PurchaseInvoicesPage() {
+  const navigate = useNavigate();
+  const [pageNumber, setPageNumber] = useState(1);
+  const [supplierId, setSupplierId] = useState<number | undefined>();
+  const [status, setStatus] = useState<PurchaseInvoiceStatus | undefined>();
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+
+  const { data: invoicesResponse, isLoading } = useGetPurchaseInvoicesQuery({
+    supplierId,
+    status,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    pageNumber,
+    pageSize: 20,
+  });
+
+  const { data: suppliersResponse } = useGetSuppliersQuery();
+  const [deletePurchaseInvoice] = useDeletePurchaseInvoiceMutation();
+
+  const invoices = invoicesResponse?.data?.items || [];
+  const totalPages = invoicesResponse?.data?.totalPages || 1;
+  const suppliers = suppliersResponse?.data || [];
+
+  const handleDelete = async (id: number, invoiceNumber: string) => {
+    if (!confirm(`هل أنت متأكد من حذف الفاتورة ${invoiceNumber}؟`)) return;
+
+    try {
+      const result = await deletePurchaseInvoice(id).unwrap();
+      if (result.success) {
+        toast.success('تم حذف الفاتورة بنجاح');
+      }
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      Draft: 'bg-gray-100 text-gray-800',
+      Confirmed: 'bg-blue-100 text-blue-800',
+      Paid: 'bg-green-100 text-green-800',
+      PartiallyPaid: 'bg-yellow-100 text-yellow-800',
+      Cancelled: 'bg-red-100 text-red-800',
+    };
+
+    const statusLabels: Record<string, string> = {
+      Draft: 'مسودة',
+      Confirmed: 'مؤكدة',
+      Paid: 'مدفوعة',
+      PartiallyPaid: 'مدفوعة جزئياً',
+      Cancelled: 'ملغاة',
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
+        {statusLabels[status] || status}
+      </span>
+    );
+  };
+
+  if (isLoading) return <Loading />;
+
+  return (
+    <div className="flex flex-col h-screen">
+      <div className="flex justify-between items-center p-6 pb-4">
+        <h1 className="text-2xl font-bold">فواتير الشراء</h1>
+        <Button onClick={() => navigate('/purchase-invoices/new')}>
+          إنشاء فاتورة جديدة
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="px-6">
+        <Card className="mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">المورد</label>
+              <select
+                value={supplierId || ''}
+                onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : undefined)}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="">الكل</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">الحالة</label>
+              <select
+                value={status || ''}
+                onChange={(e) => setStatus(e.target.value as PurchaseInvoiceStatus || undefined)}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="">الكل</option>
+                <option value="Draft">مسودة</option>
+                <option value="Confirmed">مؤكدة</option>
+                <option value="Paid">مدفوعة</option>
+                <option value="PartiallyPaid">مدفوعة جزئياً</option>
+                <option value="Cancelled">ملغاة</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">من تاريخ</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">إلى تاريخ</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Invoices Table */}
+      <div className="flex-1 px-6 pb-6 overflow-hidden">
+        <Card padding="none" className="h-full flex flex-col">
+          <div className="flex-1 overflow-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">رقم الفاتورة</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">المورد</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجمالي</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">المدفوع</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">المتبقي</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                      لا توجد فواتير
+                    </td>
+                  </tr>
+                ) : (
+                  invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium">{invoice.invoiceNumber}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <div>{invoice.supplierName}</div>
+                        {invoice.supplierPhone && (
+                          <div className="text-xs text-gray-500">{invoice.supplierPhone}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm">{formatDate(invoice.invoiceDate)}</td>
+                      <td className="px-4 py-3 text-sm">{getStatusBadge(invoice.status)}</td>
+                      <td className="px-4 py-3 text-sm font-medium">{formatCurrency(invoice.total)}</td>
+                      <td className="px-4 py-3 text-sm text-green-600">{formatCurrency(invoice.amountPaid)}</td>
+                      <td className="px-4 py-3 text-sm text-red-600">{formatCurrency(invoice.amountDue)}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/purchase-invoices/${invoice.id}`)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            عرض
+                          </button>
+                          {invoice.status === 'Draft' && (
+                            <>
+                              <button
+                                onClick={() => navigate(`/purchase-invoices/${invoice.id}/edit`)}
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                تعديل
+                              </button>
+                              <button
+                                onClick={() => handleDelete(invoice.id, invoice.invoiceNumber)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                حذف
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 p-4 border-t bg-gray-50">
+              <Button
+                variant="outline"
+                onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+                disabled={pageNumber === 1}
+              >
+                السابق
+              </Button>
+              <span className="text-sm">
+                صفحة {pageNumber} من {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
+                disabled={pageNumber === totalPages}
+              >
+                التالي
+              </Button>
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}

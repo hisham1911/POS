@@ -30,6 +30,12 @@ public class AppDbContext : DbContext
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<RefundLog> RefundLogs => Set<RefundLog>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
+    
+    // Purchase Invoice entities
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
+    public DbSet<PurchaseInvoicePayment> PurchaseInvoicePayments => Set<PurchaseInvoicePayment>();
+    public DbSet<SupplierProduct> SupplierProducts => Set<SupplierProduct>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +59,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<StockMovement>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<RefundLog>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Supplier>().HasQueryFilter(e => !e.IsDeleted);
+        
+        // Purchase Invoice: Soft delete filters
+        modelBuilder.Entity<PurchaseInvoice>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PurchaseInvoiceItem>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PurchaseInvoicePayment>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<SupplierProduct>().HasQueryFilter(e => !e.IsDeleted);
 
         // Tenant relationships
         modelBuilder.Entity<Branch>()

@@ -28,6 +28,10 @@ public class UnitOfWork : IUnitOfWork
         StockMovements = new GenericRepository<StockMovement>(context);
         RefundLogs = new GenericRepository<RefundLog>(context);
         Suppliers = new GenericRepository<Supplier>(context);
+        PurchaseInvoices = new GenericRepository<PurchaseInvoice>(context);
+        PurchaseInvoiceItems = new GenericRepository<PurchaseInvoiceItem>(context);
+        PurchaseInvoicePayments = new GenericRepository<PurchaseInvoicePayment>(context);
+        SupplierProducts = new GenericRepository<SupplierProduct>(context);
     }
 
     public IRepository<Tenant> Tenants { get; }
@@ -46,6 +50,10 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<StockMovement> StockMovements { get; }
     public IRepository<RefundLog> RefundLogs { get; }
     public IRepository<Supplier> Suppliers { get; }
+    public IRepository<PurchaseInvoice> PurchaseInvoices { get; }
+    public IRepository<PurchaseInvoiceItem> PurchaseInvoiceItems { get; }
+    public IRepository<PurchaseInvoicePayment> PurchaseInvoicePayments { get; }
+    public IRepository<SupplierProduct> SupplierProducts { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

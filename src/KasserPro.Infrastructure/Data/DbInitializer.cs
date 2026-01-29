@@ -193,6 +193,21 @@ public static class DbInitializer
             await context.SaveChangesAsync();
         }
 
+        // Seed Suppliers
+        if (!await context.Suppliers.AnyAsync())
+        {
+            var suppliers = new List<Supplier>
+            {
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة الإلكترونيات المتقدمة", Phone = "0233334444", Email = "info@electronics-co.com", Address = "شارع الجمهورية، القاهرة", ContactPerson = "أحمد محمود", TaxNumber = "123-456-789", Notes = "مورد رئيسي للإلكترونيات", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "مؤسسة الملابس الحديثة", Phone = "0244445555", Email = "sales@modern-clothes.com", Address = "المنطقة الصناعية، العاشر من رمضان", ContactPerson = "سارة علي", TaxNumber = "234-567-890", Notes = "متخصصون في الملابس والأقمشة", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة الأحذية الذهبية", Phone = "0255556666", Email = "contact@golden-shoes.com", Address = "مدينة بدر، القاهرة", ContactPerson = "محمد حسن", TaxNumber = "345-678-901", Notes = "أحذية بجودة عالية", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "مكتبة الأدوات المكتبية", Phone = "0266667777", Email = "orders@office-supplies.com", Address = "وسط البلد، القاهرة", ContactPerson = "فاطمة أحمد", TaxNumber = "456-789-012", Notes = "أدوات مكتبية ومستلزمات", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة المنزل والديكور", Phone = "0277778888", Email = "info@home-decor.com", Address = "مدينة نصر، القاهرة", ContactPerson = "خالد سعيد", TaxNumber = "567-890-123", Notes = "ديكورات منزلية ومستلزمات", IsActive = true }
+            };
+            context.Suppliers.AddRange(suppliers);
+            await context.SaveChangesAsync();
+        }
+
         // Seed Shifts and Orders with varied dates
         if (!await context.Shifts.AnyAsync())
         {

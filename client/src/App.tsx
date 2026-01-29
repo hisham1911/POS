@@ -16,6 +16,9 @@ import { BranchesPage } from "./pages/branches/BranchesPage";
 import DailyReportPage from "./pages/reports/DailyReportPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
+import { PurchaseInvoicesPage } from "./pages/purchase-invoices/PurchaseInvoicesPage";
+import { PurchaseInvoiceFormPage } from "./pages/purchase-invoices/PurchaseInvoiceFormPage";
+import { PurchaseInvoiceDetailsPage } from "./pages/purchase-invoices/PurchaseInvoiceDetailsPage";
 import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -86,6 +89,38 @@ const AppRoutes = () => (
         element={
           <AdminRoute>
             <SuppliersPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/purchase-invoices"
+        element={
+          <AdminRoute>
+            <PurchaseInvoicesPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/purchase-invoices/new"
+        element={
+          <AdminRoute>
+            <PurchaseInvoiceFormPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/purchase-invoices/:id"
+        element={
+          <AdminRoute>
+            <PurchaseInvoiceDetailsPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/purchase-invoices/:id/edit"
+        element={
+          <AdminRoute>
+            <PurchaseInvoiceFormPage />
           </AdminRoute>
         }
       />

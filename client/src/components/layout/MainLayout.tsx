@@ -35,6 +35,7 @@ const navItems = [
     adminOnly: true,
   },
   { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
+  { path: "/purchase-invoices", label: "فواتير الشراء", icon: FileText, adminOnly: true },
   { path: "/branches", label: "الفروع", icon: Building2, adminOnly: true },
   { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
   { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
@@ -57,7 +58,7 @@ export const MainLayout = () => {
   return (
     <div className="h-screen flex w-full overflow-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex w-64 bg-gray-900 text-white flex-col shrink-0 border-l border-gray-800">
+      <aside className="hidden lg:flex w-64 bg-gray-900 text-white flex-col shrink-0 border-l border-gray-800 overflow-y-auto">
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center gap-3">
@@ -72,7 +73,7 @@ export const MainLayout = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item) => (
             <NavLink
               key={item.path}
@@ -122,7 +123,7 @@ export const MainLayout = () => {
             className="absolute inset-0 bg-black/50"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="absolute right-0 top-0 bottom-0 w-64 bg-gray-900 text-white flex flex-col animate-slide-in-right">
+          <aside className="absolute right-0 top-0 bottom-0 w-64 bg-gray-900 text-white flex flex-col animate-slide-in-right overflow-y-auto">
             {/* Close Button */}
             <div className="p-4 flex justify-between items-center border-b border-gray-800">
               <div className="flex items-center gap-3">
@@ -140,7 +141,7 @@ export const MainLayout = () => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1">
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
               {filteredNavItems.map((item) => (
                 <NavLink
                   key={item.path}
@@ -226,7 +227,7 @@ export const MainLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-hidden bg-gray-50">
+        <main className="flex-1 overflow-auto bg-gray-50">
           <Outlet />
         </main>
       </div>
