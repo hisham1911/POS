@@ -16,6 +16,7 @@ public class OrderService : IOrderService
     private readonly ICurrentUserService _currentUser;
     private readonly IInventoryService _inventoryService;
     private readonly ICustomerService _customerService;
+    private readonly ICashRegisterService _cashRegisterService;
 
     // Valid state transitions
     private static readonly Dictionary<OrderStatus, OrderStatus[]> ValidTransitions = new()
@@ -27,12 +28,13 @@ public class OrderService : IOrderService
         { OrderStatus.Refunded, Array.Empty<OrderStatus>() }
     };
 
-    public OrderService(IUnitOfWork unitOfWork, ICurrentUserService currentUser, IInventoryService inventoryService, ICustomerService customerService)
+    public OrderService(IUnitOfWork unitOfWork, ICurrentUserService currentUser, IInventoryService inventoryService, ICustomerService customerService, ICashRegisterService cashRegisterService)
     {
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
         _inventoryService = inventoryService;
         _customerService = customerService;
+        _cashRegisterService = cashRegisterService;
     }
 
     public async Task<ApiResponse<OrderDto>> CreateAsync(CreateOrderRequest request, int userId)
@@ -434,6 +436,7 @@ public class OrderService : IOrderService
 
             // Add payments
             decimal totalPaid = 0;
+            decimal cashPaymentAmount = 0;
             foreach (var paymentReq in request.Payments)
             {
                 if (paymentReq.Amount <= 0)
@@ -451,6 +454,10 @@ public class OrderService : IOrderService
                 await _unitOfWork.Payments.AddAsync(payment);
                 order.Payments.Add(payment);
                 totalPaid += payment.Amount;
+                
+                // Track cash payments for cash register
+                if (payment.Method == PaymentMethod.Cash)
+                    cashPaymentAmount += payment.Amount;
             }
 
             // Update order status and payment info
@@ -480,6 +487,19 @@ public class OrderService : IOrderService
                 // Calculate loyalty points: 1 point per 1 currency unit
                 int loyaltyPoints = (int)Math.Floor(order.Total);
                 await _customerService.UpdateOrderStatsAsync(order.CustomerId.Value, order.Total, loyaltyPoints);
+            }
+            
+            // INTEGRATION: Record cash register transaction for cash payments
+            if (cashPaymentAmount > 0)
+            {
+                await _cashRegisterService.RecordTransactionAsync(
+                    type: CashRegisterTransactionType.Sale,
+                    amount: cashPaymentAmount,
+                    description: $"مبيعات - طلب #{order.OrderNumber}",
+                    referenceType: "Order",
+                    referenceId: order.Id,
+                    shiftId: order.ShiftId
+                );
             }
             
             // Commit transaction - all operations succeeded
@@ -763,6 +783,33 @@ public class OrderService : IOrderService
             }
 
             await _unitOfWork.SaveChangesAsync();
+            
+            // INTEGRATION: Record cash register transaction for cash refunds
+            // Calculate cash refund amount from original order's cash payments
+            var originalCashPayments = originalOrder.Payments
+                .Where(p => p.Method == PaymentMethod.Cash)
+                .Sum(p => p.Amount);
+            
+            if (originalCashPayments > 0)
+            {
+                // Calculate proportional cash refund
+                var cashRefundAmount = isPartialRefund 
+                    ? Math.Round((totalRefundAmount / originalOrder.Total) * originalCashPayments, 2)
+                    : originalCashPayments;
+                
+                if (cashRefundAmount > 0)
+                {
+                    await _cashRegisterService.RecordTransactionAsync(
+                        type: CashRegisterTransactionType.Refund,
+                        amount: -cashRefundAmount, // Negative amount for cash outflow
+                        description: $"مرتجع - طلب #{originalOrder.OrderNumber}",
+                        referenceType: "Order",
+                        referenceId: returnOrder.Id,
+                        shiftId: currentShift?.Id
+                    );
+                }
+            }
+            
             await transaction.CommitAsync();
 
             // Update original order notes with return order reference

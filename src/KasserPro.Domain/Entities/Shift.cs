@@ -32,9 +32,34 @@ public class Shift : BaseEntity
     [Timestamp]
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     
+    // Cash Register Reconciliation
+    /// <summary>
+    /// Whether cash register has been reconciled for this shift
+    /// </summary>
+    public bool IsReconciled { get; set; } = false;
+    
+    /// <summary>
+    /// User who reconciled the cash register
+    /// </summary>
+    public int? ReconciledByUserId { get; set; }
+    public string? ReconciledByUserName { get; set; }
+    
+    /// <summary>
+    /// When the cash register was reconciled
+    /// </summary>
+    public DateTime? ReconciledAt { get; set; }
+    
+    /// <summary>
+    /// Reason for variance (if any) during reconciliation
+    /// </summary>
+    public string? VarianceReason { get; set; }
+    
     // Navigation
     public Tenant Tenant { get; set; } = null!;
     public Branch Branch { get; set; } = null!;
     public User User { get; set; } = null!;
+    public User? ReconciledByUser { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
+    public ICollection<CashRegisterTransaction> CashRegisterTransactions { get; set; } = new List<CashRegisterTransaction>();
 }

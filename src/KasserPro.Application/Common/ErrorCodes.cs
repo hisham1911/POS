@@ -89,6 +89,38 @@ public static class ErrorCodes
     public const string SUPPLIER_NOT_FOUND = "SUPPLIER_NOT_FOUND";
     public const string SUPPLIER_PRODUCT_ALREADY_LINKED = "SUPPLIER_PRODUCT_ALREADY_LINKED";
     public const string SUPPLIER_PRODUCT_NOT_FOUND = "SUPPLIER_PRODUCT_NOT_FOUND";
+    
+    // Expense Errors (5200-5299)
+    public const string EXPENSE_NOT_FOUND = "EXPENSE_NOT_FOUND";
+    public const string EXPENSE_CATEGORY_NOT_FOUND = "EXPENSE_CATEGORY_NOT_FOUND";
+    public const string EXPENSE_NOT_EDITABLE = "EXPENSE_NOT_EDITABLE";
+    public const string EXPENSE_NOT_DELETABLE = "EXPENSE_NOT_DELETABLE";
+    public const string EXPENSE_ALREADY_APPROVED = "EXPENSE_ALREADY_APPROVED";
+    public const string EXPENSE_ALREADY_PAID = "EXPENSE_ALREADY_PAID";
+    public const string EXPENSE_ALREADY_REJECTED = "EXPENSE_ALREADY_REJECTED";
+    public const string EXPENSE_NOT_APPROVED = "EXPENSE_NOT_APPROVED";
+    public const string EXPENSE_INVALID_AMOUNT = "EXPENSE_INVALID_AMOUNT";
+    public const string EXPENSE_REJECTION_REASON_REQUIRED = "EXPENSE_REJECTION_REASON_REQUIRED";
+    public const string EXPENSE_ATTACHMENT_TOO_LARGE = "EXPENSE_ATTACHMENT_TOO_LARGE";
+    public const string EXPENSE_ATTACHMENT_INVALID_TYPE = "EXPENSE_ATTACHMENT_INVALID_TYPE";
+    public const string EXPENSE_CATEGORY_IN_USE = "EXPENSE_CATEGORY_IN_USE";
+    public const string EXPENSE_CATEGORY_IS_SYSTEM = "EXPENSE_CATEGORY_IS_SYSTEM";
+    public const string EXPENSE_CATEGORY_ALREADY_EXISTS = "EXPENSE_CATEGORY_ALREADY_EXISTS";
+    public const string EXPENSE_CATEGORY_SYSTEM = "EXPENSE_CATEGORY_SYSTEM";
+    public const string EXPENSE_CATEGORY_HAS_EXPENSES = "EXPENSE_CATEGORY_HAS_EXPENSES";
+    public const string EXPENSE_ALREADY_PROCESSED = "EXPENSE_ALREADY_PROCESSED";
+    
+    // Cash Register Errors (5300-5399)
+    public const string CASH_REGISTER_INSUFFICIENT_BALANCE = "CASH_REGISTER_INSUFFICIENT_BALANCE";
+    public const string CASH_REGISTER_TRANSACTION_NOT_FOUND = "CASH_REGISTER_TRANSACTION_NOT_FOUND";
+    public const string CASH_REGISTER_INVALID_AMOUNT = "CASH_REGISTER_INVALID_AMOUNT";
+    public const string CASH_REGISTER_ALREADY_RECONCILED = "CASH_REGISTER_ALREADY_RECONCILED";
+    public const string CASH_REGISTER_NOT_RECONCILED = "CASH_REGISTER_NOT_RECONCILED";
+    public const string CASH_REGISTER_TRANSFER_SAME_BRANCH = "CASH_REGISTER_TRANSFER_SAME_BRANCH";
+    public const string CASH_REGISTER_RECONCILIATION_REQUIRED = "CASH_REGISTER_RECONCILIATION_REQUIRED";
+    public const string CASH_REGISTER_INVALID_TYPE = "CASH_REGISTER_INVALID_TYPE";
+    public const string CASH_REGISTER_SAME_BRANCH = "CASH_REGISTER_SAME_BRANCH";
+    public const string SHIFT_NOT_OPEN = "SHIFT_NOT_OPEN";
 }
 
 /// <summary>
@@ -180,7 +212,39 @@ public static class ErrorMessages
         // Supplier Product
         { ErrorCodes.SUPPLIER_NOT_FOUND, "المورد غير موجود" },
         { ErrorCodes.SUPPLIER_PRODUCT_ALREADY_LINKED, "المنتج مرتبط بالمورد بالفعل" },
-        { ErrorCodes.SUPPLIER_PRODUCT_NOT_FOUND, "العلاقة بين المورد والمنتج غير موجودة" }
+        { ErrorCodes.SUPPLIER_PRODUCT_NOT_FOUND, "العلاقة بين المورد والمنتج غير موجودة" },
+        
+        // Expense
+        { ErrorCodes.EXPENSE_NOT_FOUND, "المصروف غير موجود" },
+        { ErrorCodes.EXPENSE_CATEGORY_NOT_FOUND, "تصنيف المصروف غير موجود" },
+        { ErrorCodes.EXPENSE_NOT_EDITABLE, "لا يمكن تعديل المصروف" },
+        { ErrorCodes.EXPENSE_NOT_DELETABLE, "لا يمكن حذف المصروف" },
+        { ErrorCodes.EXPENSE_ALREADY_APPROVED, "المصروف موافق عليه بالفعل" },
+        { ErrorCodes.EXPENSE_ALREADY_PAID, "المصروف مدفوع بالفعل" },
+        { ErrorCodes.EXPENSE_ALREADY_REJECTED, "المصروف مرفوض بالفعل" },
+        { ErrorCodes.EXPENSE_NOT_APPROVED, "المصروف غير موافق عليه" },
+        { ErrorCodes.EXPENSE_INVALID_AMOUNT, "مبلغ المصروف غير صحيح" },
+        { ErrorCodes.EXPENSE_REJECTION_REASON_REQUIRED, "يجب إدخال سبب الرفض" },
+        { ErrorCodes.EXPENSE_ATTACHMENT_TOO_LARGE, "حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)" },
+        { ErrorCodes.EXPENSE_ATTACHMENT_INVALID_TYPE, "نوع الملف غير مسموح (JPG, PNG, PDF فقط)" },
+        { ErrorCodes.EXPENSE_CATEGORY_IN_USE, "لا يمكن حذف تصنيف مستخدم في مصروفات" },
+        { ErrorCodes.EXPENSE_CATEGORY_IS_SYSTEM, "لا يمكن حذف تصنيف النظام" },
+        { ErrorCodes.EXPENSE_CATEGORY_ALREADY_EXISTS, "تصنيف المصروف موجود بالفعل" },
+        { ErrorCodes.EXPENSE_CATEGORY_SYSTEM, "لا يمكن تعديل تصنيف النظام" },
+        { ErrorCodes.EXPENSE_CATEGORY_HAS_EXPENSES, "لا يمكن حذف تصنيف يحتوي على مصروفات" },
+        { ErrorCodes.EXPENSE_ALREADY_PROCESSED, "المصروف تمت معالجته بالفعل" },
+        
+        // Cash Register
+        { ErrorCodes.CASH_REGISTER_INSUFFICIENT_BALANCE, "رصيد الخزينة غير كافٍ" },
+        { ErrorCodes.CASH_REGISTER_TRANSACTION_NOT_FOUND, "معاملة الخزينة غير موجودة" },
+        { ErrorCodes.CASH_REGISTER_INVALID_AMOUNT, "مبلغ المعاملة غير صحيح" },
+        { ErrorCodes.CASH_REGISTER_ALREADY_RECONCILED, "تم تسوية الخزينة بالفعل" },
+        { ErrorCodes.CASH_REGISTER_NOT_RECONCILED, "لم يتم تسوية الخزينة" },
+        { ErrorCodes.CASH_REGISTER_TRANSFER_SAME_BRANCH, "لا يمكن التحويل لنفس الفرع" },
+        { ErrorCodes.CASH_REGISTER_RECONCILIATION_REQUIRED, "يجب تسوية الخزينة قبل إغلاق الوردية" },
+        { ErrorCodes.CASH_REGISTER_INVALID_TYPE, "نوع المعاملة غير صحيح" },
+        { ErrorCodes.CASH_REGISTER_SAME_BRANCH, "لا يمكن التحويل لنفس الفرع" },
+        { ErrorCodes.SHIFT_NOT_OPEN, "الوردية غير مفتوحة" }
     };
 
     public static string Get(string code) => Messages.TryGetValue(code, out var msg) ? msg : code;

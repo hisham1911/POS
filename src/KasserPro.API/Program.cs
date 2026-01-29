@@ -49,6 +49,11 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
 
+// Expenses and Cash Register services
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IExpenseCategoryService, ExpenseCategoryService>();
+builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -100,6 +105,10 @@ if (!app.Environment.IsEnvironment("Testing"))
         
         // Seed test orders for filters and pagination testing
         await SeedTestOrders.SeedAsync(context);
+        
+        // Seed default expense categories
+        var expenseCategoryService = scope.ServiceProvider.GetRequiredService<IExpenseCategoryService>();
+        await expenseCategoryService.SeedDefaultCategoriesAsync();
     }
 }
 

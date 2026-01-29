@@ -32,6 +32,12 @@ public class UnitOfWork : IUnitOfWork
         PurchaseInvoiceItems = new GenericRepository<PurchaseInvoiceItem>(context);
         PurchaseInvoicePayments = new GenericRepository<PurchaseInvoicePayment>(context);
         SupplierProducts = new GenericRepository<SupplierProduct>(context);
+        
+        // Expenses and Cash Register repositories
+        ExpenseCategories = new GenericRepository<ExpenseCategory>(context);
+        Expenses = new GenericRepository<Expense>(context);
+        ExpenseAttachments = new GenericRepository<ExpenseAttachment>(context);
+        CashRegisterTransactions = new GenericRepository<CashRegisterTransaction>(context);
     }
 
     public IRepository<Tenant> Tenants { get; }
@@ -54,6 +60,12 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<PurchaseInvoiceItem> PurchaseInvoiceItems { get; }
     public IRepository<PurchaseInvoicePayment> PurchaseInvoicePayments { get; }
     public IRepository<SupplierProduct> SupplierProducts { get; }
+    
+    // Expenses and Cash Register repository properties
+    public IRepository<ExpenseCategory> ExpenseCategories { get; }
+    public IRepository<Expense> Expenses { get; }
+    public IRepository<ExpenseAttachment> ExpenseAttachments { get; }
+    public IRepository<CashRegisterTransaction> CashRegisterTransactions { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

@@ -19,6 +19,11 @@ import SettingsPage from "./pages/settings/SettingsPage";
 import { PurchaseInvoicesPage } from "./pages/purchase-invoices/PurchaseInvoicesPage";
 import { PurchaseInvoiceFormPage } from "./pages/purchase-invoices/PurchaseInvoiceFormPage";
 import { PurchaseInvoiceDetailsPage } from "./pages/purchase-invoices/PurchaseInvoiceDetailsPage";
+import { ExpensesPage } from "./pages/expenses/ExpensesPage";
+import { ExpenseFormPage } from "./pages/expenses/ExpenseFormPage";
+import { ExpenseDetailsPage } from "./pages/expenses/ExpenseDetailsPage";
+import { CashRegisterDashboard } from "./pages/cash-register/CashRegisterDashboard";
+import { CashRegisterTransactionsPage } from "./pages/cash-register/CashRegisterTransactionsPage";
 import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -153,6 +158,54 @@ const AppRoutes = () => (
         element={
           <AdminRoute>
             <SettingsPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/expenses"
+        element={
+          <AdminRoute>
+            <ExpensesPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/expenses/new"
+        element={
+          <AdminRoute>
+            <ExpenseFormPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/expenses/:id"
+        element={
+          <AdminRoute>
+            <ExpenseDetailsPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/expenses/:id/edit"
+        element={
+          <AdminRoute>
+            <ExpenseFormPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/cash-register"
+        element={
+          <AdminRoute>
+            <CashRegisterDashboard />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/cash-register/transactions"
+        element={
+          <AdminRoute>
+            <CashRegisterTransactionsPage />
           </AdminRoute>
         }
       />

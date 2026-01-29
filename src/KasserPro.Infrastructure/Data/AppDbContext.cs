@@ -36,6 +36,12 @@ public class AppDbContext : DbContext
     public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
     public DbSet<PurchaseInvoicePayment> PurchaseInvoicePayments => Set<PurchaseInvoicePayment>();
     public DbSet<SupplierProduct> SupplierProducts => Set<SupplierProduct>();
+    
+    // Expense and Cash Register entities
+    public DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
+    public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<ExpenseAttachment> ExpenseAttachments => Set<ExpenseAttachment>();
+    public DbSet<CashRegisterTransaction> CashRegisterTransactions => Set<CashRegisterTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +71,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<PurchaseInvoiceItem>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<PurchaseInvoicePayment>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<SupplierProduct>().HasQueryFilter(e => !e.IsDeleted);
+        
+        // Expense and Cash Register: Soft delete filters
+        modelBuilder.Entity<ExpenseCategory>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Expense>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ExpenseAttachment>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<CashRegisterTransaction>().HasQueryFilter(e => !e.IsDeleted);
 
         // Tenant relationships
         modelBuilder.Entity<Branch>()
@@ -109,17 +121,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(o => o.BranchId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Shift>()
-            .HasOne(s => s.Tenant)
-            .WithMany()
-            .HasForeignKey(s => s.TenantId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Shift>()
-            .HasOne(s => s.Branch)
-            .WithMany(b => b.Shifts)
-            .HasForeignKey(s => s.BranchId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Shift configuration is in ShiftConfiguration.cs
 
         // Concurrency token for Shift (optimistic locking)
         // For SQLite, we use a simple concurrency token instead of rowversion

@@ -122,6 +122,12 @@ export const baseApi = createApi({
     "Inventory",
     "Suppliers",
     "PurchaseInvoice",
+    "Expense",
+    "Expenses",
+    "ExpenseCategory",
+    "ExpenseCategories",
+    "CashRegisterBalance",
+    "CashRegisterTransactions",
   ],
   endpoints: () => ({}),
 });

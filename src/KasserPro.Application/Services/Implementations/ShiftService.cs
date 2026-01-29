@@ -13,11 +13,13 @@ public class ShiftService : IShiftService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICashRegisterService _cashRegisterService;
 
-    public ShiftService(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+    public ShiftService(IUnitOfWork unitOfWork, ICurrentUserService currentUser, ICashRegisterService cashRegisterService)
     {
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _cashRegisterService = cashRegisterService;
     }
 
     public async Task<ApiResponse<ShiftDto>> GetCurrentAsync(int userId)
@@ -85,22 +87,46 @@ public class ShiftService : IShiftService
         if (existingShift != null)
             return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_ALREADY_OPEN, "يوجد وردية مفتوحة بالفعل في هذا الفرع");
 
-        var shift = new Shift
+        // Use transaction for atomicity - Shift + Cash Register Opening
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        
+        try
         {
-            TenantId = tenantId,
-            BranchId = branchId,
-            UserId = userId,
-            OpeningBalance = Math.Round(request.OpeningBalance, 2),
-            OpenedAt = DateTime.UtcNow,
-            IsClosed = false
-        };
+            var shift = new Shift
+            {
+                TenantId = tenantId,
+                BranchId = branchId,
+                UserId = userId,
+                OpeningBalance = Math.Round(request.OpeningBalance, 2),
+                OpenedAt = DateTime.UtcNow,
+                IsClosed = false
+            };
 
-        await _unitOfWork.Shifts.AddAsync(shift);
-        await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.Shifts.AddAsync(shift);
+            await _unitOfWork.SaveChangesAsync();
 
-        shift.User = user;
+            // INTEGRATION: Create Opening cash register transaction
+            await _cashRegisterService.RecordTransactionAsync(
+                type: CashRegisterTransactionType.Opening,
+                amount: shift.OpeningBalance,
+                description: $"فتح وردية - {user.Name}",
+                referenceType: "Shift",
+                referenceId: shift.Id,
+                shiftId: shift.Id
+            );
 
-        return ApiResponse<ShiftDto>.Ok(MapToDto(shift), "تم فتح الوردية بنجاح");
+            await transaction.CommitAsync();
+
+            shift.User = user;
+
+            return ApiResponse<ShiftDto>.Ok(MapToDto(shift), "تم فتح الوردية بنجاح");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SYSTEM_INTERNAL_ERROR, 
+                $"حدث خطأ أثناء فتح الوردية: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -146,6 +172,15 @@ public class ShiftService : IShiftService
             if (shift.IsClosed)
                 return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_ALREADY_CLOSED, "الوردية مغلقة بالفعل");
 
+            // INTEGRATION: Validate reconciliation before closing
+            // Get current cash balance from cash register
+            var balanceResponse = await _cashRegisterService.GetCurrentBalanceAsync(branchId);
+            if (!balanceResponse.Success)
+                return ApiResponse<ShiftDto>.Fail(ErrorCodes.SYSTEM_INTERNAL_ERROR, 
+                    "فشل الحصول على رصيد الخزينة");
+
+            var currentCashBalance = balanceResponse.Data!.CurrentBalance;
+
             // Calculate totals from completed orders
             var completedOrders = shift.Orders.Where(o => o.Status == OrderStatus.Completed).ToList();
             
@@ -160,7 +195,7 @@ public class ShiftService : IShiftService
                 .Sum(p => p.Amount), 2);
 
             shift.ClosingBalance = Math.Round(request.ClosingBalance, 2);
-            shift.ExpectedBalance = Math.Round(shift.OpeningBalance + shift.TotalCash, 2);
+            shift.ExpectedBalance = Math.Round(currentCashBalance, 2); // Use cash register balance
             shift.Difference = Math.Round(shift.ClosingBalance - shift.ExpectedBalance, 2);
             shift.ClosedAt = DateTime.UtcNow;
             shift.IsClosed = true;

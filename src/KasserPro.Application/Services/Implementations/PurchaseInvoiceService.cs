@@ -15,15 +15,18 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<PurchaseInvoiceService> _logger;
+    private readonly ICashRegisterService _cashRegisterService;
 
     public PurchaseInvoiceService(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
-        ILogger<PurchaseInvoiceService> logger)
+        ILogger<PurchaseInvoiceService> logger,
+        ICashRegisterService cashRegisterService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _logger = logger;
+        _cashRegisterService = cashRegisterService;
     }
 
     public async Task<ApiResponse<PagedResult<PurchaseInvoiceDto>>> GetAllAsync(
@@ -596,6 +599,27 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
             _unitOfWork.Suppliers.Update(supplier);
 
             await _unitOfWork.SaveChangesAsync();
+            
+            // INTEGRATION: Record cash register transaction for cash payments
+            if (request.Method == PaymentMethod.Cash)
+            {
+                // Get current shift (optional for purchase invoice payments)
+                var currentShift = await _unitOfWork.Shifts.Query()
+                    .FirstOrDefaultAsync(s => s.TenantId == _currentUserService.TenantId 
+                                           && s.BranchId == _currentUserService.BranchId 
+                                           && s.UserId == _currentUserService.UserId
+                                           && !s.IsClosed);
+                
+                await _cashRegisterService.RecordTransactionAsync(
+                    type: CashRegisterTransactionType.SupplierPayment,
+                    amount: -request.Amount, // Negative amount for cash outflow
+                    description: $"دفع للمورد - فاتورة #{invoice.InvoiceNumber} - {supplier.Name}",
+                    referenceType: "PurchaseInvoicePayment",
+                    referenceId: payment.Id,
+                    shiftId: currentShift?.Id
+                );
+            }
+            
             await transaction.CommitAsync();
 
             var paymentDto = new PurchaseInvoicePaymentDto
@@ -639,6 +663,10 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
             if (invoice == null)
                 return ApiResponse<bool>.Fail(ErrorCodes.PURCHASE_INVOICE_NOT_FOUND);
 
+            // Store payment method before deletion for cash register reversal
+            var wasPaymentCash = payment.Method == PaymentMethod.Cash;
+            var paymentAmount = payment.Amount;
+
             // Update invoice
             invoice.AmountPaid -= payment.Amount;
             invoice.AmountDue += payment.Amount;
@@ -661,6 +689,27 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
             _unitOfWork.PurchaseInvoicePayments.Delete(payment);
 
             await _unitOfWork.SaveChangesAsync();
+            
+            // INTEGRATION: Reverse cash register transaction for cash payments
+            if (wasPaymentCash)
+            {
+                // Get current shift (optional)
+                var currentShift = await _unitOfWork.Shifts.Query()
+                    .FirstOrDefaultAsync(s => s.TenantId == _currentUserService.TenantId 
+                                           && s.BranchId == _currentUserService.BranchId 
+                                           && s.UserId == _currentUserService.UserId
+                                           && !s.IsClosed);
+                
+                await _cashRegisterService.RecordTransactionAsync(
+                    type: CashRegisterTransactionType.Adjustment,
+                    amount: paymentAmount, // Positive amount to reverse the outflow
+                    description: $"عكس دفع للمورد - فاتورة #{invoice.InvoiceNumber} - {supplier.Name}",
+                    referenceType: "PurchaseInvoicePaymentDeletion",
+                    referenceId: paymentId,
+                    shiftId: currentShift?.Id
+                );
+            }
+            
             await transaction.CommitAsync();
 
             return ApiResponse<bool>.Ok(true);

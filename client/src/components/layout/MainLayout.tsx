@@ -17,6 +17,8 @@ import {
   Users,
   Truck,
   Building2,
+  Receipt,
+  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
@@ -36,6 +38,8 @@ const navItems = [
   },
   { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
   { path: "/purchase-invoices", label: "فواتير الشراء", icon: FileText, adminOnly: true },
+  { path: "/expenses", label: "المصروفات", icon: Receipt, adminOnly: true },
+  { path: "/cash-register", label: "الخزينة", icon: Wallet, adminOnly: true },
   { path: "/branches", label: "الفروع", icon: Building2, adminOnly: true },
   { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
   { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },

@@ -25,6 +25,12 @@ public interface IUnitOfWork : IDisposable
     IRepository<PurchaseInvoiceItem> PurchaseInvoiceItems { get; }
     IRepository<PurchaseInvoicePayment> PurchaseInvoicePayments { get; }
     IRepository<SupplierProduct> SupplierProducts { get; }
+    
+    // Expenses and Cash Register repositories
+    IRepository<ExpenseCategory> ExpenseCategories { get; }
+    IRepository<Expense> Expenses { get; }
+    IRepository<ExpenseAttachment> ExpenseAttachments { get; }
+    IRepository<CashRegisterTransaction> CashRegisterTransactions { get; }
 
     Task<int> SaveChangesAsync();
     
