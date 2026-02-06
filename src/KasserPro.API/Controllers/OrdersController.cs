@@ -2,8 +2,10 @@ namespace KasserPro.API.Controllers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using KasserPro.Application.DTOs.Orders;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.API.Hubs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -11,8 +13,18 @@ using KasserPro.Application.Services.Interfaces;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IHubContext<DeviceHub> _hubContext;
+    private readonly ILogger<OrdersController> _logger;
 
-    public OrdersController(IOrderService orderService) => _orderService = orderService;
+    public OrdersController(
+        IOrderService orderService,
+        IHubContext<DeviceHub> hubContext,
+        ILogger<OrdersController> logger)
+    {
+        _orderService = orderService;
+        _hubContext = hubContext;
+        _logger = logger;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAllOrders(
@@ -76,6 +88,48 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> Complete(int id, [FromBody] CompleteOrderRequest request)
     {
         var result = await _orderService.CompleteAsync(id, request);
+        
+        if (result.Success && result.Data != null)
+        {
+            // Send print command to all connected devices
+            try
+            {
+                var order = result.Data;
+                var userName = User.FindFirst("name")?.Value ?? "Cashier";
+                
+                var printCommand = new
+                {
+                    CommandId = Guid.NewGuid().ToString(),
+                    Receipt = new
+                    {
+                        ReceiptNumber = order.OrderNumber,
+                        BranchName = order.BranchName ?? "KasserPro Store",
+                        Date = order.CompletedAt ?? DateTime.Now,
+                        Items = order.Items.Select(item => new
+                        {
+                            Name = item.ProductName,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.UnitPrice,
+                            TotalPrice = item.Total
+                        }).ToList(),
+                        NetTotal = order.Subtotal,
+                        TaxAmount = order.TaxAmount,
+                        TotalAmount = order.Total,
+                        PaymentMethod = order.Payments.FirstOrDefault()?.Method ?? "Cash",
+                        CashierName = order.UserName ?? userName
+                    }
+                };
+
+                await _hubContext.Clients.All.SendAsync("PrintReceipt", printCommand);
+                _logger.LogInformation("Print command sent for order {OrderId}", order.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send print command for order {OrderId}", id);
+                // Don't fail the request if printing fails
+            }
+        }
+        
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
