@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using KasserPro.BridgeApp.Services;
@@ -18,6 +19,9 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Register encoding provider for Arabic support
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         // Configure Serilog
         ConfigureLogging();

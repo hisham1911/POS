@@ -63,18 +63,9 @@ public class PrinterService : IPrinterService
             Log.Information("Printing receipt {ReceiptNumber} on printer {Printer}", 
                 receipt.ReceiptNumber, printerName);
 
-            // Check if this is a PDF printer or thermal printer
-            if (IsPdfPrinter(printerName))
-            {
-                // Use PrintDocument for PDF printers
-                await PrintUsingPrintDocumentAsync(printerName, receipt);
-            }
-            else
-            {
-                // Use ESC/POS for thermal printers
-                var escPosBytes = GenerateReceiptEscPos(receipt);
-                await SendToPrinterAsync(printerName, escPosBytes);
-            }
+            // Use PrintDocument (Windows Print API) for all printers
+            // This ensures proper Arabic text rendering
+            await PrintUsingPrintDocumentAsync(printerName, receipt);
 
             Log.Information("Receipt {ReceiptNumber} printed successfully", receipt.ReceiptNumber);
             return true;
@@ -96,17 +87,21 @@ public class PrinterService : IPrinterService
     }
 
     /// <summary>
-    /// Prints receipt using PrintDocument (for PDF printers)
+    /// Prints receipt using PrintDocument (Windows Print API)
+    /// Supports Arabic text rendering with proper RTL layout
     /// </summary>
     private Task PrintUsingPrintDocumentAsync(string printerName, ReceiptDto receipt)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
+            var settings = await _settingsManager.GetSettingsAsync();
+            var receiptSettings = settings.Receipt;
+
             var printDoc = new PrintDocument();
             printDoc.PrinterSettings.PrinterName = printerName;
             
             // Set paper size for thermal receipt (80mm width)
-            printDoc.DefaultPageSettings.PaperSize = new PaperSize("Receipt", 315, 1200); // 80mm x variable height
+            printDoc.DefaultPageSettings.PaperSize = new PaperSize("Receipt", 315, 1200);
             
             printDoc.PrintPage += (sender, e) =>
             {
@@ -114,128 +109,134 @@ public class PrinterService : IPrinterService
 
                 var graphics = e.Graphics;
                 
-                // Fonts - using Arial for better Arabic support
-                var regularFont = new Font("Arial", 9, FontStyle.Regular);
-                var boldFont = new Font("Arial", 10, FontStyle.Bold);
-                var headerFont = new Font("Arial", 12, FontStyle.Bold);
-                var totalFont = new Font("Arial", 11, FontStyle.Bold);
+                // Fonts - using customizable settings
+                var regularFont = new Font(receiptSettings.FontName, receiptSettings.RegularFontSize, FontStyle.Regular);
+                var boldFont = new Font(receiptSettings.FontName, receiptSettings.BoldFontSize, FontStyle.Bold);
+                var headerFont = new Font(receiptSettings.FontName, receiptSettings.HeaderFontSize, FontStyle.Bold);
+                var totalFont = new Font(receiptSettings.FontName, receiptSettings.TotalFontSize, FontStyle.Bold);
                 
                 float yPos = 20;
                 float leftMargin = 20;
-                float rightMargin = 295; // 315 - 20
-                float centerX = 157.5f; // Center of 315
-                float lineHeight = regularFont.GetHeight(graphics);
+                float rightMargin = 295;
+                float centerX = 157.5f;
+                float lineHeight = regularFont.GetHeight(graphics) * receiptSettings.LineSpacing;
 
-                // Helper function to draw centered text
                 void DrawCentered(string text, Font font, float y)
                 {
                     var size = graphics.MeasureString(text, font);
                     graphics.DrawString(text, font, Brushes.Black, centerX - (size.Width / 2), y);
                 }
 
-                // Helper function to draw right-aligned text
                 void DrawRight(string text, Font font, float y)
                 {
                     var size = graphics.MeasureString(text, font);
                     graphics.DrawString(text, font, Brushes.Black, rightMargin - size.Width, y);
                 }
 
-                // ============ HEADER ============
-                DrawCentered(receipt.BranchName, headerFont, yPos);
-                yPos += headerFont.GetHeight(graphics) + 8;
+                void DrawSeparator(float y, bool dashed = false)
+                {
+                    if (dashed)
+                    {
+                        var pen = new Pen(System.Drawing.Color.Gray, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                        graphics.DrawLine(pen, leftMargin, y, rightMargin, y);
+                    }
+                    else
+                    {
+                        graphics.DrawLine(Pens.Black, leftMargin, y, rightMargin, y);
+                    }
+                }
 
-                // Separator line
-                graphics.DrawLine(Pens.Black, leftMargin, yPos, rightMargin, yPos);
-                yPos += 5;
+                // ============ HEADER ============
+                if (receiptSettings.ShowBranchName)
+                {
+                    DrawCentered(receipt.BranchName, headerFont, yPos);
+                    yPos += headerFont.GetHeight(graphics) * receiptSettings.LineSpacing + 5;
+                }
+
+                DrawSeparator(yPos);
+                yPos += 8;
 
                 // Receipt info
-                graphics.DrawString("Receipt #:", regularFont, Brushes.Black, leftMargin, yPos);
-                DrawRight(receipt.ReceiptNumber, boldFont, yPos);
+                DrawRight($"فاتورة رقم: {receipt.ReceiptNumber}", boldFont, yPos);
                 yPos += lineHeight + 3;
 
-                graphics.DrawString("Date:", regularFont, Brushes.Black, leftMargin, yPos);
-                DrawRight(receipt.Date.ToString("dd/MM/yyyy HH:mm"), regularFont, yPos);
+                DrawRight($"التاريخ: {receipt.Date:dd/MM/yyyy}", regularFont, yPos);
+                yPos += lineHeight + 2;
+
+                DrawRight($"الوقت: {receipt.Date:HH:mm}", regularFont, yPos);
+                yPos += lineHeight + 2;
+
+                DrawRight($"الكاشير: {receipt.CashierName}", regularFont, yPos);
                 yPos += lineHeight + 5;
 
-                // Separator line
-                graphics.DrawLine(Pens.Black, leftMargin, yPos, rightMargin, yPos);
+                DrawSeparator(yPos);
                 yPos += 8;
 
                 // ============ ITEMS ============
-                // Column headers
-                graphics.DrawString("Item", boldFont, Brushes.Black, leftMargin, yPos);
-                DrawRight("Total", boldFont, yPos);
-                yPos += boldFont.GetHeight(graphics) + 3;
+                DrawRight("المنتجات:", boldFont, yPos);
+                yPos += boldFont.GetHeight(graphics) * receiptSettings.LineSpacing + 3;
 
-                graphics.DrawLine(Pens.Gray, leftMargin, yPos, rightMargin, yPos);
+                DrawSeparator(yPos, dashed: true);
                 yPos += 5;
 
-                // Items
                 foreach (var item in receipt.Items)
                 {
-                    // Item name
-                    graphics.DrawString(item.Name, regularFont, Brushes.Black, leftMargin, yPos);
-                    yPos += lineHeight;
+                    DrawRight(item.Name, boldFont, yPos);
+                    yPos += lineHeight + 2;
 
-                    // Quantity and price
-                    var qtyPrice = $"{item.Quantity} x {item.UnitPrice:F2} EGP";
-                    graphics.DrawString(qtyPrice, regularFont, Brushes.Gray, leftMargin + 10, yPos);
-                    
-                    // Item total (right aligned)
-                    DrawRight($"{item.TotalPrice:F2} EGP", regularFont, yPos);
+                    DrawRight($"الكمية: {item.Quantity}  |  السعر: {item.UnitPrice:F2} ج.م", regularFont, yPos);
+                    yPos += lineHeight + 2;
+
+                    DrawRight($"الإجمالي: {item.TotalPrice:F2} ج.م", boldFont, yPos);
                     yPos += lineHeight + 5;
                 }
 
-                // Separator line
-                graphics.DrawLine(Pens.Black, leftMargin, yPos, rightMargin, yPos);
+                DrawSeparator(yPos);
                 yPos += 8;
 
                 // ============ TOTALS ============
-                // Subtotal
-                graphics.DrawString("Subtotal:", regularFont, Brushes.Black, leftMargin, yPos);
-                DrawRight($"{receipt.NetTotal:F2} EGP", regularFont, yPos);
-                yPos += lineHeight + 3;
+                DrawRight("الملخص المالي:", boldFont, yPos);
+                yPos += boldFont.GetHeight(graphics) * receiptSettings.LineSpacing + 3;
 
-                // Tax
-                graphics.DrawString("Tax (14%):", regularFont, Brushes.Black, leftMargin, yPos);
-                DrawRight($"{receipt.TaxAmount:F2} EGP", regularFont, yPos);
-                yPos += lineHeight + 5;
-
-                // Total (bold and larger)
-                graphics.DrawLine(Pens.Black, leftMargin, yPos, rightMargin, yPos);
+                DrawSeparator(yPos, dashed: true);
                 yPos += 5;
 
-                graphics.DrawString("TOTAL:", totalFont, Brushes.Black, leftMargin, yPos);
-                DrawRight($"{receipt.TotalAmount:F2} EGP", totalFont, yPos);
-                yPos += totalFont.GetHeight(graphics) + 8;
+                DrawRight($"المجموع الفرعي: {receipt.NetTotal:F2} ج.م", regularFont, yPos);
+                yPos += lineHeight + 3;
 
-                // Separator line
-                graphics.DrawLine(Pens.Black, leftMargin, yPos, rightMargin, yPos);
+                DrawRight($"الضريبة (14%): {receipt.TaxAmount:F2} ج.م", regularFont, yPos);
+                yPos += lineHeight + 5;
+
+                DrawSeparator(yPos);
+                yPos += 5;
+
+                DrawRight($"الإجمالي الكلي: {receipt.TotalAmount:F2} ج.م", totalFont, yPos);
+                yPos += totalFont.GetHeight(graphics) * receiptSettings.LineSpacing + 8;
+
+                DrawSeparator(yPos);
+                yPos += 8;
+
+                // ============ PAYMENT ============
+                var paymentMethodAr = TranslatePaymentMethod(receipt.PaymentMethod);
+                DrawRight($"طريقة الدفع: {paymentMethodAr}", boldFont, yPos);
+                yPos += lineHeight + 10;
+
+                DrawSeparator(yPos, dashed: true);
                 yPos += 8;
 
                 // ============ FOOTER ============
-                // Payment method
-                graphics.DrawString("Payment:", regularFont, Brushes.Black, leftMargin, yPos);
-                DrawRight(receipt.PaymentMethod, boldFont, yPos);
-                yPos += lineHeight + 3;
+                if (receiptSettings.ShowBarcode)
+                {
+                    DrawCentered($"*{receipt.ReceiptNumber}*", regularFont, yPos);
+                    yPos += lineHeight + 8;
+                }
 
-                // Cashier
-                graphics.DrawString("Cashier:", regularFont, Brushes.Black, leftMargin, yPos);
-                DrawRight(receipt.CashierName, regularFont, yPos);
-                yPos += lineHeight + 10;
-
-                // Separator line
-                graphics.DrawLine(Pens.Gray, leftMargin, yPos, rightMargin, yPos);
-                yPos += 8;
-
-                // Barcode representation
-                DrawCentered($"*{receipt.ReceiptNumber}*", regularFont, yPos);
-                yPos += lineHeight + 5;
-
-                // Thank you message
-                DrawCentered("Thank You!", boldFont, yPos);
-                yPos += boldFont.GetHeight(graphics) + 5;
-                DrawCentered("شكراً لك", boldFont, yPos);
+                if (receiptSettings.ShowThankYou)
+                {
+                    DrawCentered("شكراً لزيارتكم", boldFont, yPos);
+                    yPos += boldFont.GetHeight(graphics) * receiptSettings.LineSpacing + 3;
+                    DrawCentered("THANK YOU!", regularFont, yPos);
+                }
             };
 
             printDoc.Print();

@@ -44,6 +44,21 @@ public partial class SettingsWindow : Window
             ApiKeyTextBox.Text = _currentSettings.ApiKey;
             DeviceIdTextBox.Text = _currentSettings.DeviceId;
 
+            // Load receipt settings
+            RegularFontSizeSlider.Value = _currentSettings.Receipt.RegularFontSize;
+            BoldFontSizeSlider.Value = _currentSettings.Receipt.BoldFontSize;
+            HeaderFontSizeSlider.Value = _currentSettings.Receipt.HeaderFontSize;
+            LineSpacingSlider.Value = _currentSettings.Receipt.LineSpacing;
+            ShowBranchNameCheckBox.IsChecked = _currentSettings.Receipt.ShowBranchName;
+            ShowBarcodeCheckBox.IsChecked = _currentSettings.Receipt.ShowBarcode;
+            ShowThankYouCheckBox.IsChecked = _currentSettings.Receipt.ShowThankYou;
+
+            // Wire up slider value changed events
+            RegularFontSizeSlider.ValueChanged += (s, args) => RegularFontSizeText.Text = ((int)args.NewValue).ToString();
+            BoldFontSizeSlider.ValueChanged += (s, args) => BoldFontSizeText.Text = ((int)args.NewValue).ToString();
+            HeaderFontSizeSlider.ValueChanged += (s, args) => HeaderFontSizeText.Text = ((int)args.NewValue).ToString();
+            LineSpacingSlider.ValueChanged += (s, args) => LineSpacingText.Text = args.NewValue.ToString("F1");
+
             // Load available printers
             await LoadPrintersAsync();
 
@@ -150,6 +165,15 @@ public partial class SettingsWindow : Window
             _currentSettings!.BackendUrl = BackendUrlTextBox.Text.TrimEnd('/');
             _currentSettings.ApiKey = ApiKeyTextBox.Text.Trim();
             _currentSettings.DefaultPrinterName = PrinterComboBox.SelectedItem?.ToString() ?? "";
+
+            // Update receipt settings
+            _currentSettings.Receipt.RegularFontSize = (int)RegularFontSizeSlider.Value;
+            _currentSettings.Receipt.BoldFontSize = (int)BoldFontSizeSlider.Value;
+            _currentSettings.Receipt.HeaderFontSize = (int)HeaderFontSizeSlider.Value;
+            _currentSettings.Receipt.LineSpacing = (float)LineSpacingSlider.Value;
+            _currentSettings.Receipt.ShowBranchName = ShowBranchNameCheckBox.IsChecked ?? true;
+            _currentSettings.Receipt.ShowBarcode = ShowBarcodeCheckBox.IsChecked ?? true;
+            _currentSettings.Receipt.ShowThankYou = ShowThankYouCheckBox.IsChecked ?? true;
 
             // Save settings
             await _settingsManager.SaveSettingsAsync(_currentSettings);
