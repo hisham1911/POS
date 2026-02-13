@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import {
   UserPlus,
   Search,
@@ -9,16 +9,16 @@ import {
   Users,
   Star,
   Eye,
-  AlertCircle,
 } from "lucide-react";
 import {
   useGetCustomersQuery,
   useDeleteCustomerMutation,
 } from "@/api/customersApi";
-import { Customer } from "@/types/customer.types";
+import type { Customer } from "@/types/customer.types";
 import { CustomerFormModal } from "@/components/customers/CustomerFormModal";
 import { CustomerDetailsModal } from "@/components/customers/CustomerDetailsModal";
 import { Button } from "@/components/common/Button";
+import { Card } from "@/components/common/Card";
 import { Loading } from "@/components/common/Loading";
 import { formatDateTime, formatCurrency } from "@/utils/formatters";
 import { toast } from "sonner";
@@ -30,9 +30,7 @@ export const CustomersPage = () => {
   const [searchInput, setSearchInput] = useState("");
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(
-    null
-  );
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
 
   const pageSize = 10;
@@ -52,7 +50,7 @@ export const CustomersPage = () => {
   const hasNextPage = data?.data?.hasNextPage || false;
   const hasPreviousPage = data?.data?.hasPreviousPage || false;
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setSearch(searchInput);
     setPage(1);
@@ -85,291 +83,307 @@ export const CustomersPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Loading />
-      </div>
-    );
+    return <Loading />;
   }
 
+  const totalDue = customers.reduce((sum, c) => sum + c.totalDue, 0);
+  const totalSpent = customers.reduce((sum, c) => sum + c.totalSpent, 0);
+
   return (
-    <div className="h-full flex flex-col bg-gray-50 p-6 overflow-hidden">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-            <Users className="w-6 h-6 text-primary-600" />
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">إدارة العملاء</h1>
-            <p className="text-sm text-gray-500">{totalCount} عميل</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
+                <Users className="w-5 h-5 text-cyan-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">إدارة العملاء</h1>
+            </div>
+            <p className="text-gray-600">إدارة قاعدة بيانات العملاء</p>
           </div>
-        </div>
-
-        <Button variant="primary" onClick={() => setShowFormModal(true)}>
-          <UserPlus className="w-5 h-5" />
-          إضافة عميل جديد
-        </Button>
-      </div>
-
-      {/* Search */}
-      <form onSubmit={handleSearch} className="mb-6">
-        <div className="flex gap-2">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="بحث بالاسم أو رقم الهاتف..."
-              className="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <Button type="submit" variant="secondary">
-            بحث
+          <Button variant="primary" onClick={() => setShowFormModal(true)}>
+            <UserPlus className="w-5 h-5" />
+            إضافة عميل جديد
           </Button>
-          {search && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setSearch("");
-                setSearchInput("");
-                setPage(1);
-              }}
-            >
-              مسح
-            </Button>
-          )}
         </div>
-      </form>
 
-      {/* Table */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
-                  الاسم
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
-                  رقم الهاتف
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden md:table-cell">
-                  العنوان
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
-                  نقاط الولاء
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
-                  إجمالي الطلبات
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
-                  إجمالي المشتريات
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden xl:table-cell">
-                  المبلغ المستحق
-                </th>
-                <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600">
-                  الإجراءات
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {customers.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-cyan-100">
+            <p className="text-sm text-gray-600">إجمالي العملاء</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">
+              {totalCount}
+            </p>
+          </Card>
+          <Card className="border-green-100">
+            <p className="text-sm text-gray-600">إجمالي المبيعات</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">
+              {formatCurrency(totalSpent)}
+            </p>
+          </Card>
+          <Card className="border-amber-100">
+            <p className="text-sm text-gray-600">إجمالي المستحق</p>
+            <p className="text-2xl font-bold text-amber-700 mt-1">
+              {formatCurrency(totalDue)}
+            </p>
+          </Card>
+        </div>
+
+        <form onSubmit={handleSearch}>
+          <Card>
+            <div className="flex gap-2">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="بحث بالاسم أو رقم الهاتف..."
+                  className="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <Button type="submit" variant="secondary">
+                بحث
+              </Button>
+              {search && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setSearch("");
+                    setSearchInput("");
+                    setPage(1);
+                  }}
+                >
+                  مسح
+                </Button>
+              )}
+            </div>
+          </Card>
+        </form>
+
+        <Card padding="none" className="flex-1 flex flex-col">
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-6 py-12 text-center text-gray-500"
-                  >
-                    <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium">لا يوجد عملاء</p>
-                    <p className="text-sm">ابدأ بإضافة عميل جديد</p>
-                  </td>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
+                    الاسم
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
+                    رقم الهاتف
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden md:table-cell">
+                    العنوان
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
+                    نقاط الولاء
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
+                    إجمالي الطلبات
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
+                    إجمالي المشتريات
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden xl:table-cell">
+                    المبلغ المستحق
+                  </th>
+                  <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600">
+                    الإجراءات
+                  </th>
                 </tr>
-              ) : (
-                customers.map((customer) => (
-                  <tr
-                    key={customer.id}
-                    className={clsx(
-                      "hover:bg-gray-50 transition-colors",
-                      isFetching && "opacity-50"
-                    )}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
-                          <span className="text-primary-600 font-semibold">
-                            {(customer.name || customer.phone)[0].toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {customer.name || "—"}
-                          </p>
-                          {customer.lastOrderAt && (
-                            <p className="text-xs text-gray-400">
-                              آخر طلب: {formatDateTime(customer.lastOrderAt)}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-gray-600" dir="ltr">
-                      {customer.phone}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 hidden md:table-cell">
-                      {customer.address || "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-amber-500" />
-                        <span className="font-medium text-gray-800">
-                          {customer.loyaltyPoints}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">
-                      {customer.totalOrders} طلب
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">
-                      {formatCurrency(customer.totalSpent)}
-                    </td>
-                    <td className="px-6 py-4 hidden xl:table-cell">
-                      {customer.totalDue > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="font-semibold text-orange-600">
-                            {formatCurrency(customer.totalDue)}
-                          </span>
-                          {customer.creditLimit > 0 && (
-                            <span className="text-xs text-gray-500">
-                              من {formatCurrency(customer.creditLimit)}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => setViewingCustomer(customer)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="عرض التفاصيل"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(customer)}
-                          className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                          title="تعديل"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingCustomer(customer)}
-                          className="p-2 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
-                          title="حذف"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {customers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
+                      <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-lg font-medium">لا يوجد عملاء</p>
+                      <p className="text-sm">ابدأ بإضافة عميل جديد</p>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  customers.map((customer) => (
+                    <tr
+                      key={customer.id}
+                      className={clsx(
+                        "hover:bg-gray-50 transition-colors",
+                        isFetching && "opacity-50"
+                      )}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                            <span className="text-primary-600 font-semibold">
+                              {(customer.name || customer.phone)[0].toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {customer.name || "—"}
+                            </p>
+                            {customer.lastOrderAt && (
+                              <p className="text-xs text-gray-400">
+                                آخر طلب: {formatDateTime(customer.lastOrderAt)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-gray-600" dir="ltr">
+                        {customer.phone}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 hidden md:table-cell">
+                        {customer.address || "—"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-amber-500" />
+                          <span className="font-medium text-gray-800">
+                            {customer.loyaltyPoints}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">
+                        {customer.totalOrders} طلب
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">
+                        {formatCurrency(customer.totalSpent)}
+                      </td>
+                      <td className="px-6 py-4 hidden xl:table-cell">
+                        {customer.totalDue > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-orange-600">
+                              {formatCurrency(customer.totalDue)}
+                            </span>
+                            {customer.creditLimit > 0 && (
+                              <span className="text-xs text-gray-500">
+                                من {formatCurrency(customer.creditLimit)}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setViewingCustomer(customer)}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="عرض التفاصيل"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(customer)}
+                            className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                            title="تعديل"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingCustomer(customer)}
+                            className="p-2 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
+                            title="حذف"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <p className="text-sm text-gray-600">
-              صفحة {page} من {totalPages}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => p - 1)}
-                disabled={!hasPreviousPage || isFetching}
-              >
-                <ChevronRight className="w-4 h-4" />
-                السابق
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={!hasNextPage || isFetching}
-              >
-                التالي
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <p className="text-sm text-gray-600">
+                صفحة {page} من {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={!hasPreviousPage || isFetching}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  السابق
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={!hasNextPage || isFetching}
+                >
+                  التالي
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {showFormModal && (
+          <CustomerFormModal
+            customer={editingCustomer}
+            onClose={handleCloseFormModal}
+          />
+        )}
+
+        {viewingCustomer && (
+          <CustomerDetailsModal
+            customer={viewingCustomer}
+            onClose={() => setViewingCustomer(null)}
+          />
+        )}
+
+        {deletingCustomer && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-danger-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">
+                  حذف العميل
+                </h3>
+                <p className="text-gray-500">
+                  هل أنت متأكد من حذف العميل "
+                  {deletingCustomer.name || deletingCustomer.phone}"؟
+                </p>
+                <p className="text-sm text-danger-500 mt-2">
+                  لا يمكن التراجع عن هذا الإجراء
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setDeletingCustomer(null)}
+                  className="flex-1"
+                  disabled={isDeleting}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={handleDelete}
+                  isLoading={isDeleting}
+                  className="flex-1"
+                >
+                  حذف
+                </Button>
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Form Modal */}
-      {showFormModal && (
-        <CustomerFormModal
-          customer={editingCustomer}
-          onClose={handleCloseFormModal}
-        />
-      )}
-
-      {/* Customer Details Modal */}
-      {viewingCustomer && (
-        <CustomerDetailsModal
-          customer={viewingCustomer}
-          onClose={() => setViewingCustomer(null)}
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deletingCustomer && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8 text-danger-600" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">
-                حذف العميل
-              </h3>
-              <p className="text-gray-500">
-                هل أنت متأكد من حذف العميل "
-                {deletingCustomer.name || deletingCustomer.phone}"؟
-              </p>
-              <p className="text-sm text-danger-500 mt-2">
-                لا يمكن التراجع عن هذا الإجراء
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setDeletingCustomer(null)}
-                className="flex-1"
-                disabled={isDeleting}
-              >
-                إلغاء
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleDelete}
-                isLoading={isDeleting}
-                className="flex-1"
-              >
-                حذف
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

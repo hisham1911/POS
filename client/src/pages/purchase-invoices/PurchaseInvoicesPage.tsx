@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ClipboardList } from 'lucide-react';
 import { useGetPurchaseInvoicesQuery, useDeletePurchaseInvoiceMutation } from '../../api/purchaseInvoiceApi';
 import { useGetSuppliersQuery } from '../../api/suppliersApi';
 import { Button } from '../../components/common/Button';
@@ -72,18 +73,43 @@ export function PurchaseInvoicesPage() {
 
   if (isLoading) return <Loading />;
 
-  return (
-    <div className="flex flex-col h-screen">
-      <div className="flex justify-between items-center p-6 pb-4">
-        <h1 className="text-2xl font-bold">فواتير الشراء</h1>
-        <Button onClick={() => navigate('/purchase-invoices/new')}>
-          إنشاء فاتورة جديدة
-        </Button>
-      </div>
+  const totalAmount = invoices.reduce((sum, inv) => sum + inv.total, 0);
+  const paidCount = invoices.filter(inv => inv.status === 'Paid').length;
 
-      {/* Filters */}
-      <div className="px-6">
-        <Card className="mb-4">
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
+                <ClipboardList className="w-5 h-5 text-violet-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">فواتير الشراء</h1>
+            </div>
+            <p className="text-gray-600">إدارة فواتير الشراء من الموردين</p>
+          </div>
+          <Button onClick={() => navigate('/purchase-invoices/new')}>
+            إنشاء فاتورة جديدة
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-violet-100">
+            <p className="text-sm text-gray-600">إجمالي الفواتير</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{invoices.length}</p>
+          </Card>
+          <Card className="border-blue-100">
+            <p className="text-sm text-gray-600">المبلغ الإجمالي</p>
+            <p className="text-2xl font-bold text-blue-700 mt-1">{formatCurrency(totalAmount)}</p>
+          </Card>
+          <Card className="border-green-100">
+            <p className="text-sm text-gray-600">الفواتير المدفوعة</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">{paidCount}</p>
+          </Card>
+        </div>
+
+        <Card>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">المورد</label>
@@ -138,12 +164,9 @@ export function PurchaseInvoicesPage() {
             </div>
           </div>
         </Card>
-      </div>
 
-      {/* Invoices Table */}
-      <div className="flex-1 px-6 pb-6 overflow-hidden">
-        <Card padding="none" className="h-full flex flex-col">
-          <div className="flex-1 overflow-auto">
+        <Card padding="none">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>

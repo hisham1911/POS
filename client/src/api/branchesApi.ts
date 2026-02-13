@@ -1,6 +1,10 @@
 import { baseApi } from "./baseApi";
 import type { ApiResponse } from "../types/api.types";
-import type { Branch, CreateBranchRequest, UpdateBranchRequest } from "../types/branch.types";
+import type {
+  Branch,
+  CreateBranchRequest,
+  UpdateBranchRequest,
+} from "../types/branch.types";
 import type { Tenant, UpdateTenantRequest } from "../types/tenant.types";
 
 export const branchesApi = baseApi.injectEndpoints({
@@ -22,7 +26,10 @@ export const branchesApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Branches"],
     }),
-    updateBranch: builder.mutation<ApiResponse<Branch>, { id: number; data: UpdateBranchRequest }>({
+    updateBranch: builder.mutation<
+      ApiResponse<Branch>,
+      { id: number; data: UpdateBranchRequest }
+    >({
       query: ({ id, data }) => ({
         url: `/branches/${id}`,
         method: "PUT",
@@ -43,7 +50,10 @@ export const branchesApi = baseApi.injectEndpoints({
       query: () => "/tenants/current",
       providesTags: ["Tenant"],
     }),
-    updateCurrentTenant: builder.mutation<ApiResponse<Tenant>, UpdateTenantRequest>({
+    updateCurrentTenant: builder.mutation<
+      ApiResponse<Tenant>,
+      UpdateTenantRequest
+    >({
       query: (body) => ({
         url: "/tenants/current",
         method: "PUT",

@@ -1,19 +1,37 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp, TrendingDown, ListOrdered } from 'lucide-react';
-import { useGetTransactionsQuery } from '../../api/cashRegisterApi';
-import type { CashRegisterFilters, CashRegisterTransactionType } from '../../types/cashRegister.types';
-import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
-import { Loading } from '../../components/common/Loading';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  TrendingUp,
+  TrendingDown,
+  ListOrdered,
+} from "lucide-react";
+import { useGetTransactionsQuery } from "../../api/cashRegisterApi";
+import type {
+  CashRegisterFilters,
+  CashRegisterTransactionType,
+} from "../../types/cashRegister.types";
+import { Button } from "../../components/common/Button";
+import { Card } from "../../components/common/Card";
+import { Loading } from "../../components/common/Loading";
+import { useAppSelector } from "../../store/hooks";
+import { selectCurrentBranch } from "../../store/slices/branchSlice";
 
 export function CashRegisterTransactionsPage() {
+  const currentBranch = useAppSelector(selectCurrentBranch);
   const [filters, setFilters] = useState<CashRegisterFilters>({
     pageNumber: 1,
     pageSize: 20,
   });
 
-  const { data: response, isLoading, error } = useGetTransactionsQuery(filters);
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useGetTransactionsQuery(
+    { ...filters, branchId: currentBranch?.id },
+    { skip: !currentBranch?.id }
+  );
 
   const transactions = response?.data?.items || [];
   const totalCount = response?.data?.totalCount || 0;
@@ -31,36 +49,47 @@ export function CashRegisterTransactionsPage() {
 
   const getTransactionTypeLabel = (type: CashRegisterTransactionType) => {
     const labels: Record<CashRegisterTransactionType, string> = {
-      Opening: 'فتح وردية',
-      Deposit: 'إيداع',
-      Withdrawal: 'سحب',
-      Sale: 'مبيعات',
-      Refund: 'مرتجع',
-      Expense: 'مصروف',
-      SupplierPayment: 'دفع لمورد',
-      Adjustment: 'تسوية',
-      Transfer: 'تحويل',
+      Opening: "فتح وردية",
+      Deposit: "إيداع",
+      Withdrawal: "سحب",
+      Sale: "مبيعات",
+      Refund: "مرتجع",
+      Expense: "مصروف",
+      SupplierPayment: "دفع لمورد",
+      Adjustment: "تسوية",
+      Transfer: "تحويل",
     };
     return labels[type];
   };
 
   const getTransactionTypeBadge = (type: CashRegisterTransactionType) => {
     const badges: Record<CashRegisterTransactionType, string> = {
-      Opening: 'bg-blue-100 text-blue-800',
-      Deposit: 'bg-green-100 text-green-800',
-      Withdrawal: 'bg-red-100 text-red-800',
-      Sale: 'bg-green-100 text-green-800',
-      Refund: 'bg-red-100 text-red-800',
-      Expense: 'bg-red-100 text-red-800',
-      SupplierPayment: 'bg-red-100 text-red-800',
-      Adjustment: 'bg-yellow-100 text-yellow-800',
-      Transfer: 'bg-purple-100 text-purple-800',
+      Opening: "bg-blue-100 text-blue-800",
+      Deposit: "bg-green-100 text-green-800",
+      Withdrawal: "bg-red-100 text-red-800",
+      Sale: "bg-green-100 text-green-800",
+      Refund: "bg-red-100 text-red-800",
+      Expense: "bg-red-100 text-red-800",
+      SupplierPayment: "bg-red-100 text-red-800",
+      Adjustment: "bg-yellow-100 text-yellow-800",
+      Transfer: "bg-purple-100 text-purple-800",
     };
     return badges[type];
   };
 
+  if (!currentBranch?.id) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
+
   if (isLoading) return <Loading />;
-  if (error) return <div className="text-red-600">حدث خطأ في تحميل المعاملات</div>;
+  if (error)
+    return (
+      <div className="text-red-600">حدث خطأ في تحميل المعاملات</div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,9 +98,13 @@ export function CashRegisterTransactionsPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <ListOrdered className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">معاملات الخزينة</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                معاملات الخزينة
+              </h1>
             </div>
-            <p className="text-gray-600">سجل كامل لجميع المعاملات النقدية</p>
+            <p className="text-gray-600">
+              سجل كامل لجميع المعاملات النقدية
+            </p>
           </div>
           <Link to="/cash-register">
             <Button variant="outline">
@@ -84,25 +117,35 @@ export function CashRegisterTransactionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-blue-100">
             <p className="text-sm text-gray-600">المعاملات المعروضة</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{transactions.length}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">
+              {transactions.length}
+            </p>
           </Card>
           <Card className="border-green-100">
             <p className="text-sm text-gray-600">عمليات دخول</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">{incomingCount}</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">
+              {incomingCount}
+            </p>
           </Card>
           <Card className="border-red-100">
             <p className="text-sm text-gray-600">عمليات خروج</p>
-            <p className="text-2xl font-bold text-red-700 mt-1">{outgoingCount}</p>
+            <p className="text-2xl font-bold text-red-700 mt-1">
+              {outgoingCount}
+            </p>
           </Card>
         </div>
 
         <Card>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">نوع المعاملة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                نوع المعاملة
+              </label>
               <select
-                value={filters.type || ''}
-                onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
+                value={filters.type || ""}
+                onChange={(e) =>
+                  handleFilterChange("type", e.target.value || undefined)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الكل</option>
@@ -119,31 +162,46 @@ export function CashRegisterTransactionsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">من تاريخ</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                من تاريخ
+              </label>
               <input
                 type="date"
-                value={filters.fromDate || ''}
-                onChange={(e) => handleFilterChange('fromDate', e.target.value || undefined)}
+                value={filters.fromDate || ""}
+                onChange={(e) =>
+                  handleFilterChange("fromDate", e.target.value || undefined)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">إلى تاريخ</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                إلى تاريخ
+              </label>
               <input
                 type="date"
-                value={filters.toDate || ''}
-                onChange={(e) => handleFilterChange('toDate', e.target.value || undefined)}
+                value={filters.toDate || ""}
+                onChange={(e) =>
+                  handleFilterChange("toDate", e.target.value || undefined)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">رقم الوردية</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                رقم الوردية
+              </label>
               <input
                 type="number"
-                value={filters.shiftId || ''}
-                onChange={(e) => handleFilterChange('shiftId', e.target.value ? Number(e.target.value) : undefined)}
+                value={filters.shiftId || ""}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "shiftId",
+                    e.target.value ? Number(e.target.value) : undefined
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="رقم الوردية"
               />
@@ -182,7 +240,10 @@ export function CashRegisterTransactionsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-10 text-center text-sm text-gray-500"
+                    >
                       لا توجد معاملات مطابقة للفلاتر الحالية.
                     </td>
                   </tr>
@@ -190,10 +251,16 @@ export function CashRegisterTransactionsPage() {
                   transactions.map((transaction) => (
                     <tr key={transaction.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(transaction.createdAt).toLocaleString('ar-EG')}
+                        {new Date(transaction.createdAt).toLocaleString(
+                          "ar-EG"
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTransactionTypeBadge(transaction.type)}`}>
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full ${getTransactionTypeBadge(
+                            transaction.type
+                          )}`}
+                        >
                           {getTransactionTypeLabel(transaction.type)}
                         </span>
                       </td>
@@ -209,10 +276,12 @@ export function CashRegisterTransactionsPage() {
                           )}
                           <span
                             className={`text-sm font-bold ${
-                              transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                              transaction.amount >= 0
+                                ? "text-green-600"
+                                : "text-red-600"
                             }`}
                           >
-                            {transaction.amount >= 0 ? '+' : ''}
+                            {transaction.amount >= 0 ? "+" : ""}
                             {transaction.amount.toFixed(2)} جنيه
                           </span>
                         </div>

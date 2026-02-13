@@ -11,18 +11,18 @@ public class Tenant : BaseEntity
     public string Currency { get; set; } = "EGP";
     public string Timezone { get; set; } = "Africa/Cairo";
     public bool IsActive { get; set; } = true;
-    
+
     // Tax Settings - Dynamic per Tenant
     /// <summary>
     /// نسبة الضريبة الافتراضية للشركة (مثال: 14 = 14%)
     /// </summary>
     public decimal TaxRate { get; set; } = 14.0m;
-    
+
     /// <summary>
     /// هل الضريبة مفعلة؟ إذا كانت false، لا يتم احتساب ضريبة
     /// </summary>
     public bool IsTaxEnabled { get; set; } = true;
-    
+
     // Inventory Settings
     /// <summary>
     /// هل يُسمح بالمخزون السالب؟ إذا كانت false، لن يتم السماح بالبيع عند نفاذ المخزون

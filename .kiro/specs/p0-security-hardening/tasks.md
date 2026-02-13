@@ -1,309 +1,591 @@
-# Implementation Tasks: P0 Security Hardening
+# Implementation Plan: P0 Security Hardening
 
 ## Overview
 
-This task list implements 8 critical security and data integrity fixes for KasserPro POS. Tasks are ordered by dependency and risk level, following the recommended implementation sequence from the P0 Hardening Implementation Guide.
+This implementation plan addresses 7 critical security blockers and production hardening gaps identified in architectural reviews. The plan is organized into three phases: Phase 0 (Critical Security Hotfixes), Phase 1 (Production Hardening), and Phase 2 (Operational Fixes). Each task builds incrementally and includes specific requirements references for traceability.
 
-**Recommended Order**: P0-1 → P0-6 → P0-2 → P0-7 → P0-4 → P0-5 → P0-8 → P0-3
+## Tasks
 
-**Total Estimated Effort**: 8-12 hours
+### Phase 0: Critical Security Hotfixes
 
----
+- [ ] 1. Implement SecurityStamp infrastructure
+  - [ ] 1.1 Create AddSecurityStamp migration
+    - Add SecurityStamp column to Users table (TEXT, maxLength: 64, not null)
+    - Initialize existing users with unique stamps using SQL
+    - _Requirements: 3.1_
+  
+  - [ ] 1.2 Update User entity with SecurityStamp property
+    - Add SecurityStamp property with default value
+    - Add UpdateSecurityStamp() method that generates new GUID
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+  
+  - [ ] 1.3 Update AuthService token generation
+    - Add "security_stamp" claim to JWT
+    - Include user.SecurityStamp in claims list
+    - _Requirements: 3.8_
+  
+  - [ ] 1.4 Implement JWT validation with stamp check
+    - Update OnTokenValidated event in Program.cs
+    - Compare token stamp with user's current SecurityStamp
+    - Fail validation if stamps don't match
+    - Return TOKEN_INVALIDATED error code
+    - _Requirements: 3.6, 3.7_
+  
+  - [ ]* 1.5 Write property test for SecurityStamp invalidation
+    - **Property 3: SecurityStamp Invalidation**
+    - **Validates: Requirements 3.2, 3.3, 3.6, 3.7**
+  
+  - [ ]* 1.6 Write unit tests for stamp update triggers
+    - Test role change triggers stamp update
+    - Test branch change triggers stamp update
+    - Test deactivation triggers stamp update
+    - Test password change triggers stamp update
+    - _Requirements: 3.2, 3.3, 3.4, 3.5_
 
-## Phase 1: Foundation & Quick Wins (2-3 hours)
+- [ ] 2. Implement role escalation prevention
+  - [ ] 2.1 Add role validation to AuthService.RegisterAsync
+    - Get current user's role from ICurrentUserService
+    - Parse requested role from RegisterRequest
+    - Reject if Admin attempts to create SystemOwner
+    - Reject if Admin attempts to create non-Admin/Cashier roles
+    - Return INSUFFICIENT_PRIVILEGES error code
+    - Log all escalation attempts
+    - _Requirements: 2.1, 2.2, 2.3, 2.5_
+  
+  - [ ]* 2.2 Write property test for role assignment restrictions
+    - **Property 2: Role Assignment Restrictions**
+    - **Validates: Requirements 2.1, 2.3, 2.5**
+  
+  - [ ]* 2.3 Write unit tests for role escalation scenarios
+    - Test Admin cannot create SystemOwner
+    - Test SystemOwner can create any role
+    - Test Admin can create Admin and Cashier
+    - _Requirements: 2.1, 2.2, 2.3_
 
-### Task 1: P0-1 JWT Secret Hardening
+- [ ] 3. Implement branch access validation
+  - [ ] 3.1 Create BranchAccessMiddleware
+    - Extract X-Branch-Id from request headers
+    - Skip validation for anonymous requests
+    - If header present, validate against user's BranchId
+    - Return 403 with BRANCH_ACCESS_DENIED if mismatch
+    - Log all violations with userId, branchId, timestamp
+    - _Requirements: 1.1, 1.2, 1.5_
+  
+  - [ ] 3.2 Register BranchAccessMiddleware in Program.cs
+    - Add after Authentication middleware
+    - Add before Authorization middleware
+    - _Requirements: 1.4_
+  
+  - [ ]* 3.3 Write property test for branch access validation
+    - **Property 1: Branch Access Validation**
+    - **Validates: Requirements 1.1, 1.2, 1.5**
+  
+  - [ ]* 3.4 Write unit tests for branch access scenarios
+    - Test authorized branch access succeeds
+    - Test unauthorized branch access rejected
+    - Test missing header uses JWT branch
+    - Test anonymous requests skip validation
+    - _Requirements: 1.1, 1.2, 1.3_
 
-Implement JWT secret validation and configuration changes to prevent token forgery.
+- [ ] 4. Implement maintenance mode
+  - [ ] 4.1 Create MaintenanceModeService
+    - Implement Enable(reason) method (creates maintenance.lock file)
+    - Implement Disable() method (deletes maintenance.lock file)
+    - Implement IsEnabled() method (checks file existence)
+    - Log all state changes with timestamp and reason
+    - _Requirements: 4.1, 4.8_
+  
+  - [ ] 4.2 Create MaintenanceModeMiddleware
+    - Check for maintenance.lock file
+    - Allow /health endpoint
+    - Reject all other requests with HTTP 503
+    - Return Arabic message "النظام قيد الصيانة"
+    - Include retryAfter: 60 in response
+    - _Requirements: 4.2, 4.3_
+  
+  - [ ] 4.3 Register MaintenanceModeMiddleware in Program.cs
+    - Add as first middleware in pipeline
+    - Register MaintenanceModeService as singleton
+    - _Requirements: 4.1_
+  
+  - [ ]* 4.4 Write property test for maintenance mode round-trip
+    - **Property 4: Maintenance Mode Round-Trip**
+    - **Validates: Requirements 4.2, 4.5, 4.7, 4.8**
+  
+  - [ ]* 4.5 Write unit tests for maintenance mode
+    - Test file flag enables maintenance mode
+    - Test file deletion disables maintenance mode
+    - Test health check allowed during maintenance
+    - Test API requests blocked during maintenance
+    - _Requirements: 4.2, 4.3, 4.4, 4.5_
 
-- [x] 1.1 Update `src/KasserPro.API/appsettings.json` - set `Jwt.Key` to empty string
-- [x] 1.2 Update `src/KasserPro.API/appsettings.example.json` - fix key path from `JwtSettings.SecretKey` to `Jwt.Key` with placeholder
-- [x] 1.3 Add JWT validation guard in `src/KasserPro.API/Program.cs` after `WebApplication.CreateBuilder`
-  - Check if `Jwt:Key` is null/empty or length < 32
-  - Throw `InvalidOperationException` with clear error message
-  - Include PowerShell example for generating key
-- [ ] 1.4 Manual validation: Test startup without env var (should crash)
-- [ ] 1.5 Manual validation: Test startup with short key (should crash)
-- [ ] 1.6 Manual validation: Test startup with valid 32+ char key (should succeed)
-- [ ] 1.7 Manual validation: Test login with valid JWT key (should work)
+- [ ] 5. Checkpoint - Phase 0 complete
+  - Ensure all tests pass, ask the user if questions arise.
 
-**Definition of Done**:
-- App refuses to start when `Jwt:Key` is missing or < 32 chars
-- `appsettings.json` has empty `Jwt.Key`
-- `appsettings.example.json` uses correct `Jwt.Key` path
-- Login works when `Jwt__Key` env var is set
 
----
+### Phase 1: Production Hardening
 
-### Task 2: P0-6 Secure DeviceTestController
+- [ ] 6. Implement SQLite production configuration
+  - [ ] 6.1 Create SqliteConfigurationService
+    - Implement ConfigureAsync method
+    - Execute PRAGMA journal_mode=WAL
+    - Execute PRAGMA busy_timeout=5000
+    - Execute PRAGMA synchronous=NORMAL
+    - Execute PRAGMA foreign_keys=ON
+    - Verify WAL mode is active
+    - Log configuration status
+    - Log warning if WAL activation fails
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6, 5.7_
+  
+  - [ ] 6.2 Apply SQLite configuration on startup
+    - Register SqliteConfigurationService in DI
+    - Call ConfigureAsync after app.Build() in Program.cs
+    - Use scoped DbContext to get connection
+    - _Requirements: 5.1, 5.2, 5.3, 5.4_
+  
+  - [ ]* 6.3 Write unit tests for SQLite configuration
+    - Test WAL mode is set
+    - Test busy_timeout is 5000
+    - Test synchronous is NORMAL
+    - Test foreign_keys is ON
+    - Test warning logged if WAL fails
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.7_
 
-Add authorization to device test endpoints to prevent anonymous access.
+- [ ] 7. Implement file-based logging with Serilog
+  - [ ] 7.1 Add Serilog NuGet packages
+    - Add Serilog.AspNetCore
+    - Add Serilog.Sinks.File
+    - _Requirements: 6.1_
+  
+  - [ ] 7.2 Configure Serilog in Program.cs
+    - Create logs directory
+    - Configure console sink
+    - Configure file sink with rolling daily files
+    - Set 30-day retention for application logs
+    - Configure separate financial-audit sink
+    - Set 90-day retention for financial audit logs
+    - Filter financial logs by AuditType property
+    - Add correlation ID enrichment
+    - Call UseSerilog() on host builder
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
+  
+  - [ ] 7.3 Create CorrelationIdMiddleware
+    - Generate correlation ID per request
+    - Add to HttpContext.Items
+    - Add to response headers
+    - Push to Serilog LogContext
+    - _Requirements: 6.6_
+  
+  - [ ] 7.4 Register CorrelationIdMiddleware in Program.cs
+    - Add after MaintenanceModeMiddleware
+    - Add before Authentication
+    - _Requirements: 6.6_
+  
+  - [ ] 7.5 Update financial services to use audit logging
+    - Add AuditType property to financial log entries
+    - Update OrderService.CompleteAsync logging
+    - Update OrderService.RefundAsync logging
+    - Update CashRegisterService logging
+    - _Requirements: 6.4_
+  
+  - [ ]* 7.6 Write property test for log entry format
+    - **Property 6: Log Entry Format**
+    - **Validates: Requirements 6.3, 6.6**
+  
+  - [ ]* 7.7 Write property test for database error logging
+    - **Property 7: Database Error Logging**
+    - **Validates: Requirements 6.7, 6.8**
+  
+  - [ ]* 7.8 Write unit tests for logging configuration
+    - Test log files are created
+    - Test rolling daily files
+    - Test 30-day retention
+    - Test financial audit logs separate
+    - Test 90-day retention for audit logs
+    - Test correlation IDs in logs
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-- [x] 2.1 Add `using Microsoft.AspNetCore.Authorization;` to `src/KasserPro.API/Controllers/DeviceTestController.cs`
-- [x] 2.2 Add `[Authorize(Roles = "Admin")]` attribute to `DeviceTestController` class
-- [ ] 2.3 Manual validation: Test unauthenticated request (should return 401)
-- [ ] 2.4 Manual validation: Test with Cashier token (should return 403)
-- [ ] 2.5 Manual validation: Test with Admin token (should return 200)
+- [ ] 8. Implement SQLite exception mapping
+  - [ ] 8.1 Update ExceptionMiddleware with SQLite error handling
+    - Add catch block for SqliteException
+    - Map error code 5 (BUSY) to 503 with Arabic message
+    - Map error code 6 (LOCKED) to 503 with Arabic message
+    - Map error code 11 (CORRUPT) to 500 with Arabic message
+    - Map error code 13 (FULL) to 507 with Arabic message
+    - Add catch block for IOException
+    - Map IOException to 507 with disk error message
+    - Include correlation ID in all error responses
+    - Log full exception details with correlation ID
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
+  
+  - [ ] 8.2 Add DbUpdateConcurrencyException handling
+    - Return 409 with retry message
+    - Log concurrency conflict
+    - _Requirements: 7.6, 7.7_
+  
+  - [ ]* 8.3 Write property test for SQLite error mapping
+    - **Property 5: SQLite Error Mapping**
+    - **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7**
+  
+  - [ ]* 8.4 Write unit tests for each error code
+    - Test SQLITE_BUSY returns 503
+    - Test SQLITE_LOCKED returns 503
+    - Test SQLITE_CORRUPT returns 500
+    - Test SQLITE_FULL returns 507
+    - Test IOException returns 507
+    - Test correlation ID in responses
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-**Definition of Done**:
-- Unauthenticated request → 401
-- Cashier request → 403
-- Admin request → 200
+- [ ] 9. Implement backup service
+  - [ ] 9.1 Create IBackupService interface and DTOs
+    - Define BackupResult, BackupInfo DTOs
+    - Define IBackupService interface
+    - _Requirements: 8.1_
+  
+  - [ ] 9.2 Implement BackupService
+    - Create backups directory if not exists
+    - Implement CreateBackupAsync method
+    - Generate timestamped filename
+    - Use SqliteConnection.BackupDatabase API
+    - Run PRAGMA integrity_check on backup
+    - Delete backup if integrity check fails
+    - Return backup metadata (path, size, timestamp)
+    - Log all backup operations
+    - _Requirements: 8.1, 8.2, 8.4, 8.5, 8.8, 8.9, 8.12_
+  
+  - [ ] 9.3 Implement DeleteOldBackupsAsync method
+    - Keep last 14 daily backups
+    - Skip pre-migration backups (retain indefinitely)
+    - Delete older backups
+    - Log deletions
+    - _Requirements: 8.6, 8.7_
+  
+  - [ ] 9.4 Create BackupController
+    - Add POST /api/admin/backup endpoint
+    - Require Admin or SystemOwner role
+    - Call BackupService.CreateBackupAsync
+    - Return backup metadata
+    - _Requirements: 8.10, 8.11_
+  
+  - [ ] 9.5 Register BackupService in DI
+    - Register as scoped service
+    - _Requirements: 8.1_
+  
+  - [ ]* 9.6 Write property test for backup filename format
+    - **Property 8: Backup Filename Format**
+    - **Validates: Requirements 8.5, 10.3**
+  
+  - [ ]* 9.7 Write property test for backup integrity verification
+    - **Property 9: Backup Integrity Verification**
+    - **Validates: Requirements 8.8, 8.9**
+  
+  - [ ]* 9.8 Write property test for backup response structure
+    - **Property 10: Backup Response Structure**
+    - **Validates: Requirements 8.11**
+  
+  - [ ]* 9.9 Write property test for backup operation logging
+    - **Property 11: Backup Operation Logging**
+    - **Validates: Requirements 8.12, 10.8**
+  
+  - [ ]* 9.10 Write unit tests for backup service
+    - Test backup creates file
+    - Test backup uses SQLite backup API
+    - Test integrity check runs
+    - Test corrupt backup deleted
+    - Test backup metadata returned
+    - Test old backups deleted
+    - Test pre-migration backups retained
+    - _Requirements: 8.1, 8.2, 8.4, 8.5, 8.6, 8.8, 8.9_
 
----
+- [ ] 10. Implement daily backup scheduler
+  - [ ] 10.1 Create DailyBackupBackgroundService
+    - Inherit from BackgroundService
+    - Calculate time until next 2 AM
+    - Wait until 2 AM
+    - Create backup with reason "daily-scheduled"
+    - Log success/failure
+    - Repeat daily
+    - _Requirements: 8.3_
+  
+  - [ ] 10.2 Register DailyBackupBackgroundService in Program.cs
+    - Add as hosted service
+    - _Requirements: 8.3_
+  
+  - [ ]* 10.3 Write integration test for daily backup
+    - Test backup service is called
+    - Test backup created at scheduled time (mocked)
+    - _Requirements: 8.3_
 
-### Task 3: P0-2 Disable Seed & Demo Credentials in Production
+- [ ] 11. Implement restore service
+  - [ ] 11.1 Create IRestoreService interface and DTOs
+    - Define RestoreResult DTO
+    - Define IRestoreService interface
+    - _Requirements: 9.1_
+  
+  - [ ] 11.2 Implement RestoreService
+    - Inject MaintenanceModeService
+    - Implement RestoreFromBackupAsync method
+    - Validate backup file exists
+    - Run integrity check on backup
+    - Enable maintenance mode
+    - Clear connection pools
+    - Create pre-restore backup
+    - Replace database file
+    - Disable maintenance mode on success
+    - Keep maintenance mode on failure
+    - Log all restore operations
+    - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.9, 9.10, 9.11_
+  
+  - [ ] 11.3 Create RestoreController
+    - Add POST /api/admin/restore endpoint
+    - Require SystemOwner role only
+    - Call RestoreService.RestoreFromBackupAsync
+    - Return restore result
+    - _Requirements: 9.1_
+  
+  - [ ] 11.4 Register RestoreService in DI
+    - Register as scoped service
+    - _Requirements: 9.1_
+  
+  - [ ]* 11.5 Write property test for restore validation
+    - **Property 12: Restore Validation**
+    - **Validates: Requirements 9.3, 9.4**
+  
+  - [ ]* 11.6 Write property test for restore operation logging
+    - **Property 13: Restore Operation Logging**
+    - **Validates: Requirements 9.11**
+  
+  - [ ]* 11.7 Write integration test for backup and restore
+    - Test full backup and restore cycle
+    - Test data integrity after restore
+    - Test maintenance mode during restore
+    - Test pre-restore backup created
+    - _Requirements: 9.2, 9.3, 9.4, 9.7, 9.9_
+  
+  - [ ]* 11.8 Write unit tests for restore service
+    - Test missing backup file rejected
+    - Test corrupt backup rejected
+    - Test maintenance mode enabled
+    - Test pre-restore backup created
+    - Test database file replaced
+    - Test maintenance mode disabled on success
+    - Test maintenance mode kept on failure
+    - _Requirements: 9.3, 9.4, 9.5, 9.7, 9.9, 9.10_
 
-Gate demo data seeding and UI credentials behind development environment checks.
+- [ ] 12. Implement pre-migration automatic backup
+  - [ ] 12.1 Add pre-migration backup logic to Program.cs
+    - Check for pending migrations
+    - If pending migrations exist, create backup with reason "pre-migration"
+    - Log migration count and backup filename
+    - Abort startup if backup fails
+    - Proceed with MigrateAsync after backup succeeds
+    - _Requirements: 10.1, 10.2, 10.6, 10.7, 10.8_
+  
+  - [ ]* 12.2 Write property test for pre-migration backup filename
+    - **Property 14: Pre-Migration Backup Filename**
+    - **Validates: Requirements 10.8**
+  
+  - [ ]* 12.3 Write integration test for pre-migration backup
+    - Test backup created when migrations pending
+    - Test backup skipped when no migrations
+    - Test startup aborts if backup fails
+    - Test pre-migration backups retained indefinitely
+    - _Requirements: 10.1, 10.2, 10.5, 10.7_
 
-- [x] 3.1 Update `src/KasserPro.API/Program.cs` - wrap `ButcherDataSeeder.SeedAsync` in `if (app.Environment.IsDevelopment())`
-  - Keep `MigrateAsync()` outside the condition (runs in all environments)
-- [x] 3.2 Update `client/src/pages/auth/LoginPage.tsx` - wrap demo credentials div in `{import.meta.env.DEV && (...)}`
-- [ ] 3.3 Manual validation: Set `ASPNETCORE_ENVIRONMENT=Production`, start backend (no seeding message)
-- [ ] 3.4 Manual validation: Build frontend (`npm run build`), search for "Admin@123" in dist/ (0 matches)
-- [ ] 3.5 Manual validation: Production mode - login page shows no credentials
-- [ ] 3.6 Manual validation: Development mode - seeding runs and credentials visible
+- [ ] 13. Checkpoint - Phase 1 complete
+  - Ensure all tests pass, ask the user if questions arise.
 
-**Definition of Done**:
-- `ButcherDataSeeder.SeedAsync` only executes in Development
-- Production frontend build contains zero instances of `Admin@123`
-- `MigrateAsync()` still runs in all environments
 
----
+### Phase 2: Operational Fixes
 
-## Phase 2: Frontend Safety (1-2 hours)
+- [ ] 14. Implement cart persistence
+  - [ ] 14.1 Install redux-persist in frontend
+    - Add redux-persist package
+    - _Requirements: 11.1_
+  
+  - [ ] 14.2 Create cart persist configuration
+    - Create persist config with scoped key format
+    - Add TTL transform (24 hours)
+    - Add scope validation transform (userId, tenantId, branchId)
+    - Whitelist items and customerId fields
+    - _Requirements: 11.2, 11.5, 11.6_
+  
+  - [ ] 14.3 Update Redux store configuration
+    - Wrap cart reducer with persistReducer
+    - Configure middleware to ignore persist actions
+    - Create persistor
+    - _Requirements: 11.1_
+  
+  - [ ] 14.4 Update cart slice to include price snapshots
+    - Ensure addItem action captures current unit price
+    - Store price snapshot in cart item
+    - _Requirements: 11.6_
+  
+  - [ ] 14.5 Add cart restoration logic
+    - Restore cart on app mount
+    - Validate TTL
+    - Validate scope (userId, tenantId, branchId)
+    - Use persisted prices, not current prices
+    - _Requirements: 11.3, 11.5, 11.7_
+  
+  - [ ] 14.6 Add cart cleanup after order completion
+    - Clear cart from Redux
+    - Clear cart from localStorage
+    - _Requirements: 11.4_
+  
+  - [ ] 14.7 Add beforeunload warning
+    - Add event listener when cart has items
+    - Show Arabic warning message
+    - Remove listener when cart is empty
+    - _Requirements: 11.8, 11.9_
+  
+  - [ ]* 14.8 Write property test for cart storage key scoping
+    - **Property 15: Cart Storage Key Scoping**
+    - **Validates: Requirements 11.2**
+  
+  - [ ]* 14.9 Write property test for cart round-trip with price snapshots
+    - **Property 16: Cart Round-Trip with Price Snapshots**
+    - **Validates: Requirements 11.3, 11.6, 11.7**
+  
+  - [ ]* 14.10 Write property test for cart price snapshot preservation
+    - **Property 17: Cart Price Snapshot Preservation**
+    - **Validates: Requirements 11.6, 11.7**
+  
+  - [ ]* 14.11 Write E2E test for cart persistence
+    - Test cart survives browser refresh
+    - Test cart cleared after order completion
+    - Test beforeunload warning shown
+    - Test beforeunload warning cleared
+    - Test expired cart not restored
+    - Test wrong user cart not restored
+    - _Requirements: 11.1, 11.3, 11.4, 11.5, 11.8, 11.9_
 
-### Task 4: P0-7 Disable Retry on Financial Mutations
+- [ ] 15. Fix auto-close shift cash register bug
+  - [ ] 15.1 Update AutoCloseShiftBackgroundService
+    - Inject ICashRegisterService
+    - After calculating closing balance, call RecordTransactionAsync
+    - Create transaction with type ShiftClose
+    - Set amount to closing balance
+    - Link transaction to shift via ShiftId
+    - Set description to "إغلاق تلقائي للوردية"
+    - _Requirements: 12.1, 12.2, 12.3, 12.4_
+  
+  - [ ]* 15.2 Write property test for auto-close cash register consistency
+    - **Property 18: Auto-Close Cash Register Consistency**
+    - **Validates: Requirements 12.5**
+  
+  - [ ]* 15.3 Write integration test for auto-close fix
+    - Test shift auto-close creates cash register transaction
+    - Test transaction type is ShiftClose
+    - Test transaction amount matches closing balance
+    - Test transaction linked to shift
+    - Test cash register balance matches shift closing balance
+    - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-Prevent RTK Query from auto-retrying POST/PUT/DELETE requests to avoid double-charges.
+- [ ] 16. Checkpoint - Phase 2 complete
+  - Ensure all tests pass, ask the user if questions arise.
 
-- [x] 4.1 Update `client/src/api/baseApi.ts` - add mutation detection in `baseQueryWithReauth`
-  - Detect POST/PUT/DELETE methods
-  - If mutation and error, call `retry.fail(error)` and return without retry
-  - Show appropriate error toast for mutations
-  - Allow GET queries to retry (existing behavior)
-- [x] 4.2 Update `client/src/api/ordersApi.ts` - remove `Idempotency-Key` headers from all mutations
-  - Remove from `createOrder`
-  - Remove from `completeOrder`
-  - Remove from `cancelOrder`
-  - Remove from `refundOrder`
-- [ ] 4.3 Manual validation: Complete order, check DevTools Network tab (only 1 POST request)
-- [ ] 4.4 Manual validation: Simulate network error during payment (no retry, error toast shown)
-- [ ] 4.5 Manual validation: Test GET request failure (should retry up to 3 times)
+### Final Integration and Validation
 
-**Definition of Done**:
-- POST/PUT/DELETE requests never auto-retry
-- GET requests still retry up to 3 times
-- Idempotency-Key headers removed from ordersApi mutations
-- Error toast for mutations says "لا تكرر العملية"
+- [ ] 17. Run all migrations
+  - [ ] 17.1 Generate AddSecurityStamp migration
+    - Run dotnet ef migrations add AddSecurityStamp
+    - Verify migration file created
+    - _Requirements: 3.1_
+  
+  - [ ] 17.2 Test migration on clean database
+    - Apply migration to test database
+    - Verify SecurityStamp column exists
+    - Verify existing users have stamps
+    - _Requirements: 3.1_
 
----
+- [ ] 18. Integration testing
+  - [ ]* 18.1 Run complete security validation suite
+    - Test branch tampering blocked
+    - Test role escalation blocked
+    - Test token invalidation works
+    - Test maintenance mode blocks requests
+    - _Requirements: 1.1, 1.2, 2.1, 3.6, 3.7, 4.2_
+  
+  - [ ]* 18.2 Run complete backup/restore suite
+    - Test manual backup
+    - Test daily backup scheduler
+    - Test pre-migration backup
+    - Test restore with maintenance mode
+    - Test backup integrity checks
+    - _Requirements: 8.1, 8.3, 9.1, 10.1_
+  
+  - [ ]* 18.3 Run SQLite configuration validation
+    - Verify WAL mode active
+    - Verify busy_timeout set
+    - Verify foreign_keys enabled
+    - Test concurrent operations don't fail
+    - _Requirements: 5.1, 5.2, 5.4_
+  
+  - [ ]* 18.4 Run logging validation
+    - Verify log files created
+    - Verify financial audit logs separate
+    - Verify correlation IDs present
+    - Verify retention policies work
+    - _Requirements: 6.1, 6.4, 6.6_
+  
+  - [ ]* 18.5 Run cart persistence validation
+    - Test cart survives refresh
+    - Test price snapshots preserved
+    - Test TTL expiration
+    - Test scope validation
+    - _Requirements: 11.1, 11.3, 11.5, 11.6_
 
-## Phase 3: Financial Calculations (1-2 hours)
+- [ ] 19. Failure scenario simulations
+  - [ ]* 19.1 Simulate power loss during order completion
+    - Verify transaction atomicity
+    - Verify cart lost but order safe
+    - _Requirements: All Phase 1_
+  
+  - [ ]* 19.2 Simulate SQLite BUSY error
+    - Verify 503 response with Arabic message
+    - Verify retry guidance
+    - _Requirements: 7.1, 7.6_
+  
+  - [ ]* 19.3 Simulate disk full
+    - Verify 507 response with Arabic message
+    - Verify critical log entry
+    - _Requirements: 7.4, 7.5_
+  
+  - [ ]* 19.4 Simulate backup corruption
+    - Verify corrupt backup deleted
+    - Verify error logged
+    - _Requirements: 8.9_
+  
+  - [ ]* 19.5 Simulate restore failure
+    - Verify maintenance mode stays enabled
+    - Verify error logged
+    - _Requirements: 9.10_
+  
+  - [ ]* 19.6 Simulate branch tampering attempt
+    - Verify 403 response
+    - Verify violation logged
+    - _Requirements: 1.1, 1.2, 1.5_
+  
+  - [ ]* 19.7 Simulate role escalation attempt
+    - Verify rejection
+    - Verify attempt logged
+    - _Requirements: 2.1, 2.5_
+  
+  - [ ]* 19.8 Simulate token with stale stamp
+    - Verify 401 response
+    - Verify TOKEN_INVALIDATED error
+    - _Requirements: 3.6, 3.7_
 
-### Task 5: P0-4 Fix Double Tax Calculation
+- [ ] 20. Final checkpoint - All phases complete
+  - Ensure all tests pass, ask the user if questions arise.
 
-Fix tax calculation to sum per-item taxes instead of applying order-level tax rate.
+## Notes
 
-- [x] 5.1 Locate `CalculateOrderTotals` method in `src/KasserPro.Application/Services/Implementations/OrderService.cs` (around line 912)
-- [x] 5.2 Replace tax calculation logic:
-  - If `order.DiscountAmount > 0 && order.Subtotal > 0`: calculate `discountRatio`, sum item taxes with proportional discount
-  - Else: sum `item.TaxAmount` directly
-- [ ] 5.3 Write unit test: Order with mixed tax rates (14% + 0%), verify correct tax amount
-- [ ] 5.4 Write unit test: Order with uniform tax rate, verify backward compatibility
-- [ ] 5.5 Write unit test: Order with discount, verify proportional tax distribution
-- [ ] 5.6 Write property test: Tax equals sum of item taxes (Property 8)
-- [ ] 5.7 Write property test: Product-specific tax rates respected (Property 9)
-- [ ] 5.8 Manual validation: Create order with Item A (100 EGP, 14%) + Item B (100 EGP, 0%), verify tax = 14.00
-- [ ] 5.9 Manual validation: Add 10% order discount, verify tax = 12.60
-
-**Definition of Done**:
-- `CalculateOrderTotals` uses sum of item taxes
-- Mixed-rate order shows correct tax amount
-- Order with discount distributes tax proportionally
-- Uniform tax rate produces same result as before
-- All unit and property tests pass
-
----
-
-## Phase 4: Communication Isolation (1 hour)
-
-### Task 6: P0-5 Fix SignalR Receipt Broadcast
-
-Use branch-based SignalR groups instead of broadcasting to all devices.
-
-- [x] 6.1 Update `src/KasserPro.API/Hubs/DeviceHub.cs` - `OnConnectedAsync` method:
-  - Read `X-Branch-Id` from `httpContext.Request.Headers`
-  - Create group name: `branch-{branchId}` or `branch-default`
-  - Call `Groups.AddToGroupAsync(Context.ConnectionId, groupName)`
-  - Update log message to include group name
-- [x] 6.2 Update `src/KasserPro.API/Hubs/DeviceHub.cs` - `PrintCompleted` method:
-  - Change from `Clients.All.SendAsync` to `Clients.Caller.SendAsync`
-- [x] 6.3 Update `src/KasserPro.API/Controllers/OrdersController.cs` - `Complete` method (around line 152):
-  - Extract `branchId` from JWT claims: `User.FindFirst("branchId")?.Value ?? "default"`
-  - Change from `Clients.All.SendAsync` to `Clients.Group($"branch-{branchId}").SendAsync`
-- [x] 6.4 Update `src/KasserPro.API/Controllers/DeviceTestController.cs` - `TestPrint` method (around line 71):
-  - Read `X-Branch-Id` from request headers
-  - Send to `Clients.Group($"branch-{branchId}")` or `Clients.Group("branch-default")`
-- [ ] 6.5 Manual validation: Connect device with `X-Branch-Id: 1`, complete order, verify receipt received
-- [ ] 6.6 Manual validation: Connect second device with `X-Branch-Id: 2`, complete order in branch 1, verify second device does NOT receive receipt
-
-**Definition of Done**:
-- `DeviceHub.OnConnectedAsync` assigns devices to branch groups
-- `OrdersController.Complete` sends to specific group
-- `DeviceTestController` sends to specific group
-- `PrintCompleted` sends to caller only
-- Device in branch-2 does NOT receive receipts from branch-1
-
----
-
-## Phase 5: Concurrency Guards (2-3 hours)
-
-### Task 7: P0-8 Cash Register Concurrency Guard
-
-Ensure cash register balance read+write happens atomically within transactions.
-
-- [x] 7.1 Add `HasActiveTransaction` property to `src/KasserPro.Application/Common/Interfaces/IUnitOfWork.cs`
-  - Add XML comment explaining P0-8 purpose
-- [x] 7.2 Implement `HasActiveTransaction` in `src/KasserPro.Infrastructure/Repositories/UnitOfWork.cs`
-  - Return `_context.Database.CurrentTransaction != null`
-- [x] 7.3 Update `RecordTransactionAsync` in `src/KasserPro.Application/Services/Implementations/CashRegisterService.cs`:
-  - Check `!_unitOfWork.HasActiveTransaction` to determine if we own the transaction
-  - If we own it, create transaction with `BeginTransactionAsync()`
-  - Wrap existing logic in try/catch/finally
-  - Commit if we own the transaction
-  - Rollback on error if we own the transaction
-  - Dispose transaction in finally if we own it
-- [ ] 7.4 Write unit test: Verify transaction created when none exists
-- [ ] 7.5 Write unit test: Verify transaction reused when already active
-- [ ] 7.6 Write property test: Cash register chain integrity (Property 23)
-- [ ] 7.7 Manual validation: Two cashiers complete cash sales simultaneously (100 + 200), verify balance = initial + 300
-- [ ] 7.8 Manual validation: Query database, verify BalanceBefore[N+1] = BalanceAfter[N]
-
-**Definition of Done**:
-- `IUnitOfWork` has `HasActiveTransaction` property
-- `UnitOfWork` implements it correctly
-- `RecordTransactionAsync` creates own transaction only if none active
-- Two simultaneous cash sales produce correct cumulative balance
-- Transaction chain integrity maintained
-
----
-
-### Task 8: P0-3 Fix Stock TOCTOU Race Condition
-
-Add stock re-validation inside transaction before decrement to prevent negative stock.
-
-- [x] 8.1 Update `CreateAsync` in `src/KasserPro.Application/Services/Implementations/OrderService.cs` (around line 147):
-  - Replace `product.StockQuantity` with `await _inventoryService.GetAvailableQuantityAsync(product.Id, _currentUser.BranchId)`
-  - Keep existing validation logic
-  - Add comment: "P0-3: Soft check (UX hint). Hard check is in CompleteAsync."
-- [x] 8.2 Update `CompleteAsync` in `src/KasserPro.Application/Services/Implementations/OrderService.cs` (around line 498-505):
-  - After `await _unitOfWork.SaveChangesAsync();`
-  - Before `BatchDecrementStockAsync()`
-  - Add stock re-validation loop:
-    - Get tenant, check `!AllowNegativeStock`
-    - For each item with `ProductId > 0` and `TrackInventory = true`
-    - Get `branchStock` from `_inventoryService.GetAvailableQuantityAsync`
-    - If `branchStock < item.Quantity`, rollback and return error with `INSUFFICIENT_STOCK`
-- [x] 8.3 Update `BatchDecrementStockAsync` in `src/KasserPro.Infrastructure/Services/InventoryService.cs` (around line 280):
-  - After reading `balanceBefore`
-  - Add warning log if `balanceBefore < quantity`
-  - Don't throw (enforcement is in CompleteAsync)
-- [ ] 8.4 Write unit test: Stock validation from BranchInventory in CreateAsync
-- [ ] 8.5 Write unit test: Stock re-validation in CompleteAsync rejects insufficient stock
-- [ ] 8.6 Write property test: Non-negative stock invariant (Property 7)
-- [ ] 8.7 Write property test: Stock validation inside transaction (Property 3)
-- [ ] 8.8 Write property test: Insufficient stock rejection (Property 4)
-- [ ] 8.9 Manual validation: Multi-tab oversell test (stock=1, two tabs, first succeeds, second fails)
-- [ ] 8.10 Manual validation: Verify database shows `BranchInventory.Quantity = 0` (not -1)
-
-**Definition of Done**:
-- `CreateAsync` reads stock from BranchInventory
-- `CompleteAsync` re-validates stock inside transaction before decrement
-- `BatchDecrementStockAsync` logs warning if stock would go negative
-- Two simultaneous sales of last-in-stock item → only one succeeds
-- `BranchInventory.Quantity` never goes below 0 when `AllowNegativeStock=false`
-
----
-
-## Phase 6: Integration Testing & Validation (2-3 hours)
-
-### Task 9: Write Property-Based Tests
-
-Implement property-based tests for all correctness properties defined in design document.
-
-- [ ] 9.1 Set up property testing framework (FsCheck or CsCheck for backend)
-- [ ] 9.2 Write Property 1: Short JWT keys are rejected
-- [ ] 9.3 Write Property 2: Migrations run in all environments
-- [ ] 9.4 Write Property 3: Stock validation inside transaction (covered in Task 8.7)
-- [ ] 9.5 Write Property 4: Insufficient stock rejection (covered in Task 8.8)
-- [ ] 9.6 Write Property 5: Stock reads from BranchInventory
-- [ ] 9.7 Write Property 6: Pre-decrement validation
-- [ ] 9.8 Write Property 7: Non-negative stock invariant (covered in Task 8.6)
-- [ ] 9.9 Write Property 8: Tax equals sum of item taxes (covered in Task 5.6)
-- [ ] 9.10 Write Property 9: Product-specific tax rates respected (covered in Task 5.7)
-- [ ] 9.11 Write Property 10: Proportional discount distribution
-- [ ] 9.12 Write Property 11: Backward compatibility for uniform rates
-- [ ] 9.13 Write Property 12: Tax on net amount after discount
-- [ ] 9.14 Write Property 13: Branch-based group assignment
-- [ ] 9.15 Write Property 14: Receipt routing to branch group
-- [ ] 9.16 Write Property 15: Test print routing
-- [ ] 9.17 Write Property 16: Print status to caller only
-- [ ] 9.18 Write Property 17: DeviceTestController requires authentication
-- [ ] 9.19 Write Property 18: DeviceTestController requires Admin role
-- [ ] 9.20 Write Property 19: Mutations never auto-retry
-- [ ] 9.21 Write Property 20: Queries retry on failure
-- [ ] 9.22 Write Property 21: Mutation error messages warn against retry
-- [ ] 9.23 Write Property 22: Cash transactions within database transaction
-- [ ] 9.24 Write Property 23: Cash register chain integrity (covered in Task 7.6)
-
-**Definition of Done**:
-- All 23 properties have corresponding property-based tests
-- Each test references its property number in comments
-- All property tests pass with minimum 100 iterations
-- Tests are integrated into CI pipeline
-
----
-
-### Task 10: Final Validation & Documentation
-
-Run comprehensive validation checklist and update documentation.
-
-- [ ] 10.1 Run Test 1: Multi-Tab Oversell Test (from Final Validation Checklist)
-- [ ] 10.2 Run Test 2: Double-Click Payment Test
-- [ ] 10.3 Run Test 3: Server Restart Mid-Operation Test
-- [ ] 10.4 Run Test 4: Printer Disconnect Test
-- [ ] 10.5 Run Test 5: Concurrent Cash Transaction Test
-- [ ] 10.6 Run Test 6: JWT Secret Test
-- [ ] 10.7 Run Test 7: Production Build Security Test
-- [ ] 10.8 Run Test 8: DeviceTestController Auth Test
-- [ ] 10.9 Run Test 9: Tax Calculation Accuracy Test
-- [ ] 10.10 Run all unit tests: `dotnet test` (all pass)
-- [ ] 10.11 Run all property tests (all pass)
-- [ ] 10.12 Run frontend tests: `npm test` (all pass)
-- [ ] 10.13 Run E2E tests: `npm run test:e2e` (all pass)
-- [ ] 10.14 Update API documentation if any endpoints changed
-- [ ] 10.15 Create deployment guide with environment variable setup instructions
-- [ ] 10.16 Document breaking changes (JWT key requirement, demo credentials removal)
-
-**Definition of Done**:
-- All 9 validation tests pass
-- All automated tests pass (unit, property, frontend, E2E)
-- Documentation updated
-- Deployment guide created
-- Breaking changes documented
-
----
-
-## Summary
-
-**Total Tasks**: 10 main tasks with 116 sub-tasks
-**Estimated Effort**: 8-12 hours
-**Critical Path**: Task 1 → Task 8 (JWT must work before stock fixes can be tested)
-**Risk Areas**: Task 8 (most complex, involves transaction boundaries)
-
-**Success Criteria**:
-- All 8 P0 fixes implemented and tested
-- All 23 correctness properties validated
-- Zero regressions in existing functionality
-- Production deployment ready with secure configuration
+- Tasks marked with `*` are optional test tasks and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests validate universal correctness properties
+- Unit tests validate specific examples and edge cases
+- Integration tests validate end-to-end flows
+- Failure simulations validate production readiness

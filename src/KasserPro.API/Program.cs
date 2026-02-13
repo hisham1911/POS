@@ -160,7 +160,7 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader());
-    
+
     options.AddPolicy("SignalRPolicy", policy =>
         policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
               .AllowAnyMethod()
@@ -176,10 +176,10 @@ if (!app.Environment.IsEnvironment("Testing"))
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
+
         // Apply migrations
         await context.Database.MigrateAsync();
-        
+
         // P0-2: Only seed demo data in Development environment
         if (app.Environment.IsDevelopment())
         {

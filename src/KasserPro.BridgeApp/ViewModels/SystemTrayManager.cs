@@ -59,13 +59,13 @@ public class SystemTrayManager : IDisposable
     private ContextMenuStrip CreateContextMenu()
     {
         var menu = new ContextMenuStrip();
-        
+
         menu.Items.Add("Settings", null, OnSettingsClick);
         menu.Items.Add("Test Print", null, OnTestPrintClick);
         menu.Items.Add("View Logs", null, OnViewLogsClick);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Exit", null, OnExitClick);
-        
+
         return menu;
     }
 
@@ -149,7 +149,7 @@ public class SystemTrayManager : IDisposable
         try
         {
             Log.Information("Test print requested");
-            
+
             var testCommand = new Models.PrintCommandDto
             {
                 CommandId = Guid.NewGuid().ToString(),
@@ -186,7 +186,7 @@ public class SystemTrayManager : IDisposable
             };
 
             var success = await _printerService.PrintReceiptAsync(testCommand);
-            
+
             if (success)
             {
                 _trayIcon?.ShowBalloonTip(2000, "Test Print", "Test receipt printed successfully", ToolTipIcon.Info);

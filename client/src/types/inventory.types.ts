@@ -47,7 +47,7 @@ export interface InventoryTransfer {
   cancellationReason?: string;
 }
 
-export type TransferStatus = 'Pending' | 'Approved' | 'Received' | 'Cancelled';
+export type TransferStatus = "Pending" | "Approved" | "Received" | "Cancelled";
 
 export interface CreateTransferRequest {
   fromBranchId: number;
@@ -84,7 +84,11 @@ export interface SetBranchPriceRequest {
 }
 
 // Stock Adjustment Types (single product)
-export type StockAdjustmentType = 'Receiving' | 'Damage' | 'Adjustment' | 'Transfer';
+export type StockAdjustmentType =
+  | "Receiving"
+  | "Damage"
+  | "Adjustment"
+  | "Transfer";
 
 export interface AdjustProductStockRequest {
   quantity: number;

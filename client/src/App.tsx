@@ -2,7 +2,12 @@ import type React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAppSelector } from "./store/hooks";
-import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin, selectIsSystemOwner } from "./store/slices/authSlice";
+import {
+  selectCurrentUser,
+  selectIsAuthenticated,
+  selectIsAdmin,
+  selectIsSystemOwner,
+} from "./store/slices/authSlice";
 import { useGetCurrentShiftQuery } from "./api/shiftsApi";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -55,7 +60,12 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const user = useAppSelector(selectCurrentUser);
   if (isAuthenticated) {
-    return <Navigate to={user?.role === "SystemOwner" ? "/owner/tenants" : "/pos"} replace />;
+    return (
+      <Navigate
+        to={user?.role === "SystemOwner" ? "/owner/tenants" : "/pos"}
+        replace
+      />
+    );
   }
   return <>{children}</>;
 };
@@ -330,9 +340,10 @@ const AppRoutes = () => (
 
 const App = () => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const { data: currentShiftData, isLoading: isLoadingShift } = useGetCurrentShiftQuery(undefined, {
-    skip: !isAuthenticated,
-  });
+  const { data: currentShiftData, isLoading: isLoadingShift } =
+    useGetCurrentShiftQuery(undefined, {
+      skip: !isAuthenticated,
+    });
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveredShift, setRecoveredShift] = useState<any>(null);
   const [savedAt, setSavedAt] = useState<string>("");
@@ -340,7 +351,7 @@ const App = () => {
   // Check for saved shift on app start
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     // Wait for API to load before checking
     if (isLoadingShift) return;
 
@@ -352,7 +363,12 @@ const App = () => {
     // 2. API has loaded (not loading)
     // 3. There IS an active shift from API (shift exists and matches saved shift)
     // 4. Saved shift is not closed
-    if (saved && currentShift && !currentShift.isClosed && saved.shift.id === currentShift.id) {
+    if (
+      saved &&
+      currentShift &&
+      !currentShift.isClosed &&
+      saved.shift.id === currentShift.id
+    ) {
       setRecoveredShift(saved.shift);
       setSavedAt(saved.savedAt);
       setShowRecovery(true);
@@ -397,7 +413,7 @@ const App = () => {
     <ErrorBoundary>
       <BrowserRouter>
         <AppRoutes />
-        
+
         {/* Shift Recovery Modal */}
         {recoveredShift && (
           <ShiftRecoveryModal

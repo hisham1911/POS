@@ -1,47 +1,74 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { DollarSign, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle, RefreshCw } from 'lucide-react';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  RefreshCw,
+} from "lucide-react";
 import {
   useGetCurrentBalanceQuery,
   useGetTransactionsQuery,
   useDepositMutation,
   useWithdrawMutation,
-} from '../../api/cashRegisterApi';
-import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
-import { Loading } from '../../components/common/Loading';
-import { Modal } from '../../components/common/Modal';
-import type { CashRegisterTransactionType } from '../../types/cashRegister.types';
+} from "../../api/cashRegisterApi";
+import { Button } from "../../components/common/Button";
+import { Card } from "../../components/common/Card";
+import { Loading } from "../../components/common/Loading";
+import { Modal } from "../../components/common/Modal";
+import type { CashRegisterTransactionType } from "../../types/cashRegister.types";
+import { useAppSelector } from "../../store/hooks";
+import { selectCurrentBranch } from "../../store/slices/branchSlice";
 
 export function CashRegisterDashboard() {
+  const currentBranch = useAppSelector(selectCurrentBranch);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [depositDescription, setDepositDescription] = useState('');
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawDescription, setWithdrawDescription] = useState('');
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositDescription, setDepositDescription] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawDescription, setWithdrawDescription] = useState("");
 
-  const { data: balanceResponse, isLoading: isLoadingBalance, refetch: refetchBalance } = useGetCurrentBalanceQuery();
-  const { data: transactionsResponse, isLoading: isLoadingTransactions } = useGetTransactionsQuery({
-    pageNumber: 1,
-    pageSize: 10,
+  const {
+    data: balanceResponse,
+    isLoading: isLoadingBalance,
+    refetch: refetchBalance,
+  } = useGetCurrentBalanceQuery(currentBranch?.id, {
+    skip: !currentBranch?.id,
   });
+  const {
+    data: transactionsResponse,
+    isLoading: isLoadingTransactions,
+  } = useGetTransactionsQuery(
+    {
+      branchId: currentBranch?.id,
+      pageNumber: 1,
+      pageSize: 10,
+    },
+    { skip: !currentBranch?.id }
+  );
   const [deposit, { isLoading: isDepositing }] = useDepositMutation();
   const [withdraw, { isLoading: isWithdrawing }] = useWithdrawMutation();
 
   const balance = balanceResponse?.data;
   const transactions = transactionsResponse?.data?.items || [];
-  const incomingTotal = transactions.filter((t) => t.amount >= 0).reduce((sum, t) => sum + t.amount, 0);
-  const outgoingTotal = transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const incomingTotal = transactions
+    .filter((t) => t.amount >= 0)
+    .reduce((sum, t) => sum + t.amount, 0);
+  const outgoingTotal = transactions
+    .filter((t) => t.amount < 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount <= 0) {
-      alert('يرجى إدخال مبلغ صحيح');
+      alert("يرجى إدخال مبلغ صحيح");
       return;
     }
     if (!depositDescription.trim()) {
-      alert('يرجى إدخال وصف للإيداع');
+      alert("يرجى إدخال وصف للإيداع");
       return;
     }
 
@@ -51,23 +78,23 @@ export function CashRegisterDashboard() {
         description: depositDescription,
       }).unwrap();
       setShowDepositModal(false);
-      setDepositAmount('');
-      setDepositDescription('');
+      setDepositAmount("");
+      setDepositDescription("");
       refetchBalance();
     } catch (error) {
-      console.error('Failed to deposit:', error);
-      alert('حدث خطأ أثناء الإيداع');
+      console.error("Failed to deposit:", error);
+      alert("حدث خطأ أثناء الإيداع");
     }
   };
 
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
-      alert('يرجى إدخال مبلغ صحيح');
+      alert("يرجى إدخال مبلغ صحيح");
       return;
     }
     if (!withdrawDescription.trim()) {
-      alert('يرجى إدخال وصف للسحب');
+      alert("يرجى إدخال وصف للسحب");
       return;
     }
 
@@ -77,44 +104,52 @@ export function CashRegisterDashboard() {
         description: withdrawDescription,
       }).unwrap();
       setShowWithdrawModal(false);
-      setWithdrawAmount('');
-      setWithdrawDescription('');
+      setWithdrawAmount("");
+      setWithdrawDescription("");
       refetchBalance();
     } catch (error) {
-      console.error('Failed to withdraw:', error);
-      alert('حدث خطأ أثناء السحب');
+      console.error("Failed to withdraw:", error);
+      alert("حدث خطأ أثناء السحب");
     }
   };
 
   const getTransactionTypeLabel = (type: CashRegisterTransactionType) => {
     const labels: Record<CashRegisterTransactionType, string> = {
-      Opening: 'فتح وردية',
-      Deposit: 'إيداع',
-      Withdrawal: 'سحب',
-      Sale: 'مبيعات',
-      Refund: 'مرتجع',
-      Expense: 'مصروف',
-      SupplierPayment: 'دفع لمورد',
-      Adjustment: 'تسوية',
-      Transfer: 'تحويل',
+      Opening: "فتح وردية",
+      Deposit: "إيداع",
+      Withdrawal: "سحب",
+      Sale: "مبيعات",
+      Refund: "مرتجع",
+      Expense: "مصروف",
+      SupplierPayment: "دفع لمورد",
+      Adjustment: "تسوية",
+      Transfer: "تحويل",
     };
     return labels[type];
   };
 
   const getTransactionTypeColor = (type: CashRegisterTransactionType) => {
     const colors: Record<CashRegisterTransactionType, string> = {
-      Opening: 'text-blue-600',
-      Deposit: 'text-green-600',
-      Withdrawal: 'text-red-600',
-      Sale: 'text-green-600',
-      Refund: 'text-red-600',
-      Expense: 'text-red-600',
-      SupplierPayment: 'text-red-600',
-      Adjustment: 'text-yellow-600',
-      Transfer: 'text-purple-600',
+      Opening: "text-blue-600",
+      Deposit: "text-green-600",
+      Withdrawal: "text-red-600",
+      Sale: "text-green-600",
+      Refund: "text-red-600",
+      Expense: "text-red-600",
+      SupplierPayment: "text-red-600",
+      Adjustment: "text-yellow-600",
+      Transfer: "text-purple-600",
     };
     return colors[type];
   };
+
+  if (!currentBranch?.id) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
 
   if (isLoadingBalance) return <Loading />;
 
@@ -127,7 +162,9 @@ export function CashRegisterDashboard() {
               <DollarSign className="w-8 h-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-gray-900">الخزينة</h1>
             </div>
-            <p className="text-gray-600">إدارة الخزينة والمعاملات النقدية اليومية</p>
+            <p className="text-gray-600">
+              إدارة الخزينة والمعاملات النقدية اليومية
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="success" onClick={() => setShowDepositModal(true)}>
@@ -150,7 +187,9 @@ export function CashRegisterDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-gray-600">الرصيد الحالي</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{balance?.currentBalance.toFixed(2)} جنيه</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {balance?.currentBalance.toFixed(2)} جنيه
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-blue-600" />
@@ -161,7 +200,9 @@ export function CashRegisterDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-gray-600">إجمالي دخول (آخر 10)</p>
-                <p className="text-2xl font-bold text-green-700 mt-1">{incomingTotal.toFixed(2)} جنيه</p>
+                <p className="text-2xl font-bold text-green-700 mt-1">
+                  {incomingTotal.toFixed(2)} جنيه
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-green-600" />
@@ -172,7 +213,9 @@ export function CashRegisterDashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-gray-600">إجمالي خروج (آخر 10)</p>
-                <p className="text-2xl font-bold text-red-700 mt-1">{outgoingTotal.toFixed(2)} جنيه</p>
+                <p className="text-2xl font-bold text-red-700 mt-1">
+                  {outgoingTotal.toFixed(2)} جنيه
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                 <TrendingDown className="w-5 h-5 text-red-600" />
@@ -184,14 +227,20 @@ export function CashRegisterDashboard() {
         <Card padding="none">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">آخر المعاملات</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                آخر المعاملات
+              </h3>
               {balance?.lastTransactionDate && (
                 <p className="text-sm text-gray-500 mt-1">
-                  آخر معاملة: {new Date(balance.lastTransactionDate).toLocaleString('ar-EG')}
+                  آخر معاملة:{" "}
+                  {new Date(balance.lastTransactionDate).toLocaleString("ar-EG")}
                 </p>
               )}
             </div>
-            <Link to="/cash-register/transactions" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+            <Link
+              to="/cash-register/transactions"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
               عرض الكل
             </Link>
           </div>
@@ -211,7 +260,9 @@ export function CashRegisterDashboard() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                          transaction.amount >= 0 ? 'bg-green-100' : 'bg-red-100'
+                          transaction.amount >= 0
+                            ? "bg-green-100"
+                            : "bg-red-100"
                         }`}
                       >
                         {transaction.amount >= 0 ? (
@@ -221,22 +272,32 @@ export function CashRegisterDashboard() {
                         )}
                       </div>
                       <div>
-                        <p className={`font-medium ${getTransactionTypeColor(transaction.type)}`}>
+                        <p
+                          className={`font-medium ${getTransactionTypeColor(
+                            transaction.type
+                          )}`}
+                        >
                           {getTransactionTypeLabel(transaction.type)}
                         </p>
-                        <p className="text-sm text-gray-600">{transaction.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {transaction.description}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(transaction.createdAt).toLocaleString('ar-EG')}
+                          {new Date(transaction.createdAt).toLocaleString(
+                            "ar-EG"
+                          )}
                         </p>
                       </div>
                     </div>
                     <div className="text-left">
                       <p
                         className={`text-lg font-bold ${
-                          transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                          transaction.amount >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
                         }`}
                       >
-                        {transaction.amount >= 0 ? '+' : ''}
+                        {transaction.amount >= 0 ? "+" : ""}
                         {transaction.amount.toFixed(2)} جنيه
                       </p>
                       <p className="text-xs text-gray-500">
@@ -250,7 +311,11 @@ export function CashRegisterDashboard() {
           </div>
         </Card>
 
-        <Modal isOpen={showDepositModal} onClose={() => setShowDepositModal(false)} title="إيداع نقدي">
+        <Modal
+          isOpen={showDepositModal}
+          onClose={() => setShowDepositModal(false)}
+          title="إيداع نقدي"
+        >
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -281,17 +346,28 @@ export function CashRegisterDashboard() {
               />
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowDepositModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDepositModal(false)}
+              >
                 إلغاء
               </Button>
-              <Button variant="success" onClick={handleDeposit} disabled={isDepositing}>
-                {isDepositing ? 'جاري الإيداع...' : 'تأكيد الإيداع'}
+              <Button
+                variant="success"
+                onClick={handleDeposit}
+                disabled={isDepositing}
+              >
+                {isDepositing ? "جاري الإيداع..." : "تأكيد الإيداع"}
               </Button>
             </div>
           </div>
         </Modal>
 
-        <Modal isOpen={showWithdrawModal} onClose={() => setShowWithdrawModal(false)} title="سحب نقدي">
+        <Modal
+          isOpen={showWithdrawModal}
+          onClose={() => setShowWithdrawModal(false)}
+          title="سحب نقدي"
+        >
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -323,15 +399,23 @@ export function CashRegisterDashboard() {
             </div>
             <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
               <p className="text-sm text-yellow-800">
-                <strong>الرصيد الحالي:</strong> {balance?.currentBalance.toFixed(2)} جنيه
+                <strong>الرصيد الحالي:</strong>{" "}
+                {balance?.currentBalance.toFixed(2)} جنيه
               </p>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowWithdrawModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowWithdrawModal(false)}
+              >
                 إلغاء
               </Button>
-              <Button variant="danger" onClick={handleWithdraw} disabled={isWithdrawing}>
-                {isWithdrawing ? 'جاري السحب...' : 'تأكيد السحب'}
+              <Button
+                variant="danger"
+                onClick={handleWithdraw}
+                disabled={isWithdrawing}
+              >
+                {isWithdrawing ? "جاري السحب..." : "تأكيد السحب"}
               </Button>
             </div>
           </div>

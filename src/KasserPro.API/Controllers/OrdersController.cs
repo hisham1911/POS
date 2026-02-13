@@ -91,7 +91,7 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> Complete(int id, [FromBody] CompleteOrderRequest request)
     {
         var result = await _orderService.CompleteAsync(id, request);
-        
+
         if (result.Success && result.Data != null)
         {
             // Send print command to all connected devices
@@ -99,7 +99,7 @@ public class OrdersController : ControllerBase
             {
                 var order = result.Data;
                 var userName = User.FindFirst("name")?.Value ?? "Cashier";
-                
+
                 // Get tenant settings for receipt configuration
                 var tenantResult = await _tenantService.GetCurrentTenantAsync();
                 var tenant = tenantResult.Data;
@@ -161,7 +161,7 @@ public class OrdersController : ControllerBase
                 // Don't fail the request if printing fails
             }
         }
-        
+
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
@@ -186,7 +186,7 @@ public class OrdersController : ControllerBase
             return BadRequest(new { Success = false, Message = "سبب الاسترجاع مطلوب للاسترجاع الكامل" });
 
         var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
-        
+
         // Convert to service model
         var refundItems = request?.Items?.Select(i => new Application.DTOs.RefundItemDto
         {
@@ -194,7 +194,7 @@ public class OrdersController : ControllerBase
             Quantity = i.Quantity,
             Reason = i.Reason
         }).ToList();
-        
+
         var result = await _orderService.RefundAsync(id, userId, request?.Reason, refundItems);
         return result.Success ? Ok(result) : BadRequest(result);
     }
@@ -257,7 +257,7 @@ public class RefundRequest
     /// General reason for the refund (required for full refund, optional for partial)
     /// </summary>
     public string? Reason { get; set; }
-    
+
     /// <summary>
     /// Items to refund. If null or empty, performs a full refund.
     /// </summary>
@@ -273,12 +273,12 @@ public class RefundItemRequest
     /// The order item ID to refund
     /// </summary>
     public int ItemId { get; set; }
-    
+
     /// <summary>
     /// Quantity to refund (must be <= original quantity)
     /// </summary>
     public int Quantity { get; set; }
-    
+
     /// <summary>
     /// Reason for refunding this specific item (optional)
     /// </summary>

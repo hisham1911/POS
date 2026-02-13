@@ -1,9 +1,11 @@
 # Stage 7 — Dependencies & Tests (Code-Proven)
 
 ## Scope
+
 - Files reviewed: `client/package.json`, `src/*.csproj`, `src/KasserPro.Tests/*`, `client/e2e/*`.
 
 ## Key Facts (from code)
+
 - Major dependencies (examples):
   - Frontend: React, TypeScript, @reduxjs/toolkit (RTK Query), react-router-dom, tailwind, playwright for E2E.
     - Evidence: `client/package.json`.
@@ -17,13 +19,15 @@
   - Frontend E2E tests: Playwright spec `client/e2e/complete-flow.spec.ts`.
 
 ## Status
+
 - **Dependencies & Tests: PARTIAL** (tests exist and key libraries are identified; full coverage metrics or CI execution not present in the repo).
 
 ## Primary files referenced
+
 - `client/package.json`
 - `src/KasserPro.Tests/Unit/OrderFinancialTests.cs`
 - `client/e2e/complete-flow.spec.ts`
 
 ---
 
-_Last updated: Audit run on workspace (code)."
+\_Last updated: Audit run on workspace (code)."

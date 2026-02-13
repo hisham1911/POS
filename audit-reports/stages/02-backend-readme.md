@@ -1,9 +1,11 @@
 # Stage 2 — Backend Audit (Code-Proven)
 
 ## Scope
+
 - Files reviewed: `src/KasserPro.API/*`, `src/KasserPro.Application/*`, `src/KasserPro.Infrastructure/*`, `src/KasserPro.Domain/*`.
 
 ## Key Facts (from code)
+
 - Architecture: Layered / Clean Architecture (Presentation: `KasserPro.API`, Application: `KasserPro.Application`, Infrastructure: `KasserPro.Infrastructure`, Domain: `KasserPro.Domain`).
   - Evidence: `KasserPro.sln` and `src/README.md`.
 - Authentication: JWT configured in `Program.cs` using values from `appsettings.json`; tokens created in `AuthService.GenerateToken`.
@@ -14,9 +16,11 @@
 - SignalR DeviceHub mapped at `/hubs/devices` and used for device prints (`src/KasserPro.API/Hubs/DeviceHub.cs`).
 
 ## Status
+
 - **Backend audit: COMPLETE** (controllers, services, DB interaction, auth, error handling and idempotency verified from code).
 
 ## Primary files referenced
+
 - `src/KasserPro.API/Program.cs`
 - `src/KasserPro.API/Hubs/DeviceHub.cs`
 - `src/KasserPro.API/Middleware/ExceptionMiddleware.cs`
@@ -26,4 +30,4 @@
 
 ---
 
-_Last updated: Audit run on workspace (code)."
+\_Last updated: Audit run on workspace (code)."

@@ -241,8 +241,8 @@ public class InventoryService : IInventoryService
     public async Task<decimal> GetEffectivePriceAsync(int productId, int branchId)
     {
         var branchPrice = await _context.BranchProductPrices
-            .Where(bp => bp.ProductId == productId && 
-                        bp.BranchId == branchId && 
+            .Where(bp => bp.ProductId == productId &&
+                        bp.BranchId == branchId &&
                         bp.IsActive &&
                         bp.EffectiveFrom <= DateTime.UtcNow &&
                         (bp.EffectiveTo == null || bp.EffectiveTo > DateTime.UtcNow))
@@ -268,7 +268,7 @@ public class InventoryService : IInventoryService
     public async Task BatchDecrementStockAsync(List<(int ProductId, int Quantity)> items, int orderId)
     {
         var branchId = _currentUserService.BranchId;
-        
+
         foreach (var (productId, quantity) in items)
         {
             var inventory = await _context.BranchInventories
@@ -277,7 +277,7 @@ public class InventoryService : IInventoryService
             if (inventory != null)
             {
                 var balanceBefore = inventory.Quantity;
-                
+
                 // P0-3: Log warning if stock would go negative.
                 // The real enforcement is in CompleteAsync's re-validation.
                 // This is a defense-in-depth safety net.
@@ -288,7 +288,7 @@ public class InventoryService : IInventoryService
                         "Available={Available}, Requested={Requested}",
                         productId, branchId, balanceBefore, quantity);
                 }
-                
+
                 inventory.Quantity -= quantity;
                 inventory.LastUpdatedAt = DateTime.UtcNow;
 
@@ -323,7 +323,7 @@ public class InventoryService : IInventoryService
     public async Task<int> IncrementStockAsync(int productId, int quantity, int referenceId)
     {
         var branchId = _currentUserService.BranchId;
-        
+
         var inventory = await _context.BranchInventories
             .FirstOrDefaultAsync(i => i.ProductId == productId && i.BranchId == branchId);
 
@@ -364,7 +364,7 @@ public class InventoryService : IInventoryService
         _context.StockMovements.Add(movement);
 
         await _context.SaveChangesAsync();
-        
+
         return inventory.Quantity;
     }
 
@@ -396,7 +396,7 @@ public class InventoryService : IInventoryService
             // Check source inventory
             var sourceInventory = await _context.BranchInventories
                 .FirstOrDefaultAsync(i => i.BranchId == request.FromBranchId && i.ProductId == request.ProductId);
-            
+
             if (sourceInventory == null || sourceInventory.Quantity < request.Quantity)
                 return ApiResponse<InventoryTransferDto>.Fail(ErrorCodes.INVENTORY_INSUFFICIENT_STOCK, "الكمية المتوفرة في المخزون غير كافية");
 
@@ -467,7 +467,7 @@ public class InventoryService : IInventoryService
             // Check source inventory again
             var sourceInventory = await _context.BranchInventories
                 .FirstOrDefaultAsync(i => i.BranchId == transfer.FromBranchId && i.ProductId == transfer.ProductId);
-            
+
             if (sourceInventory == null || sourceInventory.Quantity < transfer.Quantity)
                 return ApiResponse<InventoryTransferDto>.Fail(ErrorCodes.INVENTORY_INSUFFICIENT_STOCK, "الكمية المتوفرة في المخزون غير كافية");
 
@@ -758,7 +758,7 @@ public class InventoryService : IInventoryService
         try
         {
             var prices = await _context.BranchProductPrices
-                .Where(bp => bp.BranchId == branchId && 
+                .Where(bp => bp.BranchId == branchId &&
                             bp.TenantId == _currentUserService.TenantId &&
                             bp.IsActive)
                 .Include(bp => bp.Product)
@@ -811,8 +811,8 @@ public class InventoryService : IInventoryService
 
             // Deactivate existing active prices
             var existingPrices = await _context.BranchProductPrices
-                .Where(bp => bp.BranchId == request.BranchId && 
-                            bp.ProductId == request.ProductId && 
+                .Where(bp => bp.BranchId == request.BranchId &&
+                            bp.ProductId == request.ProductId &&
                             bp.IsActive)
                 .ToListAsync();
 
@@ -871,8 +871,8 @@ public class InventoryService : IInventoryService
         try
         {
             var prices = await _context.BranchProductPrices
-                .Where(bp => bp.BranchId == branchId && 
-                            bp.ProductId == productId && 
+                .Where(bp => bp.BranchId == branchId &&
+                            bp.ProductId == productId &&
                             bp.TenantId == _currentUserService.TenantId &&
                             bp.IsActive)
                 .ToListAsync();

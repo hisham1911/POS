@@ -60,6 +60,7 @@ Evidence: `src/KasserPro.API/Program.cs` (hub mapping), `src/KasserPro.API/Hubs/
 ## 3. Repository Structure Breakdown
 
 Top-level folders (selected):
+
 - `client/` — frontend (React, TypeScript, Vite). Key files: `client/src/main.tsx`, `client/src/App.tsx`, `client/src/api/`, `client/src/store/`.
 - `src/` — backend solution: `KasserPro.API/`, `KasserPro.Application/`, `KasserPro.Infrastructure/`, `KasserPro.Domain/`, `KasserPro.BridgeApp/`, `KasserPro.Tests/`.
 - Docs: multiple `.md` files and `.kiro/` specs under repo root.
@@ -73,23 +74,28 @@ Evidence: repository file listing and `KasserPro.sln`.
 ## 4. Frontend Deep Analysis (Code-Proven)
 
 ### Entry points & bootstrapping
+
 - `client/src/main.tsx` mounts React app and wraps `Provider(store)` and `PersistGate` (`client/src/main.tsx`).
 - `client/src/App.tsx` defines routing using `react-router-dom` and `ProtectedRoute`/`AdminRoute` wrappers, mapping all application pages to components.
 
 ### State management
+
 - Redux Toolkit used for global state; `baseApi` (RTK Query) used for API calls.
 - `redux-persist` persists `auth` and `branch` slices; store in `client/src/store/index.ts`.
 
 ### Routing & Auth
+
 - Routes defined in `client/src/App.tsx`. Admin-only UI uses `AdminRoute` which checks `selectIsAdmin` (role string equals `"Admin"`) in `client/src/store/slices/authSlice.ts`.
 - Auth flow: `client/src/api/authApi.ts` uses `login` mutation to `POST /api/auth/login` and backend returns JWT (see `src/KasserPro.Application/Services/Implementations/AuthService.cs`). Tokens are stored in Redux `auth` slice.
 - No refresh-token mechanism found in codebase.
 
 ### API patterns & error handling
+
 - `client/src/api/baseApi.ts` configures `fetchBaseQuery` with `prepareHeaders` to add `Authorization` and `X-Branch-Id` headers, and sets up global retry and user-facing toast handling for error statuses and specific backend `errorCode` values.
 - Idempotency header usage: `ordersApi.createOrder` and `completeOrder` set `Idempotency-Key` header.
 
 ### Pages & components mapping (sample)
+
 - POS: `client/src/pages/pos/POSPage.tsx` uses `useProducts`, `useCategories`, `useCart`, `PaymentModal`. Payment flow is in `client/src/components/pos/PaymentModal.tsx` and `client/src/hooks/useOrders.ts`.
 - Purchase invoices, expenses, reports, shifts pages, etc., are wired to corresponding API endpoints under `client/src/api/`.
 
@@ -100,29 +106,35 @@ Evidence: referenced files above.
 ## 5. Backend Deep Analysis (Code-Proven)
 
 ### Architecture & DI
+
 - Clean architecture style: controllers in `KasserPro.API` call services from `KasserPro.Application`, which use repositories implemented in `KasserPro.Infrastructure` and entities in `KasserPro.Domain`.
 - DI registrations in `src/KasserPro.API/Program.cs` register `IUnitOfWork`, services (e.g., `IOrderService`, `ICashRegisterService`), and SignalR.
 
 ### Controllers & endpoints
+
 - Controllers follow `[ApiController]` + route `api/[controller]`. Representative controllers:
   - `OrdersController` (create, complete, cancel, refund): `src/KasserPro.API/Controllers/OrdersController.cs`.
   - `DeviceTestController`: test print (`POST /api/DeviceTest/test-print`) — `src/KasserPro.API/Controllers/DeviceTestController.cs`.
   - `PurchaseInvoicesController`, `ExpensesController`, `CashRegisterController`, `ShiftsController`, etc.
 
 ### Request lifecycle & transactions
+
 - Services use `_unitOfWork.BeginTransactionAsync()` and commit/rollback for atomic operations; `OrderService.CompleteAsync` and `PurchaseInvoiceService` are explicit examples.
 - Repositories implement common CRUD and `Query()` (LINQ) via `GenericRepository<T>` and UnitOfWork aggregates repositories.
 
 ### Auth & authorization
+
 - JWT Bearer config in `Program.cs` uses `Jwt:Key`, `Issuer`, `Audience` from `appsettings.json`.
 - Token contains claims: `userId`, `tenantId`, `branchId`, email, name, role — created in `AuthService.GenerateToken`.
 - Controllers use `[Authorize]` and role attributes (e.g., `[Authorize(Roles = "Admin,Manager")]` on refund endpoints).
 
 ### Validation & error handling
+
 - DTOs use Data Annotations for model validation. Services enforce business rules explicitly and return `ApiResponse<T>` objects.
 - `ExceptionMiddleware` maps exceptions to HTTP status codes and structured responses.
 
 ### Logging
+
 - `ILogger<T>` used across controllers and services; Serilog package present (backend) and configured in Bridge App.
 
 Evidence: files referenced above.
@@ -143,16 +155,20 @@ Evidence: domain entity files and `AppDbContext.cs`.
 ## 7. Desktop Application Deep Analysis (Code-Proven)
 
 ### Entry point & DI
+
 - `src/KasserPro.BridgeApp/App.xaml.cs` sets up DI (`SettingsManager`, `PrinterService`, `SignalRClientService`, `SystemTrayManager`), configures Serilog, initializes printer and SignalR client, and wires `OnPrintCommandReceived -> PrinterService.PrintReceiptAsync`.
 
 ### SignalR & communication
+
 - Client connects with headers `X-API-Key` and `X-Device-Id` using `HubConnectionBuilder.WithUrl(..., options => { options.Headers.Add(...) })` and automatic reconnect configured. See `src/KasserPro.BridgeApp/Services/SignalRClientService.cs`.
 
 ### Printing mechanism
+
 - `PrinterService.PrintReceiptAsync` chooses PrintDocument for PDF-like printers and ESC/POS + raw Windows print API for thermal printers.
 - Receipt layout, barcode generation, Arabic rendering and ESC/POS byte generation implemented in `PrinterService.cs`.
 
 ### Settings & logs
+
 - Settings persisted to `%AppData%\KasserPro\settings.json` (see `SettingsManager`) and logs to `%AppData%\KasserPro\logs\bridge-app.log` (Serilog config in `App.xaml.cs`).
 
 Evidence: files referenced above.
@@ -244,6 +260,7 @@ Evidence: `src/KasserPro.Tests/`, `client/e2e/`.
 ## 16. Documentation Files Inventory (Code-Proven)
 
 Selected docs (many exist):
+
 - `DESKTOP_BRIDGE_COMPLETE_GUIDE.md`, `DESKTOP_BRIDGE_README.md`, `DESKTOP_BRIDGE_FINAL_SETUP.md` (desktop bridge docs).
 - `RECEIPT_FORMATTING_COMPLETE.md`, `RECEIPT_FORMATTING_IMPROVEMENTS_AR.md` (receipt/printing docs).
 - `.kiro/` folder contains specs and audit docs: see `.kiro/specs/desktop-bridge-app`, `.kiro/specs/expenses-and-cash-register`, and `backend-frontend-integration-audit`.
@@ -256,6 +273,7 @@ Evidence: file list in repository root and `.kiro` folder.
 ---
 
 ## 17. Key Observations (Facts Only) ✅
+
 - The POS sale flow (create order, complete payment, inventory decrement, cash register recording) is implemented end-to-end and uses DB transactions (evidence: `OrderService.CompleteAsync`).
 - Printing is implemented via SignalR (`OrdersController`) and a Bridge App that handles receipt formatting and both PrintDocument and ESC/POS flows (`PrinterService`).
 - Idempotency support implemented at middleware level (memory cache based on `Idempotency-Key`) for critical endpoints (`IdempotencyMiddleware`).
@@ -267,6 +285,7 @@ Evidence: file paths referenced above.
 ---
 
 ## 18. Known Unknowns (UNVERIFIABLE from code alone)
+
 - How production secrets (JWT key, DB connection) are provisioned in the production environment is not present in repo (no secrets vault or pipeline manifests) — **UNVERIFIABLE**.
 - The operational production deployment topology (hosts, containers, orchestration) is not present in the repository — **UNVERIFIABLE**.
 - Real-world printer compatibility and hardware environment specifics are not in code (only detection heuristics and printing logic exist) — **UNVERIFIABLE**.

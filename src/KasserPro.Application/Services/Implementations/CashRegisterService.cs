@@ -45,7 +45,7 @@ public class CashRegisterService : ICashRegisterService
                 .FirstOrDefaultAsync(b => b.Id == branchId && b.TenantId == _currentUserService.TenantId);
 
             if (branch == null)
-                return ApiResponse<CashRegisterBalanceDto>.Fail(ErrorCodes.BRANCH_NOT_FOUND);
+                return ApiResponse<CashRegisterBalanceDto>.Fail(ErrorCodes.BRANCH_NOT_FOUND, ErrorMessages.Get(ErrorCodes.BRANCH_NOT_FOUND));
 
             // Get active shift
             var activeShift = await _unitOfWork.Shifts.Query()
@@ -300,7 +300,7 @@ public class CashRegisterService : ICashRegisterService
                 .FirstOrDefaultAsync(b => b.Id == request.TargetBranchId && b.TenantId == _currentUserService.TenantId);
 
             if (sourceBranch == null || targetBranch == null)
-                return ApiResponse<bool>.Fail(ErrorCodes.BRANCH_NOT_FOUND);
+                return ApiResponse<bool>.Fail(ErrorCodes.BRANCH_NOT_FOUND, ErrorMessages.Get(ErrorCodes.BRANCH_NOT_FOUND));
 
             // Check source balance
             var sourceBalance = await GetCurrentBalanceForBranchAsync(request.SourceBranchId);

@@ -1,9 +1,11 @@
 # Stage 1 — Frontend Audit (Code-Proven)
 
 ## Scope
+
 - Files reviewed: `client/src/main.tsx`, `client/src/App.tsx`, `client/src/store/*`, `client/src/api/*`, `client/src/pages/pos/*`, `client/src/components/*`.
 
 ## Key Facts (from code)
+
 - State management: Redux Toolkit + RTK Query; store is persisted for `auth` and `branch` via `redux-persist`.
   - Evidence: `client/src/store/index.ts` (RTK store & persist config).
 - Routing: `react-router-dom` with `ProtectedRoute`, `AdminRoute` and route table in `client/src/App.tsx`.
@@ -13,9 +15,11 @@
 - Noteworthy: No SignalR client code was found in `client/` (no web subscription to hub broadcasts in repo).
 
 ## Status
+
 - **Frontend audit: COMPLETE** (key routes, state, API patterns, and payment flow mapped).
 
 ## Primary files referenced
+
 - `client/src/main.tsx`
 - `client/src/App.tsx`
 - `client/src/store/index.ts`

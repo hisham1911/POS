@@ -83,26 +83,51 @@ export const ProductsPage = () => {
 
   if (isLoading) return <Loading />;
 
-  return (
-    <div className="h-full overflow-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">إدارة المنتجات</h1>
-          <p className="text-gray-500 mt-1">إضافة وتعديل وحذف المنتجات</p>
-        </div>
-        <Button
-          variant="primary"
-          onClick={() => setShowForm(true)}
-          rightIcon={<Plus className="w-5 h-5" />}
-        >
-          إضافة منتج
-        </Button>
-      </div>
+  const totalProducts = filteredProducts.length;
+  const activeProducts = filteredProducts.filter(p => p.isActive).length;
+  const lowStockProducts = filteredProducts.filter(p => 
+    p.trackInventory && (p.stockQuantity ?? 0) < (p.lowStockThreshold ?? 5)
+  ).length;
 
-      {/* Filters */}
-      <Card className="shrink-0">
-        <div className="space-y-4">
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <Package className="w-5 h-5 text-blue-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">إدارة المنتجات</h1>
+            </div>
+            <p className="text-gray-600">إضافة وتعديل وحذف المنتجات</p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => setShowForm(true)}
+            rightIcon={<Plus className="w-5 h-5" />}
+          >
+            إضافة منتج
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-blue-100">
+            <p className="text-sm text-gray-600">إجمالي المنتجات</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{totalProducts}</p>
+          </Card>
+          <Card className="border-green-100">
+            <p className="text-sm text-gray-600">المنتجات النشطة</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">{activeProducts}</p>
+          </Card>
+          <Card className="border-amber-100">
+            <p className="text-sm text-gray-600">مخزون منخفض</p>
+            <p className="text-2xl font-bold text-amber-700 mt-1">{lowStockProducts}</p>
+          </Card>
+        </div>
+
+        <Card className="shrink-0">
+          <div className="space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -153,12 +178,11 @@ export const ProductsPage = () => {
               />
               <span className="text-sm text-gray-700">مخزون منخفض فقط</span>
             </label>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      {/* Products Table */}
-      <Card padding="none">
+        <Card padding="none">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -271,12 +295,12 @@ export const ProductsPage = () => {
             </div>
           )}
         </div>
-      </Card>
+        </Card>
 
-      {/* Product Form Modal */}
-      {showForm && (
-        <ProductFormModal product={editingProduct} onClose={handleCloseForm} />
-      )}
+        {showForm && (
+          <ProductFormModal product={editingProduct} onClose={handleCloseForm} />
+        )}
+      </div>
     </div>
   );
 };

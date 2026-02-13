@@ -35,7 +35,7 @@ public class ProductService : IProductService
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
-            query = query.Where(p => 
+            query = query.Where(p =>
                 p.Name.ToLower().Contains(searchLower) ||
                 (p.NameEn != null && p.NameEn.ToLower().Contains(searchLower)) ||
                 (p.Sku != null && p.Sku.ToLower().Contains(searchLower)) ||
@@ -124,7 +124,7 @@ public class ProductService : IProductService
         // Validation: Price must be non-negative
         if (request.Price < 0)
             return ApiResponse<ProductDto>.Fail("سعر المنتج لا يمكن أن يكون سالباً");
-        
+
         // Validation: Category must exist
         var category = await _unitOfWork.Categories.GetByIdAsync(request.CategoryId);
         if (category == null)

@@ -150,7 +150,7 @@ public static class DbInitializer
         if (!await context.Products.AnyAsync())
         {
             var categories = await context.Categories.ToListAsync();
-            
+
             var products = new List<Product>
             {
                 // مشروبات ساخنة (Hot Drinks)
@@ -162,7 +162,7 @@ public static class DbInitializer
                 new() { TenantId = defaultTenant.Id, Name = "شاي أسود", NameEn = "Black Tea", Sku = "HOT006", Barcode = "6291041500268", Price = 18, Cost = 4, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🍵", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
                 new() { TenantId = defaultTenant.Id, Name = "شوكولاتة ساخنة", NameEn = "Hot Chocolate", Sku = "HOT007", Barcode = "6291041500275", Price = 28, Cost = 9, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🍫", TrackInventory = true, StockQuantity = 120, LowStockThreshold = 20 },
                 new() { TenantId = defaultTenant.Id, Name = "قهوة تركية", NameEn = "Turkish Coffee", Sku = "HOT008", Barcode = "6291041500282", Price = 22, Cost = 7, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "☕", TrackInventory = true, StockQuantity = 180, LowStockThreshold = 30 },
-                
+
                 // مشروبات باردة (Cold Drinks)
                 new() { TenantId = defaultTenant.Id, Name = "عصير برتقال طازج", NameEn = "Fresh Orange Juice", Sku = "COLD001", Barcode = "6291041500299", Price = 25, Cost = 10, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🍊", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 15 },
                 new() { TenantId = defaultTenant.Id, Name = "عصير مانجو", NameEn = "Mango Juice", Sku = "COLD002", Barcode = "6291041500306", Price = 28, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🥭", TrackInventory = true, StockQuantity = 90, LowStockThreshold = 15 },
@@ -172,7 +172,7 @@ public static class DbInitializer
                 new() { TenantId = defaultTenant.Id, Name = "مشروب غازي", NameEn = "Soft Drink", Sku = "COLD006", Barcode = "6291041500344", Price = 15, Cost = 5, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🥤", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
                 new() { TenantId = defaultTenant.Id, Name = "آيس كوفي", NameEn = "Iced Coffee", Sku = "COLD007", Barcode = "6291041500351", Price = 35, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🧊", TrackInventory = true, StockQuantity = 120, LowStockThreshold = 20 },
                 new() { TenantId = defaultTenant.Id, Name = "ليموناضة", NameEn = "Lemonade", Sku = "COLD008", Barcode = "6291041500368", Price = 22, Cost = 8, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🍋", TrackInventory = true, StockQuantity = 150, LowStockThreshold = 25 },
-                
+
                 // مأكولات (Food)
                 new() { TenantId = defaultTenant.Id, Name = "برجر لحم", NameEn = "Beef Burger", Sku = "FOOD001", Barcode = "6291041500375", Price = 55, Cost = 25, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍔", TrackInventory = true, StockQuantity = 80, LowStockThreshold = 15 },
                 new() { TenantId = defaultTenant.Id, Name = "برجر دجاج", NameEn = "Chicken Burger", Sku = "FOOD002", Barcode = "6291041500382", Price = 50, Cost = 22, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍔", TrackInventory = true, StockQuantity = 85, LowStockThreshold = 15 },
@@ -181,7 +181,7 @@ public static class DbInitializer
                 new() { TenantId = defaultTenant.Id, Name = "باستا ألفريدو", NameEn = "Alfredo Pasta", Sku = "FOOD005", Barcode = "6291041500413", Price = 60, Cost = 26, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍝", TrackInventory = true, StockQuantity = 55, LowStockThreshold = 10 },
                 new() { TenantId = defaultTenant.Id, Name = "سلطة سيزر", NameEn = "Caesar Salad", Sku = "FOOD006", Barcode = "6291041500420", Price = 40, Cost = 18, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🥗", TrackInventory = true, StockQuantity = 65, LowStockThreshold = 12 },
                 new() { TenantId = defaultTenant.Id, Name = "فطيرة جبن", NameEn = "Cheese Pie", Sku = "FOOD007", Barcode = "6291041500437", Price = 35, Cost = 15, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🥧", TrackInventory = true, StockQuantity = 75, LowStockThreshold = 15 },
-                
+
                 // حلويات (Desserts)
                 new() { TenantId = defaultTenant.Id, Name = "كيك شوكولاتة", NameEn = "Chocolate Cake", Sku = "DES001", Barcode = "6291041500444", Price = 40, Cost = 16, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍰", TrackInventory = true, StockQuantity = 50, LowStockThreshold = 8 },
                 new() { TenantId = defaultTenant.Id, Name = "تشيز كيك", NameEn = "Cheesecake", Sku = "DES002", Barcode = "6291041500451", Price = 45, Cost = 18, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍰", TrackInventory = true, StockQuantity = 45, LowStockThreshold = 8 },
@@ -190,7 +190,7 @@ public static class DbInitializer
                 new() { TenantId = defaultTenant.Id, Name = "آيس كريم", NameEn = "Ice Cream", Sku = "DES005", Barcode = "6291041500482", Price = 28, Cost = 10, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍨", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 18 },
                 new() { TenantId = defaultTenant.Id, Name = "دونات", NameEn = "Donuts", Sku = "DES006", Barcode = "6291041500499", Price = 22, Cost = 7, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍩", TrackInventory = true, StockQuantity = 90, LowStockThreshold = 15 },
                 new() { TenantId = defaultTenant.Id, Name = "كرواسون", NameEn = "Croissant", Sku = "DES007", Barcode = "6291041500506", Price = 20, Cost = 6, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🥐", TrackInventory = true, StockQuantity = 110, LowStockThreshold = 20 },
-                
+
                 // وجبات خفيفة (Snacks)
                 new() { TenantId = defaultTenant.Id, Name = "شيبس", NameEn = "Chips", Sku = "SNK001", Barcode = "6291041500513", Price = 15, Cost = 5, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🥔", TrackInventory = true, StockQuantity = 200, LowStockThreshold = 35 },
                 new() { TenantId = defaultTenant.Id, Name = "فشار", NameEn = "Popcorn", Sku = "SNK002", Barcode = "6291041500520", Price = 18, Cost = 6, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍿", TrackInventory = true, StockQuantity = 150, LowStockThreshold = 25 },
@@ -200,13 +200,13 @@ public static class DbInitializer
                 new() { TenantId = defaultTenant.Id, Name = "علكة", NameEn = "Chewing Gum", Sku = "SNK006", Barcode = "6291041500568", Price = 8, Cost = 2, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍬", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
                 new() { TenantId = defaultTenant.Id, Name = "حلوى", NameEn = "Candy", Sku = "SNK007", Barcode = "6291041500575", Price = 10, Cost = 3, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍭", TrackInventory = true, StockQuantity = 220, LowStockThreshold = 38 }
             };
-            
+
             // Set LastStockUpdate for all products
             foreach (var p in products)
             {
                 p.LastStockUpdate = DateTime.UtcNow;
             }
-            
+
             context.Products.AddRange(products);
             await context.SaveChangesAsync();
         }
@@ -293,7 +293,7 @@ public static class DbInitializer
                 for (int i = 0; i < orderCount; i++)
                 {
                     var orderTime = shift.OpenedAt.AddMinutes(random.Next(30, 700));
-                    var status = day == 0 && i >= orderCount - 2 
+                    var status = day == 0 && i >= orderCount - 2
                         ? (i == orderCount - 1 ? OrderStatus.Draft : OrderStatus.Pending)
                         : OrderStatus.Completed;
 
@@ -360,7 +360,7 @@ public static class DbInitializer
 
     private static Order CreateSampleOrder(
         int tenantId, int branchId, int userId, int shiftId,
-        List<Product> products, Random random, DateTime orderTime, int orderNum, 
+        List<Product> products, Random random, DateTime orderTime, int orderNum,
         OrderStatus status, Customer? customer = null)
     {
         var order = new Order
@@ -401,10 +401,10 @@ public static class DbInitializer
             {
                 product = products[random.Next(products.Count)];
             } while (usedProducts.Contains(product.Id) && usedProducts.Count < products.Count);
-            
+
             usedProducts.Add(product.Id);
             var qty = random.Next(1, 4);
-            
+
             var grossPrice = product.Price * qty;
             var netPrice = grossPrice / 1.14m;
             var itemTax = grossPrice - netPrice;
@@ -442,10 +442,10 @@ public static class DbInitializer
             order.AmountDue = 0;
             order.CompletedAt = orderTime.AddMinutes(random.Next(5, 20));
             order.CompletedByUserId = userId;
-            
-            var paymentMethod = random.Next(10) < 7 ? PaymentMethod.Cash : 
+
+            var paymentMethod = random.Next(10) < 7 ? PaymentMethod.Cash :
                 (random.Next(2) == 0 ? PaymentMethod.Card : PaymentMethod.Fawry);
-            
+
             order.Payments.Add(new Payment
             {
                 TenantId = tenantId,

@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Eye, Edit, Trash2, Receipt, Building2, Wallet } from 'lucide-react';
-import { useGetExpensesQuery, useDeleteExpenseMutation } from '../../api/expensesApi';
-import { useGetExpenseCategoriesQuery } from '../../api/expenseCategoriesApi';
-import type { ExpenseStatus, ExpenseFilters } from '../../types/expense.types';
-import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
-import { Loading } from '../../components/common/Loading';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Plus, Eye, Edit, Trash2, Receipt, Wallet } from "lucide-react";
+import {
+  useGetExpensesQuery,
+  useDeleteExpenseMutation,
+} from "@/api/expensesApi";
+import { useGetExpenseCategoriesQuery } from "@/api/expenseCategoriesApi";
+import type { ExpenseStatus, ExpenseFilters } from "@/types/expense.types";
+import { Button } from "@/components/common/Button";
+import { Card } from "@/components/common/Card";
+import { Loading } from "@/components/common/Loading";
+import { formatCurrency } from "@/utils/formatters";
+import { toast } from "sonner";
 
 export function ExpensesPage() {
   const [filters, setFilters] = useState<ExpenseFilters>({
@@ -14,17 +19,21 @@ export function ExpensesPage() {
     pageSize: 20,
   });
 
-  const { data: expensesResponse, isLoading, error } = useGetExpensesQuery(filters);
+  const {
+    data: expensesResponse,
+    isLoading,
+    error,
+  } = useGetExpensesQuery(filters);
   const { data: categoriesResponse } = useGetExpenseCategoriesQuery();
-  const [deleteExpense] = useDeleteExpenseMutation();
+  const [deleteExpense, { isLoading: isDeleting }] = useDeleteExpenseMutation();
 
   const expenses = expensesResponse?.data?.items || [];
   const totalCount = expensesResponse?.data?.totalCount || 0;
   const totalPages = expensesResponse?.data?.totalPages || 1;
   const categories = categoriesResponse?.data || [];
   const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const paidCount = expenses.filter((expense) => expense.status === 'Paid').length;
-  const draftCount = expenses.filter((expense) => expense.status === 'Draft').length;
+  const paidCount = expenses.filter((expense) => expense.status === "Paid").length;
+  const draftCount = expenses.filter((expense) => expense.status === "Draft").length;
 
   const handleFilterChange = (key: keyof ExpenseFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value, pageNumber: 1 }));
@@ -35,37 +44,44 @@ export function ExpensesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا المصروف؟')) {
+    if (window.confirm("هل أنت متأكد من حذف هذا المصروف؟")) {
       try {
         await deleteExpense(id).unwrap();
+        toast.success("تم حذف المصروف بنجاح");
       } catch (error) {
-        console.error('Failed to delete expense:', error);
+        console.error("Failed to delete expense:", error);
+        toast.error("فشل في حذف المصروف");
       }
     }
   };
 
   const getStatusBadge = (status: ExpenseStatus) => {
-    const badges = {
-      Draft: 'bg-gray-100 text-gray-800',
-      Approved: 'bg-blue-100 text-blue-800',
-      Paid: 'bg-green-100 text-green-800',
-      Rejected: 'bg-red-100 text-red-800',
+    const badges: Record<ExpenseStatus, string> = {
+      Draft: "bg-gray-100 text-gray-700",
+      Approved: "bg-blue-100 text-blue-800",
+      Paid: "bg-green-100 text-green-800",
+      Rejected: "bg-red-100 text-red-800",
     };
-    const labels = {
-      Draft: 'مسودة',
-      Approved: 'معتمد',
-      Paid: 'مدفوع',
-      Rejected: 'مرفوض',
+    const labels: Record<ExpenseStatus, string> = {
+      Draft: "مسودة",
+      Approved: "معتمد",
+      Paid: "مدفوع",
+      Rejected: "مرفوض",
     };
     return (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${badges[status]}`}>
+      <span
+        className={`px-2 py-1 text-xs font-semibold rounded-full ${badges[status]}`}
+      >
         {labels[status]}
       </span>
     );
   };
 
   if (isLoading) return <Loading />;
-  if (error) return <div className="text-red-600">حدث خطأ في تحميل المصروفات</div>;
+  if (error)
+    return (
+      <div className="text-red-600">حدث خطأ في تحميل المصروفات</div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,7 +89,7 @@ export function ExpensesPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Building2 className="w-8 h-8 text-blue-600" />
+              <Wallet className="w-8 h-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-gray-900">المصروفات</h1>
             </div>
             <p className="text-gray-600">إدارة مصروفات الشركة ومراجعة حالتها</p>
@@ -90,8 +106,12 @@ export function ExpensesPage() {
           <Card className="border-blue-100">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-600">إجمالي المصروفات (الصفحة الحالية)</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{totalAmount.toFixed(2)} جنيه</p>
+                <p className="text-sm text-gray-600">
+                  إجمالي المصروفات (الصفحة الحالية)
+                </p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalAmount)}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <Wallet className="w-5 h-5 text-blue-600" />
@@ -102,7 +122,9 @@ export function ExpensesPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-gray-600">مصروفات مدفوعة</p>
-                <p className="text-2xl font-bold text-green-700 mt-1">{paidCount}</p>
+                <p className="text-2xl font-bold text-green-700 mt-1">
+                  {paidCount}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                 <Receipt className="w-5 h-5 text-green-600" />
@@ -113,7 +135,9 @@ export function ExpensesPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-gray-600">مصروفات مسودة</p>
-                <p className="text-2xl font-bold text-amber-700 mt-1">{draftCount}</p>
+                <p className="text-2xl font-bold text-amber-700 mt-1">
+                  {draftCount}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                 <Receipt className="w-5 h-5 text-amber-600" />
@@ -125,10 +149,17 @@ export function ExpensesPage() {
         <Card>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">التصنيف</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                التصنيف
+              </label>
               <select
-                value={filters.categoryId || ''}
-                onChange={(e) => handleFilterChange('categoryId', e.target.value ? Number(e.target.value) : undefined)}
+                value={filters.categoryId || ""}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "categoryId",
+                    e.target.value ? Number(e.target.value) : undefined
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الكل</option>
@@ -141,10 +172,14 @@ export function ExpensesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الحالة
+              </label>
               <select
-                value={filters.status || ''}
-                onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
+                value={filters.status || ""}
+                onChange={(e) =>
+                  handleFilterChange("status", e.target.value || undefined)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">الكل</option>
@@ -156,21 +191,29 @@ export function ExpensesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">من تاريخ</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                من تاريخ
+              </label>
               <input
                 type="date"
-                value={filters.fromDate || ''}
-                onChange={(e) => handleFilterChange('fromDate', e.target.value || undefined)}
+                value={filters.fromDate || ""}
+                onChange={(e) =>
+                  handleFilterChange("fromDate", e.target.value || undefined)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">إلى تاريخ</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                إلى تاريخ
+              </label>
               <input
                 type="date"
-                value={filters.toDate || ''}
-                onChange={(e) => handleFilterChange('toDate', e.target.value || undefined)}
+                value={filters.toDate || ""}
+                onChange={(e) =>
+                  handleFilterChange("toDate", e.target.value || undefined)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -208,7 +251,10 @@ export function ExpensesPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-10 text-center text-sm text-gray-500"
+                    >
                       لا توجد مصروفات مطابقة للفلاتر الحالية.
                     </td>
                   </tr>
@@ -225,27 +271,38 @@ export function ExpensesPage() {
                         {expense.description}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                        {expense.amount.toFixed(2)} جنيه
+                        {formatCurrency(expense.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(expense.expenseDate).toLocaleDateString('ar-EG')}
+                        {new Date(expense.expenseDate).toLocaleDateString(
+                          "ar-EG"
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(expense.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex gap-3">
-                          <Link to={`/expenses/${expense.id}`} className="text-blue-600 hover:text-blue-900" title="عرض">
+                          <Link
+                            to={`/expenses/${expense.id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="عرض"
+                          >
                             <Eye className="w-4 h-4" />
                           </Link>
-                          {expense.status === 'Draft' && (
+                          {expense.status === "Draft" && (
                             <>
-                              <Link to={`/expenses/${expense.id}/edit`} className="text-green-600 hover:text-green-900" title="تعديل">
+                              <Link
+                                to={`/expenses/${expense.id}/edit`}
+                                className="text-green-600 hover:text-green-900"
+                                title="تعديل"
+                              >
                                 <Edit className="w-4 h-4" />
                               </Link>
                               <button
                                 onClick={() => handleDelete(expense.id)}
-                                className="text-red-600 hover:text-red-900"
+                                disabled={isDeleting}
+                                className="text-red-600 hover:text-red-900 disabled:opacity-50"
                                 title="حذف"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -269,7 +326,7 @@ export function ExpensesPage() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => handlePageChange(filters.pageNumber! - 1)}
+                  onClick={() => handlePageChange((filters.pageNumber || 1) - 1)}
                   disabled={filters.pageNumber === 1}
                 >
                   السابق
@@ -279,7 +336,7 @@ export function ExpensesPage() {
                 </span>
                 <Button
                   variant="outline"
-                  onClick={() => handlePageChange(filters.pageNumber! + 1)}
+                  onClick={() => handlePageChange((filters.pageNumber || 1) + 1)}
                   disabled={filters.pageNumber === totalPages}
                 >
                   التالي

@@ -46,22 +46,22 @@ public class TenantService : ITenantService
         tenant.LogoUrl = dto.LogoUrl;
         tenant.Currency = dto.Currency;
         tenant.Timezone = dto.Timezone;
-        
+
         // Update tax settings if provided
         if (dto.TaxRate.HasValue)
         {
             // Validate tax rate (0-100)
             if (dto.TaxRate.Value < 0 || dto.TaxRate.Value > 100)
                 return ApiResponse<TenantDto>.Fail("نسبة الضريبة يجب أن تكون بين 0 و 100");
-            
+
             tenant.TaxRate = dto.TaxRate.Value;
         }
-        
+
         if (dto.IsTaxEnabled.HasValue)
         {
             tenant.IsTaxEnabled = dto.IsTaxEnabled.Value;
         }
-        
+
         // Update inventory settings if provided
         if (dto.AllowNegativeStock.HasValue)
         {
@@ -135,7 +135,7 @@ public class TenantService : ITenantService
         // Validate email uniqueness
         var existingUser = await _unitOfWork.Users.Query()
             .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedAdminEmail);
-        
+
         if (existingUser != null)
         {
             _logger.LogWarning(
@@ -148,7 +148,7 @@ public class TenantService : ITenantService
         var slug = GenerateSlug(normalizedTenantName);
         var existingTenant = await _unitOfWork.Tenants.Query()
             .FirstOrDefaultAsync(t => t.Slug == slug);
-        
+
         if (existingTenant != null)
         {
             // Add random suffix if slug exists
@@ -157,7 +157,7 @@ public class TenantService : ITenantService
 
         // Begin transaction
         var transaction = await _unitOfWork.BeginTransactionAsync();
-        
+
         try
         {
             // 1. Create Tenant
@@ -172,7 +172,7 @@ public class TenantService : ITenantService
                 Currency = "EGP",
                 Timezone = "Africa/Cairo"
             };
-            
+
             await _unitOfWork.Tenants.AddAsync(tenant);
             await _unitOfWork.SaveChangesAsync();
 
@@ -188,7 +188,7 @@ public class TenantService : ITenantService
                 CurrencyCode = "EGP",
                 IsWarehouse = false
             };
-            
+
             await _unitOfWork.Branches.AddAsync(branch);
             await _unitOfWork.SaveChangesAsync();
 
@@ -203,7 +203,7 @@ public class TenantService : ITenantService
                 Role = UserRole.Admin,
                 IsActive = true
             };
-            
+
             await _unitOfWork.Users.AddAsync(adminUser);
             await _unitOfWork.SaveChangesAsync();
 
@@ -336,7 +336,7 @@ public class TenantService : ITenantService
             .Replace(" ", "-")
             .Replace("_", "-");
     }
-    
+
     private static TenantDto MapToDto(Domain.Entities.Tenant tenant) => new()
     {
         Id = tenant.Id,

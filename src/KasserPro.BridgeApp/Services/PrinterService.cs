@@ -168,7 +168,7 @@ public class PrinterService : IPrinterService
                         var imageBytes = client.GetByteArrayAsync(rs.LogoUrl).Result;
                         using var ms = new System.IO.MemoryStream(imageBytes);
                         using var logo = System.Drawing.Image.FromStream(ms);
-                        
+
                         // Scale logo to fit receipt width (max 80px height)
                         float maxLogoHeight = 60;
                         float logoRatio = (float)logo.Width / logo.Height;
@@ -179,7 +179,7 @@ public class PrinterService : IPrinterService
                             logoWidth = W * 0.6f;
                             logoHeight = logoWidth / logoRatio;
                         }
-                        
+
                         float logoX = margin + (W - logoWidth) / 2;
                         graphics.DrawImage(logo, logoX, y, logoWidth, logoHeight);
                         y += logoHeight + 6;

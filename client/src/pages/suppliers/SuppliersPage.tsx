@@ -60,37 +60,52 @@ export default function SuppliersPage() {
     return <Loading />;
   }
 
+  const activeSuppliers = filteredSuppliers.filter(s => s.isActive).length;
+
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">الموردين</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            إدارة الموردين والشركات الموردة
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-indigo-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">الموردين</h1>
+            </div>
+            <p className="text-gray-600">إدارة الموردين والشركات الموردة</p>
+          </div>
+          <Button onClick={handleAddSupplier} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            إضافة مورد
+          </Button>
         </div>
-        <Button onClick={handleAddSupplier} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          إضافة مورد
-        </Button>
-      </div>
 
-      {/* Search */}
-      <Card className="mb-6">
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="ابحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-indigo-100">
+            <p className="text-sm text-gray-600">إجمالي الموردين</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{filteredSuppliers.length}</p>
+          </Card>
+          <Card className="border-green-100">
+            <p className="text-sm text-gray-600">الموردين النشطين</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">{activeSuppliers}</p>
+          </Card>
         </div>
-      </Card>
 
-      {/* Suppliers Table */}
-      <Card>
+        <Card className="mb-6">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="ابحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+        </Card>
+
+        <Card padding="none">
         {filteredSuppliers.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">
@@ -183,11 +198,10 @@ export default function SuppliersPage() {
             </table>
           </div>
         )}
-      </Card>
+        </Card>
 
-      {/* Supplier Form Modal */}
-      {isModalOpen && (
-        <SupplierFormModal
+        {isModalOpen && (
+          <SupplierFormModal
           supplier={selectedSupplier}
           onClose={() => {
             setIsModalOpen(false);
@@ -195,6 +209,7 @@ export default function SuppliersPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }
