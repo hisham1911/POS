@@ -12,6 +12,19 @@ export interface Tenant {
   isTaxEnabled: boolean;
   // Inventory Settings
   allowNegativeStock: boolean;
+  // Receipt Settings
+  receiptPaperSize: string;
+  receiptCustomWidth?: number;
+  receiptHeaderFontSize: number;
+  receiptBodyFontSize: number;
+  receiptTotalFontSize: number;
+  receiptShowBranchName: boolean;
+  receiptShowCashier: boolean;
+  receiptShowThankYou: boolean;
+  receiptFooterMessage?: string;
+  receiptPhoneNumber?: string;
+  receiptShowCustomerName: boolean;
+  receiptShowLogo: boolean;
   createdAt: string;
 }
 
@@ -26,4 +39,17 @@ export interface UpdateTenantRequest {
   isTaxEnabled?: boolean;
   // Inventory Settings
   allowNegativeStock?: boolean;
+  // Receipt Settings
+  receiptPaperSize?: string;
+  receiptCustomWidth?: number;
+  receiptHeaderFontSize?: number;
+  receiptBodyFontSize?: number;
+  receiptTotalFontSize?: number;
+  receiptShowBranchName?: boolean;
+  receiptShowCashier?: boolean;
+  receiptShowThankYou?: boolean;
+  receiptFooterMessage?: string;
+  receiptPhoneNumber?: string;
+  receiptShowCustomerName?: boolean;
+  receiptShowLogo?: boolean;
 }

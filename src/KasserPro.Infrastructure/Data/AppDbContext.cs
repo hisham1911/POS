@@ -42,6 +42,11 @@ public class AppDbContext : DbContext
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<ExpenseAttachment> ExpenseAttachments => Set<ExpenseAttachment>();
     public DbSet<CashRegisterTransaction> CashRegisterTransactions => Set<CashRegisterTransaction>();
+    
+    // Branch Inventory entities
+    public DbSet<BranchInventory> BranchInventories => Set<BranchInventory>();
+    public DbSet<BranchProductPrice> BranchProductPrices => Set<BranchProductPrice>();
+    public DbSet<InventoryTransfer> InventoryTransfers => Set<InventoryTransfer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -77,6 +82,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Expense>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ExpenseAttachment>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<CashRegisterTransaction>().HasQueryFilter(e => !e.IsDeleted);
+        
+        // Branch Inventory: Soft delete filters
+        modelBuilder.Entity<BranchInventory>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<BranchProductPrice>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<InventoryTransfer>().HasQueryFilter(e => !e.IsDeleted);
 
         // Tenant relationships
         modelBuilder.Entity<Branch>()
@@ -89,6 +99,7 @@ public class AppDbContext : DbContext
             .HasOne(u => u.Tenant)
             .WithMany(t => t.Users)
             .HasForeignKey(u => u.TenantId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<User>()

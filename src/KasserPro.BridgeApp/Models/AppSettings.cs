@@ -85,4 +85,49 @@ public class ReceiptSettings
     /// Line spacing multiplier (default: 1.0)
     /// </summary>
     public float LineSpacing { get; set; } = 1.0f;
+
+    /// <summary>
+    /// Store phone number displayed in receipt footer
+    /// </summary>
+    public string StorePhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Paper width preset: "80mm", "58mm", or "custom"
+    /// </summary>
+    public string PaperWidthPreset { get; set; } = "80mm";
+
+    /// <summary>
+    /// Custom paper width in pixels (only used if PaperWidthPreset = "custom")
+    /// </summary>
+    public int CustomPaperWidth { get; set; } = 315;
+
+    /// <summary>
+    /// Left & right margin in pixels
+    /// </summary>
+    public int PageMargin { get; set; } = 10;
+
+    /// <summary>
+    /// Row height in pixels
+    /// </summary>
+    public int RowHeight { get; set; } = 20;
+
+    /// <summary>
+    /// Item row height in pixels
+    /// </summary>
+    public int ItemRowHeight { get; set; } = 24;
+
+    /// <summary>
+    /// Gap between row groups in pixels
+    /// </summary>
+    public int RowGap { get; set; } = 3;
+
+    /// <summary>
+    /// Print scaling factor (1.0 = 100%)
+    /// </summary>
+    public float PrintingScale { get; set; } = 1.0f;
+
+    /// <summary>
+    /// Enable column auto-scaling to fit width
+    /// </summary>
+    public bool AutoScaleColumns { get; set; } = true;
 }

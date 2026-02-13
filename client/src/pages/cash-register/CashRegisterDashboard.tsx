@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { DollarSign, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle, RefreshCw } from 'lucide-react';
 import {
   useGetCurrentBalanceQuery,
@@ -30,6 +31,8 @@ export function CashRegisterDashboard() {
 
   const balance = balanceResponse?.data;
   const transactions = transactionsResponse?.data?.items || [];
+  const incomingTotal = transactions.filter((t) => t.amount >= 0).reduce((sum, t) => sum + t.amount, 0);
+  const outgoingTotal = transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount);
@@ -116,193 +119,224 @@ export function CashRegisterDashboard() {
   if (isLoadingBalance) return <Loading />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">الخزينة</h1>
-          <p className="text-gray-600 mt-1">إدارة الخزينة والمعاملات النقدية</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="success" onClick={() => setShowDepositModal(true)}>
-            <ArrowUpCircle className="w-4 h-4 ml-2" />
-            إيداع
-          </Button>
-          <Button variant="danger" onClick={() => setShowWithdrawModal(true)}>
-            <ArrowDownCircle className="w-4 h-4 ml-2" />
-            سحب
-          </Button>
-          <Button variant="outline" onClick={() => refetchBalance()}>
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Balance Card */}
-      <Card>
-        <div className="text-center py-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <DollarSign className="w-8 h-8 text-blue-600" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">الخزينة</h1>
+            </div>
+            <p className="text-gray-600">إدارة الخزينة والمعاملات النقدية اليومية</p>
           </div>
-          <h2 className="text-sm font-medium text-gray-600 mb-2">الرصيد الحالي</h2>
-          <p className="text-4xl font-bold text-gray-900">{balance?.currentBalance.toFixed(2)} جنيه</p>
-          {balance?.lastTransactionDate && (
-            <p className="text-sm text-gray-500 mt-2">
-              آخر معاملة: {new Date(balance.lastTransactionDate).toLocaleString('ar-EG')}
-            </p>
-          )}
-        </div>
-      </Card>
-
-      {/* Recent Transactions */}
-      <Card>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">آخر المعاملات</h3>
-          <a href="/cash-register/transactions" className="text-blue-600 hover:text-blue-800 text-sm">
-            عرض الكل
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="success" onClick={() => setShowDepositModal(true)}>
+              <ArrowUpCircle className="w-4 h-4" />
+              إيداع
+            </Button>
+            <Button variant="danger" onClick={() => setShowWithdrawModal(true)}>
+              <ArrowDownCircle className="w-4 h-4" />
+              سحب
+            </Button>
+            <Button variant="outline" onClick={() => refetchBalance()}>
+              <RefreshCw className="w-4 h-4" />
+              تحديث
+            </Button>
+          </div>
         </div>
 
-        {isLoadingTransactions ? (
-          <Loading />
-        ) : transactions.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">لا توجد معاملات</p>
-        ) : (
-          <div className="space-y-3">
-            {transactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                      transaction.amount >= 0 ? 'bg-green-100' : 'bg-red-100'
-                    }`}
-                  >
-                    {transaction.amount >= 0 ? (
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <TrendingDown className="w-5 h-5 text-red-600" />
-                    )}
-                  </div>
-                  <div>
-                    <p className={`font-medium ${getTransactionTypeColor(transaction.type)}`}>
-                      {getTransactionTypeLabel(transaction.type)}
-                    </p>
-                    <p className="text-sm text-gray-600">{transaction.description}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(transaction.createdAt).toLocaleString('ar-EG')}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-left">
-                  <p
-                    className={`text-lg font-bold ${
-                      transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}
-                  >
-                    {transaction.amount >= 0 ? '+' : ''}
-                    {transaction.amount.toFixed(2)} جنيه
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    الرصيد: {transaction.balanceAfter.toFixed(2)} جنيه
-                  </p>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-blue-100">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-600">الرصيد الحالي</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{balance?.currentBalance.toFixed(2)} جنيه</p>
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Deposit Modal */}
-      <Modal isOpen={showDepositModal} onClose={() => setShowDepositModal(false)} title="إيداع نقدي">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              المبلغ (جنيه) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={depositAmount}
-              onChange={(e) => setDepositAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0.00"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              الوصف <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={depositDescription}
-              onChange={(e) => setDepositDescription(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="وصف الإيداع..."
-              required
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowDepositModal(false)}>
-              إلغاء
-            </Button>
-            <Button variant="success" onClick={handleDeposit} disabled={isDepositing}>
-              {isDepositing ? 'جاري الإيداع...' : 'تأكيد الإيداع'}
-            </Button>
-          </div>
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+          </Card>
+          <Card className="border-green-100">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-600">إجمالي دخول (آخر 10)</p>
+                <p className="text-2xl font-bold text-green-700 mt-1">{incomingTotal.toFixed(2)} جنيه</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+              </div>
+            </div>
+          </Card>
+          <Card className="border-red-100">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-600">إجمالي خروج (آخر 10)</p>
+                <p className="text-2xl font-bold text-red-700 mt-1">{outgoingTotal.toFixed(2)} جنيه</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <TrendingDown className="w-5 h-5 text-red-600" />
+              </div>
+            </div>
+          </Card>
         </div>
-      </Modal>
 
-      {/* Withdraw Modal */}
-      <Modal isOpen={showWithdrawModal} onClose={() => setShowWithdrawModal(false)} title="سحب نقدي">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              المبلغ (جنيه) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0.00"
-              required
-            />
+        <Card padding="none">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">آخر المعاملات</h3>
+              {balance?.lastTransactionDate && (
+                <p className="text-sm text-gray-500 mt-1">
+                  آخر معاملة: {new Date(balance.lastTransactionDate).toLocaleString('ar-EG')}
+                </p>
+              )}
+            </div>
+            <Link to="/cash-register/transactions" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+              عرض الكل
+            </Link>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              الوصف <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={withdrawDescription}
-              onChange={(e) => setWithdrawDescription(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="وصف السحب..."
-              required
-            />
+
+          <div className="p-4">
+            {isLoadingTransactions ? (
+              <Loading />
+            ) : transactions.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">لا توجد معاملات</p>
+            ) : (
+              <div className="space-y-3">
+                {transactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                          transaction.amount >= 0 ? 'bg-green-100' : 'bg-red-100'
+                        }`}
+                      >
+                        {transaction.amount >= 0 ? (
+                          <TrendingUp className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <TrendingDown className="w-5 h-5 text-red-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className={`font-medium ${getTransactionTypeColor(transaction.type)}`}>
+                          {getTransactionTypeLabel(transaction.type)}
+                        </p>
+                        <p className="text-sm text-gray-600">{transaction.description}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(transaction.createdAt).toLocaleString('ar-EG')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-left">
+                      <p
+                        className={`text-lg font-bold ${
+                          transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {transaction.amount >= 0 ? '+' : ''}
+                        {transaction.amount.toFixed(2)} جنيه
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        الرصيد: {transaction.balanceAfter.toFixed(2)} جنيه
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-            <p className="text-sm text-yellow-800">
-              <strong>الرصيد الحالي:</strong> {balance?.currentBalance.toFixed(2)} جنيه
-            </p>
+        </Card>
+
+        <Modal isOpen={showDepositModal} onClose={() => setShowDepositModal(false)} title="إيداع نقدي">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                المبلغ (جنيه) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الوصف <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={depositDescription}
+                onChange={(e) => setDepositDescription(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="وصف الإيداع..."
+                required
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowDepositModal(false)}>
+                إلغاء
+              </Button>
+              <Button variant="success" onClick={handleDeposit} disabled={isDepositing}>
+                {isDepositing ? 'جاري الإيداع...' : 'تأكيد الإيداع'}
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowWithdrawModal(false)}>
-              إلغاء
-            </Button>
-            <Button variant="danger" onClick={handleWithdraw} disabled={isWithdrawing}>
-              {isWithdrawing ? 'جاري السحب...' : 'تأكيد السحب'}
-            </Button>
+        </Modal>
+
+        <Modal isOpen={showWithdrawModal} onClose={() => setShowWithdrawModal(false)} title="سحب نقدي">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                المبلغ (جنيه) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الوصف <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={withdrawDescription}
+                onChange={(e) => setWithdrawDescription(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="وصف السحب..."
+                required
+              />
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+              <p className="text-sm text-yellow-800">
+                <strong>الرصيد الحالي:</strong> {balance?.currentBalance.toFixed(2)} جنيه
+              </p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowWithdrawModal(false)}>
+                إلغاء
+              </Button>
+              <Button variant="danger" onClick={handleWithdraw} disabled={isWithdrawing}>
+                {isWithdrawing ? 'جاري السحب...' : 'تأكيد السحب'}
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      </div>
     </div>
   );
 }

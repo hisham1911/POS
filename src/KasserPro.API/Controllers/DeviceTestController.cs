@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 using KasserPro.API.Hubs;
 using KasserPro.Application.DTOs.Orders;
 
@@ -10,6 +11,7 @@ namespace KasserPro.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class DeviceTestController : ControllerBase
 {
     private readonly IHubContext<DeviceHub> _hubContext;
@@ -65,12 +67,23 @@ public class DeviceTestController : ControllerBase
                 }
             };
 
-            _logger.LogInformation("Sending test print command {CommandId} to all devices", command.CommandId);
+            _logger.LogInformation("Sending test print command {CommandId} to devices", command.CommandId);
 
-            // Send to all connected devices
-            await _hubContext.Clients.All.SendAsync("PrintReceipt", command);
+            // P0-5: Send test print to a specific branch group (or all if no branch specified)
+            var branchId = Request.Headers["X-Branch-Id"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(branchId))
+            {
+                await _hubContext.Clients.Group($"branch-{branchId}")
+                    .SendAsync("PrintReceipt", command);
+            }
+            else
+            {
+                // Fallback for test: send to default group
+                await _hubContext.Clients.Group("branch-default")
+                    .SendAsync("PrintReceipt", command);
+            }
 
-            _logger.LogInformation("Test print command sent successfully");
+            _logger.LogInformation("Test print command sent successfully to branch {BranchId}", branchId ?? "default");
 
             return Ok(new
             {

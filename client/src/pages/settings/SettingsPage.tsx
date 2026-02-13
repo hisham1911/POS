@@ -7,10 +7,20 @@ import {
   Save,
   Building2,
   Package,
+  Receipt,
+  Printer,
+  Type,
+  Phone,
+  MessageSquare,
+  Image,
+  User,
+  Upload,
+  X,
 } from "lucide-react";
 import {
   useGetCurrentTenantQuery,
   useUpdateCurrentTenantMutation,
+  useUploadLogoMutation,
 } from "@/api/branchesApi";
 import { useAppDispatch } from "@/store/hooks";
 import { setTaxSettings } from "@/store/slices/cartSlice";
@@ -24,6 +34,7 @@ export const SettingsPage = () => {
   const { data: tenantData, isLoading, refetch } = useGetCurrentTenantQuery();
   const [updateTenant, { isLoading: isUpdating }] =
     useUpdateCurrentTenantMutation();
+  const [uploadLogo, { isLoading: isUploading }] = useUploadLogoMutation();
 
   const tenant = tenantData?.data;
 
@@ -36,6 +47,21 @@ export const SettingsPage = () => {
   const [timezone, setTimezone] = useState<string>("Africa/Cairo");
   const [allowNegativeStock, setAllowNegativeStock] = useState<boolean>(false);
 
+  // Receipt settings state
+  const [receiptPaperSize, setReceiptPaperSize] = useState<string>("80mm");
+  const [receiptCustomWidth, setReceiptCustomWidth] = useState<number>(280);
+  const [receiptHeaderFontSize, setReceiptHeaderFontSize] = useState<number>(12);
+  const [receiptBodyFontSize, setReceiptBodyFontSize] = useState<number>(9);
+  const [receiptTotalFontSize, setReceiptTotalFontSize] = useState<number>(11);
+  const [receiptShowBranchName, setReceiptShowBranchName] = useState<boolean>(true);
+  const [receiptShowCashier, setReceiptShowCashier] = useState<boolean>(true);
+  const [receiptShowThankYou, setReceiptShowThankYou] = useState<boolean>(true);
+  const [receiptFooterMessage, setReceiptFooterMessage] = useState<string>("");
+  const [receiptPhoneNumber, setReceiptPhoneNumber] = useState<string>("");
+  const [receiptShowCustomerName, setReceiptShowCustomerName] = useState<boolean>(true);
+  const [receiptShowLogo, setReceiptShowLogo] = useState<boolean>(true);
+  const [logoUrl, setLogoUrl] = useState<string>("");
+
   // Initialize form with tenant data
   useEffect(() => {
     if (tenant) {
@@ -46,6 +72,20 @@ export const SettingsPage = () => {
       setCurrency(tenant.currency);
       setTimezone(tenant.timezone);
       setAllowNegativeStock(tenant.allowNegativeStock ?? false);
+      // Receipt settings
+      setReceiptPaperSize(tenant.receiptPaperSize || "80mm");
+      setReceiptCustomWidth(tenant.receiptCustomWidth ?? 280);
+      setReceiptHeaderFontSize(tenant.receiptHeaderFontSize ?? 12);
+      setReceiptBodyFontSize(tenant.receiptBodyFontSize ?? 9);
+      setReceiptTotalFontSize(tenant.receiptTotalFontSize ?? 11);
+      setReceiptShowBranchName(tenant.receiptShowBranchName ?? true);
+      setReceiptShowCashier(tenant.receiptShowCashier ?? true);
+      setReceiptShowThankYou(tenant.receiptShowThankYou ?? true);
+      setReceiptFooterMessage(tenant.receiptFooterMessage || "");
+      setReceiptPhoneNumber(tenant.receiptPhoneNumber || "");
+      setReceiptShowCustomerName(tenant.receiptShowCustomerName ?? true);
+      setReceiptShowLogo(tenant.receiptShowLogo ?? true);
+      setLogoUrl(tenant.logoUrl || "");
     }
   }, [tenant]);
 
@@ -60,11 +100,24 @@ export const SettingsPage = () => {
       const result = await updateTenant({
         name,
         nameEn: nameEn || undefined,
+        logoUrl: logoUrl || undefined,
         currency,
         timezone,
         taxRate,
         isTaxEnabled,
         allowNegativeStock,
+        receiptPaperSize,
+        receiptCustomWidth,
+        receiptHeaderFontSize,
+        receiptBodyFontSize,
+        receiptTotalFontSize,
+        receiptShowBranchName,
+        receiptShowCashier,
+        receiptShowThankYou,
+        receiptFooterMessage: receiptFooterMessage || undefined,
+        receiptPhoneNumber: receiptPhoneNumber || undefined,
+        receiptShowCustomerName,
+        receiptShowLogo,
       }).unwrap();
 
       if (result.success) {
@@ -299,6 +352,363 @@ export const SettingsPage = () => {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Receipt Settings Card */}
+        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <Receipt className="w-5 h-5 text-gray-500" />
+            <span>إعدادات تنسيق الفاتورة</span>
+          </div>
+
+          {/* Paper Size */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center gap-1.5">
+                <Printer className="w-4 h-4" />
+                مقاس الورق
+              </div>
+            </label>
+            <div className="flex gap-3 mb-3">
+              {[
+                { value: "80mm", label: "80mm (عادي)" },
+                { value: "58mm", label: "58mm (صغير)" },
+                { value: "custom", label: "مخصص" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setReceiptPaperSize(option.value)}
+                  className={clsx(
+                    "flex-1 py-3 px-4 rounded-lg border-2 font-medium transition-all",
+                    receiptPaperSize === option.value
+                      ? "border-primary-500 bg-primary-50 text-primary-700"
+                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {/* Custom Width Input */}
+            {receiptPaperSize === "custom" && (
+              <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  عرض الورق بالبيكسل (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="200"
+                  max="400"
+                  value={receiptCustomWidth}
+                  onChange={(e) => setReceiptCustomWidth(parseInt(e.target.value) || 280)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="280"
+                />
+                <p className="mt-2 text-xs text-gray-600">
+                  القيمة الموصى بها: 280px (يمكنك التغيير حسب طابعتك)
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Font Sizes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="flex items-center gap-1.5">
+                <Type className="w-4 h-4" />
+                أحجام الخطوط
+              </div>
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">خط العنوان</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="8"
+                    max="18"
+                    value={receiptHeaderFontSize}
+                    onChange={(e) => setReceiptHeaderFontSize(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-sm font-mono bg-gray-100 rounded px-2 py-1 min-w-[40px] text-center">
+                    {receiptHeaderFontSize}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">خط النص</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="6"
+                    max="14"
+                    value={receiptBodyFontSize}
+                    onChange={(e) => setReceiptBodyFontSize(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-sm font-mono bg-gray-100 rounded px-2 py-1 min-w-[40px] text-center">
+                    {receiptBodyFontSize}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">خط الإجمالي</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="8"
+                    max="16"
+                    value={receiptTotalFontSize}
+                    onChange={(e) => setReceiptTotalFontSize(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-sm font-mono bg-gray-100 rounded px-2 py-1 min-w-[40px] text-center">
+                    {receiptTotalFontSize}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Toggles */}
+          <div className="space-y-3">
+            {[
+              { label: "إظهار اسم الفرع", value: receiptShowBranchName, setter: setReceiptShowBranchName },
+              { label: "إظهار اسم الكاشير", value: receiptShowCashier, setter: setReceiptShowCashier },
+              { label: "إظهار اسم العميل", value: receiptShowCustomerName, setter: setReceiptShowCustomerName },
+              { label: "إظهار لوجو الشركة", value: receiptShowLogo, setter: setReceiptShowLogo },
+              { label: "إظهار رسالة شكراً في النهاية", value: receiptShowThankYou, setter: setReceiptShowThankYou },
+            ].map((toggle) => (
+              <div
+                key={toggle.label}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
+                <span className="font-medium text-sm">{toggle.label}</span>
+                <button
+                  onClick={() => toggle.setter(!toggle.value)}
+                  className={clsx(
+                    "p-1 rounded-lg transition-colors",
+                    toggle.value
+                      ? "bg-success-100 text-success-600"
+                      : "bg-gray-200 text-gray-500"
+                  )}
+                >
+                  {toggle.value ? (
+                    <ToggleRight className="w-7 h-7" />
+                  ) : (
+                    <ToggleLeft className="w-7 h-7" />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Logo Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="flex items-center gap-1.5">
+                <Image className="w-4 h-4" />
+                لوجو الشركة
+              </div>
+            </label>
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors">
+                <Upload className="w-4 h-4" />
+                {isUploading ? "جاري الرفع..." : "رفع صورة"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml"
+                  className="hidden"
+                  disabled={isUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast.error("حجم الملف يجب أن لا يتجاوز 2 ميجابايت");
+                      return;
+                    }
+                    try {
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      const result = await uploadLogo(formData).unwrap();
+                      if (result.success && result.data) {
+                        setLogoUrl(result.data.logoUrl);
+                        toast.success("تم رفع اللوجو بنجاح");
+                        refetch();
+                      } else {
+                        toast.error(result.message || "فشل في رفع اللوجو");
+                      }
+                    } catch {
+                      toast.error("حدث خطأ أثناء رفع اللوجو");
+                    }
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {logoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setLogoUrl("")}
+                  className="inline-flex items-center gap-1 px-3 py-2 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                >
+                  <X className="w-4 h-4" />
+                  إزالة
+                </button>
+              )}
+            </div>
+            {logoUrl && (
+              <div className="mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                <img
+                  src={logoUrl}
+                  alt="Logo Preview"
+                  className="h-12 object-contain rounded"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block'; }}
+                />
+                <span className="text-xs text-gray-500">معاينة اللوجو</span>
+              </div>
+            )}
+            <p className="mt-1 text-xs text-gray-400">PNG, JPG, GIF, WebP, SVG — حد أقصى 2 ميجابايت</p>
+          </div>
+
+          {/* Footer Message & Phone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4" />
+                  رسالة أسفل الفاتورة
+                </div>
+              </label>
+              <input
+                type="text"
+                value={receiptFooterMessage}
+                onChange={(e) => setReceiptFooterMessage(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="مثال: الرجاء الاحتفاظ بالفاتورة"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-4 h-4" />
+                  رقم هاتف المتجر
+                </div>
+              </label>
+              <input
+                type="text"
+                value={receiptPhoneNumber}
+                onChange={(e) => setReceiptPhoneNumber(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="01xxxxxxxxx"
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-xs text-gray-500 mb-3 font-medium">معاينة الفاتورة:</p>
+            <div
+              className="mx-auto bg-white border border-dashed border-gray-300 p-4 space-y-2"
+              style={{
+                maxWidth:
+                  receiptPaperSize === "80mm"
+                    ? "302px"
+                    : receiptPaperSize === "58mm"
+                    ? "219px"
+                    : `${receiptCustomWidth}px`,
+                fontFamily: "Arial, sans-serif",
+                direction: "rtl",
+              }}
+            >
+              {/* Logo */}
+              {receiptShowLogo && logoUrl && (
+                <div className="text-center">
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="h-10 mx-auto object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
+              {receiptShowBranchName && (
+                <p
+                  className="text-center font-bold"
+                  style={{ fontSize: `${receiptHeaderFontSize}px` }}
+                >
+                  {name || "اسم المتجر"}
+                </p>
+              )}
+              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <span>فاتورة رقم</span>
+                <span>ORD-001</span>
+              </div>
+              <p className="text-center" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                {new Date().toLocaleDateString("ar-EG")}
+              </p>
+              <div className="border-t border-dashed border-gray-400 my-1" />
+              {receiptShowCashier && (
+                <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                  <span>الكاشير: أحمد</span>
+                  <span>الدفع: كاش</span>
+                </div>
+              )}
+              {!receiptShowCashier && (
+                <p style={{ fontSize: `${receiptBodyFontSize}px` }}>الدفع: كاش</p>
+              )}
+              {receiptShowCustomerName && (
+                <p style={{ fontSize: `${receiptBodyFontSize}px` }}>العميل: محمد علي</p>
+              )}
+              <div className="border-t border-dashed border-gray-400 my-1" />
+              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <span>منتج تجريبي × 2</span>
+                <span>100 ج.م</span>
+              </div>
+              <div className="border-t border-dashed border-gray-400 my-1" />
+              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <span>المجموع</span>
+                <span>100.00 ج.م</span>
+              </div>
+              {isTaxEnabled && (
+                <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                  <span>الضريبة ({taxRate}%)</span>
+                  <span>{(100 * taxRate / 100).toFixed(2)} ج.م</span>
+                </div>
+              )}
+              <div className="border-t border-dashed border-gray-400 my-1" />
+              <div className="flex justify-between font-bold" style={{ fontSize: `${receiptTotalFontSize}px` }}>
+                <span>الإجمالي</span>
+                <span>{isTaxEnabled ? (100 + 100 * taxRate / 100).toFixed(2) : "100.00"} ج.م</span>
+              </div>
+              <div className="border-t border-dashed border-gray-400 my-1" />
+              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <span>المبلغ المدفوع</span>
+                <span>200.00 ج.م</span>
+              </div>
+              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <span>الباقي</span>
+                <span>{isTaxEnabled ? (200 - (100 + 100 * taxRate / 100)).toFixed(2) : "50.00"} ج.م</span>
+              </div>
+              {receiptShowThankYou && (
+                <p className="text-center font-bold" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                  شكراً لزيارتكم ✨
+                </p>
+              )}
+              {receiptFooterMessage && (
+                <p className="text-center" style={{ fontSize: `${Math.max(receiptBodyFontSize - 1, 7)}px` }}>
+                  {receiptFooterMessage}
+                </p>
+              )}
+              {receiptPhoneNumber && (
+                <p className="text-center" style={{ fontSize: `${Math.max(receiptBodyFontSize - 1, 7)}px` }}>
+                  {receiptPhoneNumber}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Save Button */}

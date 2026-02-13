@@ -1,0 +1,241 @@
+### Variables
+@baseUrl = http://localhost:5243
+@token = YOUR_JWT_TOKEN_HERE
+@branchId = 1
+@categoryId = 1
+
+###############################################
+# SETUP: Login & Migration
+###############################################
+
+### 0. Login to get token (Run this first!)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@kasserpro.com",
+  "password": "Admin@123"
+}
+
+### 0a. Check Migration Status
+GET {{baseUrl}}/api/migration/inventory-data/status
+Authorization: Bearer {{token}}
+
+### 0b. Execute Data Migration (ONE-TIME ONLY - Run if needed)
+POST {{baseUrl}}/api/migration/inventory-data
+Authorization: Bearer {{token}}
+
+###############################################
+# INVENTORY REPORTS ENDPOINTS
+###############################################
+
+### 1. Get Branch Inventory Report
+GET {{baseUrl}}/api/inventory-reports/branch/{{branchId}}
+Authorization: Bearer {{token}}
+
+### 2. Get Branch Inventory Report - Low Stock Only
+GET {{baseUrl}}/api/inventory-reports/branch/{{branchId}}?lowStockOnly=true
+Authorization: Bearer {{token}}
+
+### 3. Get Branch Inventory Report - Filtered by Category
+GET {{baseUrl}}/api/inventory-reports/branch/{{branchId}}?categoryId={{categoryId}}
+Authorization: Bearer {{token}}
+
+### 4. Get Unified Inventory Report (All Branches)
+GET {{baseUrl}}/api/inventory-reports/unified
+Authorization: Bearer {{token}}
+
+### 5. Get Unified Inventory Report - Low Stock Only
+GET {{baseUrl}}/api/inventory-reports/unified?lowStockOnly=true
+Authorization: Bearer {{token}}
+
+### 6. Get Transfer History Report (Last 30 Days)
+GET {{baseUrl}}/api/inventory-reports/transfer-history
+Authorization: Bearer {{token}}
+
+### 7. Get Transfer History Report - Custom Date Range
+GET {{baseUrl}}/api/inventory-reports/transfer-history?fromDate=2026-01-01&toDate=2026-02-09
+Authorization: Bearer {{token}}
+
+### 8. Get Transfer History Report - Filtered by Branch
+GET {{baseUrl}}/api/inventory-reports/transfer-history?branchId={{branchId}}
+Authorization: Bearer {{token}}
+
+### 9. Get Low Stock Summary Report (All Branches)
+GET {{baseUrl}}/api/inventory-reports/low-stock-summary
+Authorization: Bearer {{token}}
+
+### 10. Get Low Stock Summary Report - Specific Branch
+GET {{baseUrl}}/api/inventory-reports/low-stock-summary?branchId={{branchId}}
+Authorization: Bearer {{token}}
+
+### 11. Export Branch Inventory Report to CSV
+GET {{baseUrl}}/api/inventory-reports/branch/{{branchId}}/export
+Authorization: Bearer {{token}}
+
+### 12. Export Unified Inventory Report to CSV
+GET {{baseUrl}}/api/inventory-reports/unified/export
+Authorization: Bearer {{token}}
+
+###############################################
+# Sample Expected Responses
+###############################################
+
+### Sample Response: Branch Inventory Report
+# {
+#   "success": true,
+#   "data": {
+#     "branchId": 1,
+#     "branchName": "الفرع الرئيسي",
+#     "totalProducts": 25,
+#     "totalQuantity": 1250,
+#     "lowStockCount": 3,
+#     "totalValue": 45000.00,
+#     "items": [
+#       {
+#         "productId": 1,
+#         "productName": "كوكاكولا",
+#         "productSku": "COKE-001",
+#         "categoryName": "مشروبات",
+#         "quantity": 150,
+#         "reorderLevel": 50,
+#         "isLowStock": false,
+#         "averageCost": 8.50,
+#         "totalValue": 1275.00,
+#         "lastUpdatedAt": "2026-02-09T10:30:00Z"
+#       }
+#     ]
+#   }
+# }
+
+### Sample Response: Unified Inventory Report
+# {
+#   "success": true,
+#   "data": [
+#     {
+#       "productId": 1,
+#       "productName": "كوكاكولا",
+#       "productSku": "COKE-001",
+#       "categoryName": "مشروبات",
+#       "totalQuantity": 450,
+#       "averageCost": 8.50,
+#       "totalValue": 3825.00,
+#       "branchCount": 3,
+#       "lowStockBranchCount": 1,
+#       "branchStocks": [
+#         {
+#           "branchId": 1,
+#           "branchName": "الفرع الرئيسي",
+#           "quantity": 150,
+#           "reorderLevel": 50,
+#           "isLowStock": false
+#         },
+#         {
+#           "branchId": 2,
+#           "branchName": "فرع المعادي",
+#           "quantity": 250,
+#           "reorderLevel": 50,
+#           "isLowStock": false
+#         },
+#         {
+#           "branchId": 3,
+#           "branchName": "فرع مدينة نصر",
+#           "quantity": 50,
+#           "reorderLevel": 100,
+#           "isLowStock": true
+#         }
+#       ]
+#     }
+#   ]
+# }
+
+### Sample Response: Transfer History Report
+# {
+#   "success": true,
+#   "data": {
+#     "fromDate": "2026-01-10T00:00:00Z",
+#     "toDate": "2026-02-09T23:59:59Z",
+#     "totalTransfers": 15,
+#     "completedTransfers": 12,
+#     "pendingTransfers": 2,
+#     "cancelledTransfers": 1,
+#     "totalQuantityTransferred": 850,
+#     "transfers": [
+#       {
+#         "id": 1,
+#         "transferNumber": "TRF-2026-0001",
+#         "createdAt": "2026-02-05T14:30:00Z",
+#         "fromBranchName": "الفرع الرئيسي",
+#         "toBranchName": "فرع المعادي",
+#         "productName": "كوكاكولا",
+#         "quantity": 50,
+#         "status": "Received",
+#         "reason": "تعويض نقص المخزون",
+#         "completedAt": "2026-02-06T10:15:00Z"
+#       }
+#     ],
+#     "branchStats": [
+#       {
+#         "branchId": 1,
+#         "branchName": "الفرع الرئيسي",
+#         "transfersSent": 8,
+#         "transfersReceived": 4,
+#         "quantitySent": 400,
+#         "quantityReceived": 200,
+#         "netChange": -200
+#       }
+#     ]
+#   }
+# }
+
+### Sample Response: Low Stock Summary Report
+# {
+#   "success": true,
+#   "data": {
+#     "totalLowStockItems": 8,
+#     "affectedBranches": 3,
+#     "criticalItems": 2,
+#     "estimatedRestockValue": 12500.00,
+#     "items": [
+#       {
+#         "productId": 5,
+#         "productName": "بيبسي",
+#         "productSku": "PEPSI-001",
+#         "categoryName": "مشروبات",
+#         "totalQuantity": 80,
+#         "totalReorderLevel": 150,
+#         "shortage": 70,
+#         "averageCost": 8.00,
+#         "estimatedRestockCost": 560.00,
+#         "branchDetails": [
+#           {
+#             "branchId": 1,
+#             "branchName": "الفرع الرئيسي",
+#             "quantity": 30,
+#             "reorderLevel": 50,
+#             "shortage": 20,
+#             "isCritical": false
+#           },
+#           {
+#             "branchId": 3,
+#             "branchName": "فرع مدينة نصر",
+#             "quantity": 0,
+#             "reorderLevel": 50,
+#             "shortage": 50,
+#             "isCritical": true
+#           }
+#         ]
+#       }
+#     ],
+#     "branchStats": [
+#       {
+#         "branchId": 1,
+#         "branchName": "الفرع الرئيسي",
+#         "lowStockCount": 3,
+#         "criticalCount": 0,
+#         "estimatedRestockValue": 4500.00
+#       }
+#     ]
+#   }
+# }

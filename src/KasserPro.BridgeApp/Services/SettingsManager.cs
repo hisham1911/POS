@@ -82,12 +82,33 @@ public class SettingsManager : ISettingsManager
     /// </summary>
     private AppSettings CreateDefaultSettings()
     {
-        return new AppSettings
+        var settings = new AppSettings
         {
             DeviceId = Guid.NewGuid().ToString(),
             BackendUrl = "https://localhost:5243",
             ApiKey = "",
             DefaultPrinterName = ""
         };
+
+        // Try to get first available printer as default
+        try
+        {
+            var printers = System.Drawing.Printing.PrinterSettings.InstalledPrinters;
+            if (printers.Count > 0)
+            {
+                settings.DefaultPrinterName = printers[0];
+                Log.Information($"Default printer set to: {printers[0]}");
+            }
+            else
+            {
+                Log.Warning("No printers found on system");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error getting default printer");
+        }
+
+        return settings;
     }
 }

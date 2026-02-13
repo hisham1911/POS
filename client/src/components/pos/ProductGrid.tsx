@@ -18,8 +18,8 @@ export const ProductGrid = ({ products, categories }: ProductGridProps) => {
   );
   const user = useAppSelector(selectCurrentUser);
 
-  // Only Admin or Manager can adjust stock
-  const canAdjustStock = user?.role === "Admin" || user?.role === "Manager";
+  // Only Admin or SystemOwner can adjust stock
+  const canAdjustStock = user?.role === "Admin" || user?.role === "SystemOwner";
 
   const handleStockAdjust = (product: Product) => {
     if (canAdjustStock && product.trackInventory) {

@@ -234,4 +234,32 @@ public class ProductService : IProductService
 
         return ApiResponse<bool>.Ok(true, "تم حذف المنتج بنجاح");
     }
+
+    public async Task<ApiResponse<StockAdjustResultDto>> AdjustStockAsync(int id, AdjustStockRequest request)
+    {
+        var tenantId = _currentUser.TenantId;
+        var product = await _unitOfWork.Products.Query()
+            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
+        if (product == null)
+            return ApiResponse<StockAdjustResultDto>.Fail("المنتج غير موجود");
+
+        var previousBalance = product.StockQuantity ?? 0;
+        var newBalance = previousBalance + request.Quantity;
+
+        if (newBalance < 0)
+            return ApiResponse<StockAdjustResultDto>.Fail("لا يمكن أن يكون المخزون سالباً");
+
+        product.StockQuantity = newBalance;
+        product.LastStockUpdate = DateTime.UtcNow;
+
+        _unitOfWork.Products.Update(product);
+        await _unitOfWork.SaveChangesAsync();
+
+        return ApiResponse<StockAdjustResultDto>.Ok(new StockAdjustResultDto
+        {
+            NewBalance = newBalance,
+            PreviousBalance = previousBalance,
+            Change = request.Quantity
+        }, "تم تعديل المخزون بنجاح");
+    }
 }

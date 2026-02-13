@@ -11,10 +11,26 @@ export interface HourlySales {
   sales: number;
 }
 
+export interface ShiftSummary {
+  shiftId: number;
+  userName: string;
+  openedAt: string;
+  closedAt: string;
+  totalOrders: number;
+  totalCash: number;
+  totalCard: number;
+  totalSales: number;
+  isForceClosed: boolean;
+  forceCloseReason?: string;
+}
+
 export interface DailyReport {
   date: string;
   branchId: number;
   branchName?: string;
+  // Shift Information
+  totalShifts: number;
+  shifts: ShiftSummary[];
   // Order Counts
   totalOrders: number;
   completedOrders: number;
@@ -26,6 +42,7 @@ export interface DailyReport {
   netSales: number;
   totalTax: number;
   totalSales: number;
+  totalRefunds: number;
   // Payment Breakdown
   totalCash: number;
   totalCard: number;

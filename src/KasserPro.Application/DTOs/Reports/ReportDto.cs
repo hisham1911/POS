@@ -6,6 +6,10 @@ public class DailyReportDto
     public int BranchId { get; set; }
     public string? BranchName { get; set; }
     
+    // Shift Information (NEW)
+    public int TotalShifts { get; set; }
+    public List<ShiftSummaryDto> Shifts { get; set; } = new();
+    
     // Order Counts
     public int TotalOrders { get; set; }
     public int CompletedOrders { get; set; }
@@ -31,6 +35,20 @@ public class DailyReportDto
     
     // Hourly Breakdown (optional)
     public List<HourlySalesDto> HourlySales { get; set; } = new();
+}
+
+public class ShiftSummaryDto
+{
+    public int ShiftId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public DateTime OpenedAt { get; set; }
+    public DateTime ClosedAt { get; set; }
+    public int TotalOrders { get; set; }
+    public decimal TotalCash { get; set; }
+    public decimal TotalCard { get; set; }
+    public decimal TotalSales { get; set; }
+    public bool IsForceClosed { get; set; }
+    public string? ForceCloseReason { get; set; }
 }
 
 public class TopProductDto

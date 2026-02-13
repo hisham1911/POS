@@ -10,6 +10,10 @@ public class CreateOrderRequest
     public int? CustomerId { get; set; }
     public string? Notes { get; set; }
     public List<CreateOrderItemRequest> Items { get; set; } = new();
+    
+    // Order-level discount
+    public string? DiscountType { get; set; } // "Percentage" or "Fixed"
+    public decimal? DiscountValue { get; set; }
 }
 
 public class CreateOrderItemRequest

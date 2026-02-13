@@ -55,6 +55,17 @@ public class Customer : BaseEntity
     /// </summary>
     public DateTime? LastOrderAt { get; set; }
     
+    /// <summary>
+    /// Denormalized: Total outstanding balance (credit/debt)
+    /// Positive value = customer owes money
+    /// </summary>
+    public decimal TotalDue { get; set; } = 0;
+    
+    /// <summary>
+    /// Maximum credit limit allowed for this customer (0 = no limit)
+    /// </summary>
+    public decimal CreditLimit { get; set; } = 0;
+    
     // Navigation
     public Tenant Tenant { get; set; } = null!;
     public ICollection<Order> Orders { get; set; } = new List<Order>();

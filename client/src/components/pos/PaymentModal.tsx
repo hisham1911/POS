@@ -8,6 +8,7 @@ import {
   User,
   Phone,
   Star,
+  AlertCircle,
 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useOrders } from "@/hooks/useOrders";
@@ -44,11 +45,23 @@ export const PaymentModal = ({
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("Cash");
   const [amountPaid, setAmountPaid] = useState<string>(total.toFixed(2));
   const [showError, setShowError] = useState(false);
+  const [allowPartialPayment, setAllowPartialPayment] = useState(false);
 
   const customerId = selectedCustomer?.id;
 
   const numericAmount = parseFloat(amountPaid) || 0;
   const change = numericAmount - total;
+  const amountDue = total - numericAmount;
+  
+  // Check if customer can take credit
+  const canTakeCredit = selectedCustomer && (
+    selectedCustomer.creditLimit === 0 || 
+    (selectedCustomer.totalDue + amountDue) <= selectedCustomer.creditLimit
+  );
+  
+  const creditLimitExceeded = selectedCustomer && 
+    selectedCustomer.creditLimit > 0 && 
+    (selectedCustomer.totalDue + amountDue) > selectedCustomer.creditLimit;
 
   const handleNumpadClick = (value: string) => {
     if (value === "C") {
@@ -69,10 +82,23 @@ export const PaymentModal = ({
   };
 
   const handleComplete = async () => {
-    if (numericAmount < total) {
+    // Validate payment amount
+    if (numericAmount < total && !allowPartialPayment) {
       setShowError(true);
       setTimeout(() => setShowError(false), 500);
       toast.error("المبلغ المدفوع أقل من الإجمالي");
+      return;
+    }
+    
+    // Validate partial payment requires customer
+    if (numericAmount < total && !selectedCustomer) {
+      toast.error("البيع الآجل يتطلب ربط عميل بالطلب");
+      return;
+    }
+    
+    // Validate credit limit
+    if (numericAmount < total && creditLimitExceeded) {
+      toast.error(`تجاوز حد الائتمان المسموح (${formatCurrency(selectedCustomer!.creditLimit)})`);
       return;
     }
 
@@ -95,9 +121,13 @@ export const PaymentModal = ({
       });
 
       if (completedOrder) {
-        // نجاح - عرض الباقي إن وجد
+        // نجاح - عرض الباقي أو المبلغ المستحق
         if (change > 0) {
           toast.success(`تم إتمام الدفع! الباقي: ${formatCurrency(change)}`);
+        } else if (amountDue > 0) {
+          toast.success(`تم إتمام البيع الآجل! المبلغ المستحق: ${formatCurrency(amountDue)}`);
+        } else {
+          toast.success("تم إتمام الدفع بنجاح!");
         }
         // مسح العميل المحدد
         onOrderComplete?.();
@@ -150,6 +180,17 @@ export const PaymentModal = ({
                   <div className="flex items-center gap-2 text-sm text-amber-600">
                     <Star className="w-4 h-4 text-amber-500" />
                     <span>{selectedCustomer.loyaltyPoints} نقطة ولاء</span>
+                  </div>
+                )}
+                {selectedCustomer.totalDue > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-orange-600">
+                    <AlertCircle className="w-4 h-4 text-orange-500" />
+                    <span>رصيد مستحق: {formatCurrency(selectedCustomer.totalDue)}</span>
+                  </div>
+                )}
+                {selectedCustomer.creditLimit > 0 && (
+                  <div className="text-xs text-gray-500">
+                    حد الائتمان: {formatCurrency(selectedCustomer.creditLimit)}
                   </div>
                 )}
               </div>
@@ -272,6 +313,48 @@ export const PaymentModal = ({
                   </p>
                 </div>
               )}
+              
+              {/* Amount Due (Partial Payment) */}
+              {numericAmount < total && numericAmount > 0 && (
+                <div className={clsx(
+                  "text-center p-4 rounded-xl border",
+                  creditLimitExceeded 
+                    ? "bg-danger-50 border-danger-200" 
+                    : "bg-orange-50 border-orange-200"
+                )}>
+                  <p className="text-gray-500 text-sm">المبلغ المستحق</p>
+                  <p className={clsx(
+                    "text-2xl font-bold",
+                    creditLimitExceeded ? "text-danger-500" : "text-orange-500"
+                  )}>
+                    {formatCurrency(amountDue)}
+                  </p>
+                  {creditLimitExceeded && (
+                    <p className="text-xs text-danger-600 mt-1">
+                      تجاوز حد الائتمان المسموح
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Partial Payment Option */}
+          {selectedCustomer && canTakeCredit && (
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <input
+                type="checkbox"
+                id="partialPayment"
+                checked={allowPartialPayment}
+                onChange={(e) => setAllowPartialPayment(e.target.checked)}
+                className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
+              />
+              <label htmlFor="partialPayment" className="flex-1 cursor-pointer">
+                <p className="font-medium text-gray-800">السماح بالدفع الجزئي (بيع آجل)</p>
+                <p className="text-sm text-gray-600">
+                  يمكن للعميل دفع جزء من المبلغ والباقي يُسجل كدين
+                </p>
+              </label>
             </div>
           )}
 
@@ -282,13 +365,20 @@ export const PaymentModal = ({
             className="w-full"
             onClick={handleComplete}
             isLoading={isCreating || isCompleting}
-            disabled={isCreating || isCompleting || numericAmount < total}
+            disabled={
+              isCreating || 
+              isCompleting || 
+              (numericAmount < total && !allowPartialPayment) ||
+              (numericAmount < total && creditLimitExceeded)
+            }
             rightIcon={<Check className="w-5 h-5" />}
           >
             {isCreating
               ? "جاري إنشاء الطلب..."
               : isCompleting
               ? "جاري الدفع..."
+              : numericAmount < total && allowPartialPayment
+              ? `إتمام البيع الآجل (مستحق: ${formatCurrency(amountDue)})`
               : "إتمام الدفع"}
           </Button>
         </div>

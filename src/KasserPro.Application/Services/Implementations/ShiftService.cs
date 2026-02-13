@@ -99,6 +99,7 @@ public class ShiftService : IShiftService
                 UserId = userId,
                 OpeningBalance = Math.Round(request.OpeningBalance, 2),
                 OpenedAt = DateTime.UtcNow,
+                LastActivityAt = DateTime.UtcNow, // Initialize activity tracking
                 IsClosed = false
             };
 
@@ -257,6 +258,208 @@ public class ShiftService : IShiftService
         throw new NotSupportedException("حذف الورديات غير مسموح به للحفاظ على سلامة السجلات المالية");
     }
 
+    /// <summary>
+    /// Force close a shift (Admin only)
+    /// </summary>
+    public async Task<ApiResponse<ShiftDto>> ForceCloseAsync(int shiftId, ForceCloseShiftRequest request)
+    {
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+        var currentUserId = _currentUser.UserId;
+
+        // Get current user info
+        var currentUser = await _unitOfWork.Users.GetByIdAsync(currentUserId);
+        if (currentUser == null)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.USER_NOT_FOUND, "المستخدم الحالي غير موجود");
+
+        // Validate request
+        if (string.IsNullOrWhiteSpace(request.Reason))
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_FORCE_CLOSE_REASON_REQUIRED, "سبب الإغلاق مطلوب");
+
+        // Get shift with user info
+        var shift = await _unitOfWork.Shifts.Query()
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == shiftId && s.TenantId == tenantId && s.BranchId == branchId);
+
+        if (shift == null)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_NOT_FOUND, "الوردية غير موجودة");
+
+        if (shift.IsClosed)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_ALREADY_CLOSED, "الوردية مغلقة بالفعل");
+
+        if (shift.IsForceClosed)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_ALREADY_FORCE_CLOSED, "تم إغلاق الوردية بالقوة مسبقاً");
+
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        
+        try
+        {
+            // Calculate totals from orders
+            var completedOrders = await _unitOfWork.Orders.Query()
+                .Include(o => o.Payments)
+                .Where(o => o.ShiftId == shiftId && o.Status == OrderStatus.Completed)
+                .ToListAsync();
+
+            var allPayments = completedOrders.SelectMany(o => o.Payments).ToList();
+            var totalCash = Math.Round(allPayments.Where(p => p.Method == PaymentMethod.Cash).Sum(p => p.Amount), 2);
+            var totalCard = Math.Round(allPayments.Where(p => p.Method == PaymentMethod.Card).Sum(p => p.Amount), 2);
+
+            // Set closing values
+            shift.ClosingBalance = request.ActualBalance ?? (shift.OpeningBalance + totalCash);
+            shift.ExpectedBalance = shift.OpeningBalance + totalCash;
+            shift.Difference = shift.ClosingBalance - shift.ExpectedBalance;
+            shift.TotalCash = totalCash;
+            shift.TotalCard = totalCard;
+            shift.TotalOrders = completedOrders.Count;
+            shift.ClosedAt = DateTime.UtcNow;
+            shift.IsClosed = true;
+            shift.IsForceClosed = true;
+            shift.ForceClosedByUserId = currentUserId;
+            shift.ForceClosedByUserName = currentUser.Name;
+            shift.ForceClosedAt = DateTime.UtcNow;
+            shift.ForceCloseReason = request.Reason;
+            shift.Notes = request.Notes ?? shift.Notes;
+
+            _unitOfWork.Shifts.Update(shift);
+            await _unitOfWork.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return ApiResponse<ShiftDto>.Ok(MapToDto(shift), "تم إغلاق الوردية بالقوة بنجاح");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SYSTEM_INTERNAL_ERROR, 
+                $"حدث خطأ أثناء إغلاق الوردية بالقوة: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Handover shift to another user
+    /// </summary>
+    public async Task<ApiResponse<ShiftDto>> HandoverAsync(int shiftId, HandoverShiftRequest request)
+    {
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+        var currentUserId = _currentUser.UserId;
+
+        // Get current user info
+        var currentUser = await _unitOfWork.Users.GetByIdAsync(currentUserId);
+        if (currentUser == null)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.USER_NOT_FOUND, "المستخدم الحالي غير موجود");
+
+        // Validate request
+        if (request.ToUserId <= 0)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_HANDOVER_USER_REQUIRED, "يجب اختيار المستخدم المستلم");
+
+        if (request.ToUserId == currentUserId)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_HANDOVER_TO_SAME_USER, "لا يمكن تسليم الوردية لنفس المستخدم");
+
+        // Get shift
+        var shift = await _unitOfWork.Shifts.Query()
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == shiftId && s.TenantId == tenantId && s.BranchId == branchId);
+
+        if (shift == null)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_NOT_FOUND, "الوردية غير موجودة");
+
+        if (shift.IsClosed)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_CANNOT_HANDOVER_CLOSED, "لا يمكن تسليم وردية مغلقة");
+
+        if (shift.IsHandedOver)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_ALREADY_HANDED_OVER, "تم تسليم الوردية مسبقاً");
+
+        // Verify target user exists
+        var targetUser = await _unitOfWork.Users.GetByIdAsync(request.ToUserId);
+        if (targetUser == null)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.USER_NOT_FOUND, "المستخدم المستلم غير موجود");
+
+        // Check if target user has an open shift in this branch
+        var existingShift = await _unitOfWork.Shifts.Query()
+            .FirstOrDefaultAsync(s => s.UserId == request.ToUserId 
+                                   && s.TenantId == tenantId 
+                                   && s.BranchId == branchId 
+                                   && !s.IsClosed);
+
+        if (existingShift != null)
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SHIFT_USER_HAS_OPEN_SHIFT, 
+                "المستخدم المستلم لديه وردية مفتوحة بالفعل");
+
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        
+        try
+        {
+            // Record handover details
+            shift.IsHandedOver = true;
+            shift.HandedOverFromUserId = currentUserId;
+            shift.HandedOverFromUserName = currentUser.Name;
+            shift.HandedOverToUserId = request.ToUserId;
+            shift.HandedOverToUserName = targetUser.Name;
+            shift.HandedOverAt = DateTime.UtcNow;
+            shift.HandoverBalance = request.CurrentBalance;
+            shift.HandoverNotes = request.Notes;
+            shift.LastActivityAt = DateTime.UtcNow;
+
+            // Transfer shift to new user
+            shift.UserId = request.ToUserId;
+
+            _unitOfWork.Shifts.Update(shift);
+            await _unitOfWork.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return ApiResponse<ShiftDto>.Ok(MapToDto(shift), "تم تسليم الوردية بنجاح");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return ApiResponse<ShiftDto>.Fail(ErrorCodes.SYSTEM_INTERNAL_ERROR, 
+                $"حدث خطأ أثناء تسليم الوردية: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Update last activity timestamp for a shift
+    /// </summary>
+    public async Task<ApiResponse<bool>> UpdateActivityAsync(int shiftId)
+    {
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+
+        var shift = await _unitOfWork.Shifts.Query()
+            .FirstOrDefaultAsync(s => s.Id == shiftId && s.TenantId == tenantId && s.BranchId == branchId);
+
+        if (shift == null)
+            return ApiResponse<bool>.Fail(ErrorCodes.SHIFT_NOT_FOUND, "الوردية غير موجودة");
+
+        if (shift.IsClosed)
+            return ApiResponse<bool>.Ok(true, "الوردية مغلقة");
+
+        shift.LastActivityAt = DateTime.UtcNow;
+        _unitOfWork.Shifts.Update(shift);
+        await _unitOfWork.SaveChangesAsync();
+
+        return ApiResponse<bool>.Ok(true);
+    }
+
+    /// <summary>
+    /// Get all active shifts in the current branch
+    /// </summary>
+    public async Task<ApiResponse<List<ShiftDto>>> GetActiveShiftsAsync()
+    {
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+
+        var shifts = await _unitOfWork.Shifts.Query()
+            .Include(s => s.User)
+            .Include(s => s.Orders)
+                .ThenInclude(o => o.Payments)
+            .Where(s => s.TenantId == tenantId && s.BranchId == branchId && !s.IsClosed)
+            .OrderBy(s => s.OpenedAt)
+            .ToListAsync();
+
+        return ApiResponse<List<ShiftDto>>.Ok(shifts.Select(MapToDto).ToList());
+    }
+
     private static ShiftDto MapToDto(Shift shift)
     {
         // Calculate totals dynamically from loaded orders (for open shifts)
@@ -273,6 +476,15 @@ public class ShiftService : IShiftService
         var totalCard = shift.IsClosed ? shift.TotalCard : calculatedTotalCard;
         var totalOrders = shift.IsClosed ? shift.TotalOrders : calculatedTotalOrders;
 
+        // Calculate duration
+        var endTime = shift.ClosedAt ?? DateTime.UtcNow;
+        var duration = endTime - shift.OpenedAt;
+        var durationHours = (int)duration.TotalHours;
+        var durationMinutes = duration.Minutes;
+
+        // Calculate inactive hours
+        var inactiveHours = shift.IsClosed ? 0 : (int)(DateTime.UtcNow - shift.LastActivityAt).TotalHours;
+
         return new ShiftDto
         {
             Id = shift.Id,
@@ -288,6 +500,23 @@ public class ShiftService : IShiftService
             TotalCard = totalCard,
             TotalOrders = totalOrders,
             UserName = shift.User?.Name ?? string.Empty,
+            
+            // New fields
+            LastActivityAt = shift.LastActivityAt,
+            InactiveHours = inactiveHours,
+            IsForceClosed = shift.IsForceClosed,
+            ForceClosedByUserName = shift.ForceClosedByUserName,
+            ForceClosedAt = shift.ForceClosedAt,
+            ForceCloseReason = shift.ForceCloseReason,
+            IsHandedOver = shift.IsHandedOver,
+            HandedOverFromUserName = shift.HandedOverFromUserName,
+            HandedOverToUserName = shift.HandedOverToUserName,
+            HandedOverAt = shift.HandedOverAt,
+            HandoverBalance = shift.HandoverBalance,
+            HandoverNotes = shift.HandoverNotes,
+            DurationHours = durationHours,
+            DurationMinutes = durationMinutes,
+            
             Orders = shift.Orders?.Select(o => new ShiftOrderDto
             {
                 Id = o.Id,

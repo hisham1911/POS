@@ -10,6 +10,9 @@ import {
   Banknote,
   Loader2,
   AlertCircle,
+  Clock,
+  Users,
+  AlertTriangle,
 } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { formatCurrency } from "@/utils/formatters";
@@ -66,6 +69,119 @@ export const DailyReportPage = () => {
           />
         </div>
       </div>
+
+      {/* Info Banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm text-blue-800 font-medium">
+              💡 التقرير اليومي يعرض الورديات التي أُغلقت في هذا اليوم
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              الوردية التي تفتح في يوم وتغلق في اليوم التالي، تُحسب كاملة في تقرير يوم الإغلاق.
+              مثال: وردية من 8 مساءً (15 يناير) → 4 صباحاً (16 يناير) تظهر في تقرير 16 يناير.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Shifts Section */}
+      {report?.shifts && report.shifts.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-800">
+              الورديات المغلقة ({report.totalShifts})
+            </h3>
+            <Users className="w-5 h-5 text-gray-400" />
+          </div>
+          <div className="space-y-3">
+            {report.shifts.map((shift) => (
+              <div
+                key={shift.shiftId}
+                className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{shift.userName}</p>
+                      <p className="text-xs text-gray-500">وردية #{shift.shiftId}</p>
+                    </div>
+                  </div>
+                  {shift.isForceClosed && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      <AlertTriangle className="w-3 h-3 ml-1" />
+                      إغلاق قسري
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                  <div>
+                    <p className="text-xs text-gray-500">وقت الفتح</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {new Date(shift.openedAt).toLocaleString('ar-EG', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">وقت الإغلاق</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {new Date(shift.closedAt).toLocaleString('ar-EG', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">الطلبات</p>
+                    <p className="text-sm font-medium text-gray-700">{shift.totalOrders}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">الإجمالي</p>
+                    <p className="text-sm font-medium text-primary-600">
+                      {formatCurrency(shift.totalSales)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Banknote className="w-4 h-4 text-green-600" />
+                    <span className="text-sm text-gray-600">نقدي:</span>
+                    <span className="text-sm font-medium text-green-600">
+                      {formatCurrency(shift.totalCash)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-gray-600">بطاقة:</span>
+                    <span className="text-sm font-medium text-blue-600">
+                      {formatCurrency(shift.totalCard)}
+                    </span>
+                  </div>
+                </div>
+
+                {shift.forceCloseReason && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500">سبب الإغلاق القسري:</p>
+                    <p className="text-sm text-orange-700 mt-1">{shift.forceCloseReason}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

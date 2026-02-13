@@ -63,4 +63,45 @@ public class ShiftsController : ControllerBase
         var result = await _shiftService.GetUserShiftsAsync(userId);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Force close a shift (Admin only)
+    /// </summary>
+    [HttpPost("{id}/force-close")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ForceClose(int id, [FromBody] ForceCloseShiftRequest request)
+    {
+        var result = await _shiftService.ForceCloseAsync(id, request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Handover shift to another user
+    /// </summary>
+    [HttpPost("{id}/handover")]
+    public async Task<IActionResult> Handover(int id, [FromBody] HandoverShiftRequest request)
+    {
+        var result = await _shiftService.HandoverAsync(id, request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Update last activity timestamp for a shift
+    /// </summary>
+    [HttpPost("{id}/update-activity")]
+    public async Task<IActionResult> UpdateActivity(int id)
+    {
+        var result = await _shiftService.UpdateActivityAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Get all active shifts in the current branch
+    /// </summary>
+    [HttpGet("active")]
+    public async Task<IActionResult> GetActiveShifts()
+    {
+        var result = await _shiftService.GetActiveShiftsAsync();
+        return Ok(result);
+    }
 }

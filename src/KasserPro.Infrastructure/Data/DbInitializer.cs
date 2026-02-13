@@ -15,13 +15,19 @@ public static class DbInitializer
         {
             var tenant = new Tenant
             {
-                Name = "شركة كاشير برو",
-                NameEn = "KasserPro Company",
+                Name = "شركة كاشير برو للتجارة",
+                NameEn = "KasserPro Trading Company",
                 Slug = "kasserpro",
                 Currency = "EGP",
                 Timezone = "Africa/Cairo",
                 IsActive = true,
-                AllowNegativeStock = false // منع البيع السالب
+                AllowNegativeStock = false, // منع البيع السالب
+                // Receipt Settings
+                ReceiptFooterMessage = "شكراً لزيارتكم - نتمنى لكم يوماً سعيداً",
+                ReceiptShowLogo = true,
+                ReceiptShowCustomerName = true,
+                ReceiptPaperSize = "80mm",
+                ReceiptPhoneNumber = "01000000001"
             };
             context.Tenants.Add(tenant);
             await context.SaveChangesAsync();
@@ -84,7 +90,7 @@ public static class DbInitializer
                 {
                     TenantId = defaultTenant.Id,
                     BranchId = defaultBranch.Id,
-                    Name = "أحمد الكاشير",
+                    Name = "أحمد محمد",
                     Email = "ahmed@kasserpro.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
                     Role = UserRole.Cashier,
@@ -94,10 +100,30 @@ public static class DbInitializer
                 {
                     TenantId = defaultTenant.Id,
                     BranchId = defaultBranch.Id,
-                    Name = "سارة المحاسبة",
-                    Email = "sara@kasserpro.com",
+                    Name = "فاطمة علي",
+                    Email = "fatima@kasserpro.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
                     Role = UserRole.Cashier,
+                    IsActive = true
+                },
+                new()
+                {
+                    TenantId = defaultTenant.Id,
+                    BranchId = defaultBranch.Id,
+                    Name = "محمود حسن",
+                    Email = "mahmoud@kasserpro.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                    Role = UserRole.Cashier,
+                    IsActive = true
+                },
+                new()
+                {
+                    TenantId = null,
+                    BranchId = null,
+                    Name = "System Owner",
+                    Email = "owner@kasserpro.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Owner@123"),
+                    Role = UserRole.SystemOwner,
                     IsActive = true
                 }
             };
@@ -110,12 +136,11 @@ public static class DbInitializer
         {
             var categories = new List<Category>
             {
-                new() { TenantId = defaultTenant.Id, Name = "إلكترونيات", NameEn = "Electronics", SortOrder = 1, ImageUrl = "📱" },
-                new() { TenantId = defaultTenant.Id, Name = "ملابس", NameEn = "Clothing", SortOrder = 2, ImageUrl = "👕" },
-                new() { TenantId = defaultTenant.Id, Name = "أحذية", NameEn = "Shoes", SortOrder = 3, ImageUrl = "👟" },
-                new() { TenantId = defaultTenant.Id, Name = "إكسسوارات", NameEn = "Accessories", SortOrder = 4, ImageUrl = "⌚" },
-                new() { TenantId = defaultTenant.Id, Name = "منزل وحديقة", NameEn = "Home & Garden", SortOrder = 5, ImageUrl = "🏠" },
-                new() { TenantId = defaultTenant.Id, Name = "أدوات مكتبية", NameEn = "Office Supplies", SortOrder = 6, ImageUrl = "📎" }
+                new() { TenantId = defaultTenant.Id, Name = "مشروبات ساخنة", NameEn = "Hot Drinks", SortOrder = 1, ImageUrl = "☕" },
+                new() { TenantId = defaultTenant.Id, Name = "مشروبات باردة", NameEn = "Cold Drinks", SortOrder = 2, ImageUrl = "🥤" },
+                new() { TenantId = defaultTenant.Id, Name = "مأكولات", NameEn = "Food", SortOrder = 3, ImageUrl = "🍔" },
+                new() { TenantId = defaultTenant.Id, Name = "حلويات", NameEn = "Desserts", SortOrder = 4, ImageUrl = "🍰" },
+                new() { TenantId = defaultTenant.Id, Name = "وجبات خفيفة", NameEn = "Snacks", SortOrder = 5, ImageUrl = "🍿" }
             };
             context.Categories.AddRange(categories);
             await context.SaveChangesAsync();
@@ -128,41 +153,52 @@ public static class DbInitializer
             
             var products = new List<Product>
             {
-                // إلكترونيات
-                new() { TenantId = defaultTenant.Id, Name = "سماعات بلوتوث", NameEn = "Bluetooth Headphones", Sku = "ELEC001", Barcode = "6291041500213", Price = 350, Cost = 200, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🎧", TrackInventory = true, StockQuantity = 25, LowStockThreshold = 5 },
-                new() { TenantId = defaultTenant.Id, Name = "شاحن سريع", NameEn = "Fast Charger", Sku = "ELEC002", Barcode = "6291041500220", Price = 120, Cost = 60, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🔌", TrackInventory = true, StockQuantity = 50, LowStockThreshold = 10 },
-                new() { TenantId = defaultTenant.Id, Name = "باور بانك 10000", NameEn = "Power Bank 10000mAh", Sku = "ELEC003", Barcode = "6291041500237", Price = 280, Cost = 150, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🔋", TrackInventory = true, StockQuantity = 30, LowStockThreshold = 5 },
-                new() { TenantId = defaultTenant.Id, Name = "ماوس لاسلكي", NameEn = "Wireless Mouse", Sku = "ELEC004", Barcode = "6291041500244", Price = 95, Cost = 45, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🖱️", TrackInventory = true, StockQuantity = 40, LowStockThreshold = 8 },
-                new() { TenantId = defaultTenant.Id, Name = "كابل USB-C", NameEn = "USB-C Cable", Sku = "ELEC005", Barcode = "6291041500251", Price = 45, Cost = 15, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🔗", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 20 },
-                new() { TenantId = defaultTenant.Id, Name = "ساعة ذكية", NameEn = "Smart Watch", Sku = "ELEC006", Barcode = "6291041500268", Price = 850, Cost = 500, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "⌚", TrackInventory = true, StockQuantity = 15, LowStockThreshold = 3 },
+                // مشروبات ساخنة (Hot Drinks)
+                new() { TenantId = defaultTenant.Id, Name = "قهوة إسبريسو", NameEn = "Espresso", Sku = "HOT001", Barcode = "6291041500213", Price = 25, Cost = 8, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "☕", TrackInventory = true, StockQuantity = 200, LowStockThreshold = 30 },
+                new() { TenantId = defaultTenant.Id, Name = "كابتشينو", NameEn = "Cappuccino", Sku = "HOT002", Barcode = "6291041500220", Price = 30, Cost = 10, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "☕", TrackInventory = true, StockQuantity = 180, LowStockThreshold = 30 },
+                new() { TenantId = defaultTenant.Id, Name = "لاتيه", NameEn = "Latte", Sku = "HOT003", Barcode = "6291041500237", Price = 32, Cost = 11, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "☕", TrackInventory = true, StockQuantity = 180, LowStockThreshold = 30 },
+                new() { TenantId = defaultTenant.Id, Name = "موكا", NameEn = "Mocha", Sku = "HOT004", Barcode = "6291041500244", Price = 35, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "☕", TrackInventory = true, StockQuantity = 150, LowStockThreshold = 25 },
+                new() { TenantId = defaultTenant.Id, Name = "شاي أخضر", NameEn = "Green Tea", Sku = "HOT005", Barcode = "6291041500251", Price = 20, Cost = 5, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🍵", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
+                new() { TenantId = defaultTenant.Id, Name = "شاي أسود", NameEn = "Black Tea", Sku = "HOT006", Barcode = "6291041500268", Price = 18, Cost = 4, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🍵", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
+                new() { TenantId = defaultTenant.Id, Name = "شوكولاتة ساخنة", NameEn = "Hot Chocolate", Sku = "HOT007", Barcode = "6291041500275", Price = 28, Cost = 9, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "🍫", TrackInventory = true, StockQuantity = 120, LowStockThreshold = 20 },
+                new() { TenantId = defaultTenant.Id, Name = "قهوة تركية", NameEn = "Turkish Coffee", Sku = "HOT008", Barcode = "6291041500282", Price = 22, Cost = 7, TaxRate = 14, TaxInclusive = true, CategoryId = categories[0].Id, ImageUrl = "☕", TrackInventory = true, StockQuantity = 180, LowStockThreshold = 30 },
                 
-                // ملابس
-                new() { TenantId = defaultTenant.Id, Name = "تيشيرت قطن", NameEn = "Cotton T-Shirt", Sku = "CLO001", Barcode = "6291041500275", Price = 150, Cost = 60, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "👕", TrackInventory = true, StockQuantity = 80, LowStockThreshold = 15 },
-                new() { TenantId = defaultTenant.Id, Name = "بنطلون جينز", NameEn = "Jeans Pants", Sku = "CLO002", Barcode = "6291041500282", Price = 320, Cost = 150, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "👖", TrackInventory = true, StockQuantity = 45, LowStockThreshold = 10 },
-                new() { TenantId = defaultTenant.Id, Name = "قميص رسمي", NameEn = "Formal Shirt", Sku = "CLO003", Barcode = "6291041500299", Price = 250, Cost = 100, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "👔", TrackInventory = true, StockQuantity = 35, LowStockThreshold = 8 },
-                new() { TenantId = defaultTenant.Id, Name = "جاكيت شتوي", NameEn = "Winter Jacket", Sku = "CLO004", Barcode = "6291041500306", Price = 550, Cost = 280, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🧥", TrackInventory = true, StockQuantity = 20, LowStockThreshold = 5 },
+                // مشروبات باردة (Cold Drinks)
+                new() { TenantId = defaultTenant.Id, Name = "عصير برتقال طازج", NameEn = "Fresh Orange Juice", Sku = "COLD001", Barcode = "6291041500299", Price = 25, Cost = 10, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🍊", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "عصير مانجو", NameEn = "Mango Juice", Sku = "COLD002", Barcode = "6291041500306", Price = 28, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🥭", TrackInventory = true, StockQuantity = 90, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "عصير فراولة", NameEn = "Strawberry Juice", Sku = "COLD003", Barcode = "6291041500313", Price = 30, Cost = 13, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🍓", TrackInventory = true, StockQuantity = 85, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "سموذي موز", NameEn = "Banana Smoothie", Sku = "COLD004", Barcode = "6291041500320", Price = 32, Cost = 14, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🍌", TrackInventory = true, StockQuantity = 80, LowStockThreshold = 12 },
+                new() { TenantId = defaultTenant.Id, Name = "مياه معدنية", NameEn = "Mineral Water", Sku = "COLD005", Barcode = "6291041500337", Price = 10, Cost = 3, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "💧", TrackInventory = true, StockQuantity = 300, LowStockThreshold = 50 },
+                new() { TenantId = defaultTenant.Id, Name = "مشروب غازي", NameEn = "Soft Drink", Sku = "COLD006", Barcode = "6291041500344", Price = 15, Cost = 5, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🥤", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
+                new() { TenantId = defaultTenant.Id, Name = "آيس كوفي", NameEn = "Iced Coffee", Sku = "COLD007", Barcode = "6291041500351", Price = 35, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🧊", TrackInventory = true, StockQuantity = 120, LowStockThreshold = 20 },
+                new() { TenantId = defaultTenant.Id, Name = "ليموناضة", NameEn = "Lemonade", Sku = "COLD008", Barcode = "6291041500368", Price = 22, Cost = 8, TaxRate = 14, TaxInclusive = true, CategoryId = categories[1].Id, ImageUrl = "🍋", TrackInventory = true, StockQuantity = 150, LowStockThreshold = 25 },
                 
-                // أحذية
-                new() { TenantId = defaultTenant.Id, Name = "حذاء رياضي", NameEn = "Sports Shoes", Sku = "SHO001", Barcode = "6291041500313", Price = 450, Cost = 220, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "👟", TrackInventory = true, StockQuantity = 30, LowStockThreshold = 6 },
-                new() { TenantId = defaultTenant.Id, Name = "حذاء رسمي", NameEn = "Formal Shoes", Sku = "SHO002", Barcode = "6291041500320", Price = 380, Cost = 180, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "👞", TrackInventory = true, StockQuantity = 25, LowStockThreshold = 5 },
-                new() { TenantId = defaultTenant.Id, Name = "صندل", NameEn = "Sandals", Sku = "SHO003", Barcode = "6291041500337", Price = 180, Cost = 70, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🩴", TrackInventory = true, StockQuantity = 40, LowStockThreshold = 8 },
+                // مأكولات (Food)
+                new() { TenantId = defaultTenant.Id, Name = "برجر لحم", NameEn = "Beef Burger", Sku = "FOOD001", Barcode = "6291041500375", Price = 55, Cost = 25, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍔", TrackInventory = true, StockQuantity = 80, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "برجر دجاج", NameEn = "Chicken Burger", Sku = "FOOD002", Barcode = "6291041500382", Price = 50, Cost = 22, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍔", TrackInventory = true, StockQuantity = 85, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "ساندويتش كلوب", NameEn = "Club Sandwich", Sku = "FOOD003", Barcode = "6291041500399", Price = 45, Cost = 20, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🥪", TrackInventory = true, StockQuantity = 70, LowStockThreshold = 12 },
+                new() { TenantId = defaultTenant.Id, Name = "بيتزا مارجريتا", NameEn = "Margherita Pizza", Sku = "FOOD004", Barcode = "6291041500406", Price = 65, Cost = 28, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍕", TrackInventory = true, StockQuantity = 60, LowStockThreshold = 10 },
+                new() { TenantId = defaultTenant.Id, Name = "باستا ألفريدو", NameEn = "Alfredo Pasta", Sku = "FOOD005", Barcode = "6291041500413", Price = 60, Cost = 26, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🍝", TrackInventory = true, StockQuantity = 55, LowStockThreshold = 10 },
+                new() { TenantId = defaultTenant.Id, Name = "سلطة سيزر", NameEn = "Caesar Salad", Sku = "FOOD006", Barcode = "6291041500420", Price = 40, Cost = 18, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🥗", TrackInventory = true, StockQuantity = 65, LowStockThreshold = 12 },
+                new() { TenantId = defaultTenant.Id, Name = "فطيرة جبن", NameEn = "Cheese Pie", Sku = "FOOD007", Barcode = "6291041500437", Price = 35, Cost = 15, TaxRate = 14, TaxInclusive = true, CategoryId = categories[2].Id, ImageUrl = "🥧", TrackInventory = true, StockQuantity = 75, LowStockThreshold = 15 },
                 
-                // إكسسوارات
-                new() { TenantId = defaultTenant.Id, Name = "حزام جلد", NameEn = "Leather Belt", Sku = "ACC001", Barcode = "6291041500344", Price = 120, Cost = 45, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🎀", TrackInventory = true, StockQuantity = 60, LowStockThreshold = 12 },
-                new() { TenantId = defaultTenant.Id, Name = "محفظة", NameEn = "Wallet", Sku = "ACC002", Barcode = "6291041500351", Price = 180, Cost = 70, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "👛", TrackInventory = true, StockQuantity = 45, LowStockThreshold = 10 },
-                new() { TenantId = defaultTenant.Id, Name = "نظارة شمسية", NameEn = "Sunglasses", Sku = "ACC003", Barcode = "6291041500368", Price = 220, Cost = 90, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🕶️", TrackInventory = true, StockQuantity = 35, LowStockThreshold = 7 },
-                new() { TenantId = defaultTenant.Id, Name = "شنطة ظهر", NameEn = "Backpack", Sku = "ACC004", Barcode = "6291041500375", Price = 350, Cost = 150, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🎒", TrackInventory = true, StockQuantity = 25, LowStockThreshold = 5 },
+                // حلويات (Desserts)
+                new() { TenantId = defaultTenant.Id, Name = "كيك شوكولاتة", NameEn = "Chocolate Cake", Sku = "DES001", Barcode = "6291041500444", Price = 40, Cost = 16, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍰", TrackInventory = true, StockQuantity = 50, LowStockThreshold = 8 },
+                new() { TenantId = defaultTenant.Id, Name = "تشيز كيك", NameEn = "Cheesecake", Sku = "DES002", Barcode = "6291041500451", Price = 45, Cost = 18, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍰", TrackInventory = true, StockQuantity = 45, LowStockThreshold = 8 },
+                new() { TenantId = defaultTenant.Id, Name = "كوكيز", NameEn = "Cookies", Sku = "DES003", Barcode = "6291041500468", Price = 25, Cost = 8, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍪", TrackInventory = true, StockQuantity = 120, LowStockThreshold = 20 },
+                new() { TenantId = defaultTenant.Id, Name = "براونيز", NameEn = "Brownies", Sku = "DES004", Barcode = "6291041500475", Price = 30, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍫", TrackInventory = true, StockQuantity = 80, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "آيس كريم", NameEn = "Ice Cream", Sku = "DES005", Barcode = "6291041500482", Price = 28, Cost = 10, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍨", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 18 },
+                new() { TenantId = defaultTenant.Id, Name = "دونات", NameEn = "Donuts", Sku = "DES006", Barcode = "6291041500499", Price = 22, Cost = 7, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🍩", TrackInventory = true, StockQuantity = 90, LowStockThreshold = 15 },
+                new() { TenantId = defaultTenant.Id, Name = "كرواسون", NameEn = "Croissant", Sku = "DES007", Barcode = "6291041500506", Price = 20, Cost = 6, TaxRate = 14, TaxInclusive = true, CategoryId = categories[3].Id, ImageUrl = "🥐", TrackInventory = true, StockQuantity = 110, LowStockThreshold = 20 },
                 
-                // منزل وحديقة
-                new() { TenantId = defaultTenant.Id, Name = "مصباح LED", NameEn = "LED Lamp", Sku = "HOM001", Barcode = "6291041500382", Price = 85, Cost = 35, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "💡", TrackInventory = true, StockQuantity = 70, LowStockThreshold = 15 },
-                new() { TenantId = defaultTenant.Id, Name = "ساعة حائط", NameEn = "Wall Clock", Sku = "HOM002", Barcode = "6291041500399", Price = 150, Cost = 60, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🕐", TrackInventory = true, StockQuantity = 30, LowStockThreshold = 6 },
-                new() { TenantId = defaultTenant.Id, Name = "مرآة", NameEn = "Mirror", Sku = "HOM003", Barcode = "6291041500406", Price = 200, Cost = 80, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🪞", TrackInventory = true, StockQuantity = 20, LowStockThreshold = 4 },
-                
-                // أدوات مكتبية
-                new() { TenantId = defaultTenant.Id, Name = "دفتر ملاحظات", NameEn = "Notebook", Sku = "OFF001", Barcode = "6291041500413", Price = 25, Cost = 8, TaxRate = 14, TaxInclusive = true, CategoryId = categories[5].Id, ImageUrl = "📓", TrackInventory = true, StockQuantity = 150, LowStockThreshold = 30 },
-                new() { TenantId = defaultTenant.Id, Name = "أقلام (علبة)", NameEn = "Pens Box", Sku = "OFF002", Barcode = "6291041500420", Price = 35, Cost = 12, TaxRate = 14, TaxInclusive = true, CategoryId = categories[5].Id, ImageUrl = "🖊️", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 20 },
-                new() { TenantId = defaultTenant.Id, Name = "مقلمة", NameEn = "Pencil Case", Sku = "OFF003", Barcode = "6291041500437", Price = 45, Cost = 18, TaxRate = 14, TaxInclusive = true, CategoryId = categories[5].Id, ImageUrl = "✏️", TrackInventory = true, StockQuantity = 80, LowStockThreshold = 15 },
-                new() { TenantId = defaultTenant.Id, Name = "مسطرة معدنية", NameEn = "Metal Ruler", Sku = "OFF004", Barcode = "6291041500444", Price = 15, Cost = 5, TaxRate = 14, TaxInclusive = true, CategoryId = categories[5].Id, ImageUrl = "📏", TrackInventory = true, StockQuantity = 120, LowStockThreshold = 25 }
+                // وجبات خفيفة (Snacks)
+                new() { TenantId = defaultTenant.Id, Name = "شيبس", NameEn = "Chips", Sku = "SNK001", Barcode = "6291041500513", Price = 15, Cost = 5, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🥔", TrackInventory = true, StockQuantity = 200, LowStockThreshold = 35 },
+                new() { TenantId = defaultTenant.Id, Name = "فشار", NameEn = "Popcorn", Sku = "SNK002", Barcode = "6291041500520", Price = 18, Cost = 6, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍿", TrackInventory = true, StockQuantity = 150, LowStockThreshold = 25 },
+                new() { TenantId = defaultTenant.Id, Name = "مكسرات", NameEn = "Mixed Nuts", Sku = "SNK003", Barcode = "6291041500537", Price = 35, Cost = 15, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🥜", TrackInventory = true, StockQuantity = 100, LowStockThreshold = 18 },
+                new() { TenantId = defaultTenant.Id, Name = "بسكويت", NameEn = "Biscuits", Sku = "SNK004", Barcode = "6291041500544", Price = 12, Cost = 4, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍪", TrackInventory = true, StockQuantity = 180, LowStockThreshold = 30 },
+                new() { TenantId = defaultTenant.Id, Name = "شوكولاتة", NameEn = "Chocolate Bar", Sku = "SNK005", Barcode = "6291041500551", Price = 20, Cost = 8, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍫", TrackInventory = true, StockQuantity = 160, LowStockThreshold = 28 },
+                new() { TenantId = defaultTenant.Id, Name = "علكة", NameEn = "Chewing Gum", Sku = "SNK006", Barcode = "6291041500568", Price = 8, Cost = 2, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍬", TrackInventory = true, StockQuantity = 250, LowStockThreshold = 40 },
+                new() { TenantId = defaultTenant.Id, Name = "حلوى", NameEn = "Candy", Sku = "SNK007", Barcode = "6291041500575", Price = 10, Cost = 3, TaxRate = 14, TaxInclusive = true, CategoryId = categories[4].Id, ImageUrl = "🍭", TrackInventory = true, StockQuantity = 220, LowStockThreshold = 38 }
             };
             
             // Set LastStockUpdate for all products
@@ -198,11 +234,11 @@ public static class DbInitializer
         {
             var suppliers = new List<Supplier>
             {
-                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة الإلكترونيات المتقدمة", Phone = "0233334444", Email = "info@electronics-co.com", Address = "شارع الجمهورية، القاهرة", ContactPerson = "أحمد محمود", TaxNumber = "123-456-789", Notes = "مورد رئيسي للإلكترونيات", IsActive = true },
-                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "مؤسسة الملابس الحديثة", Phone = "0244445555", Email = "sales@modern-clothes.com", Address = "المنطقة الصناعية، العاشر من رمضان", ContactPerson = "سارة علي", TaxNumber = "234-567-890", Notes = "متخصصون في الملابس والأقمشة", IsActive = true },
-                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة الأحذية الذهبية", Phone = "0255556666", Email = "contact@golden-shoes.com", Address = "مدينة بدر، القاهرة", ContactPerson = "محمد حسن", TaxNumber = "345-678-901", Notes = "أحذية بجودة عالية", IsActive = true },
-                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "مكتبة الأدوات المكتبية", Phone = "0266667777", Email = "orders@office-supplies.com", Address = "وسط البلد، القاهرة", ContactPerson = "فاطمة أحمد", TaxNumber = "456-789-012", Notes = "أدوات مكتبية ومستلزمات", IsActive = true },
-                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة المنزل والديكور", Phone = "0277778888", Email = "info@home-decor.com", Address = "مدينة نصر، القاهرة", ContactPerson = "خالد سعيد", TaxNumber = "567-890-123", Notes = "ديكورات منزلية ومستلزمات", IsActive = true }
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة البن العربي", Phone = "0233334444", Email = "info@arabcoffee.com", Address = "شارع الجمهورية، القاهرة", ContactPerson = "أحمد محمود", TaxNumber = "123-456-789", Notes = "مورد رئيسي للقهوة والشاي", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "مؤسسة الألبان الطازجة", Phone = "0244445555", Email = "sales@fresh-dairy.com", Address = "المنطقة الصناعية، العاشر من رمضان", ContactPerson = "سارة علي", TaxNumber = "234-567-890", Notes = "متخصصون في منتجات الألبان والحليب", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة الفواكه والعصائر", Phone = "0255556666", Email = "contact@fruits-juice.com", Address = "سوق العبور، القاهرة", ContactPerson = "محمد حسن", TaxNumber = "345-678-901", Notes = "فواكه طازجة ومواد خام للعصائر", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "مخبز الأمل", Phone = "0266667777", Email = "orders@amal-bakery.com", Address = "وسط البلد، القاهرة", ContactPerson = "فاطمة أحمد", TaxNumber = "456-789-012", Notes = "مخبوزات وحلويات طازجة", IsActive = true },
+                new() { TenantId = defaultTenant.Id, BranchId = defaultBranch.Id, Name = "شركة المواد الغذائية المتحدة", Phone = "0277778888", Email = "info@united-foods.com", Address = "مدينة نصر، القاهرة", ContactPerson = "خالد سعيد", TaxNumber = "567-890-123", Notes = "مواد غذائية ومشروبات متنوعة", IsActive = true }
             };
             context.Suppliers.AddRange(suppliers);
             await context.SaveChangesAsync();
@@ -229,12 +265,17 @@ public static class DbInitializer
                     UserId = admin.Id,
                     OpeningBalance = 500,
                     OpenedAt = shiftDate.AddHours(9),
-                    IsClosed = isClosed
+                    LastActivityAt = shiftDate.AddHours(9), // Initialize LastActivityAt
+                    IsClosed = isClosed,
+                    IsForceClosed = false,
+                    IsHandedOver = false,
+                    HandoverBalance = 0
                 };
 
                 if (isClosed)
                 {
                     shift.ClosedAt = shiftDate.AddHours(21);
+                    shift.LastActivityAt = shiftDate.AddHours(21); // Update to close time
                     shift.Notes = $"وردية يوم {shiftDate:yyyy-MM-dd}";
                 }
 

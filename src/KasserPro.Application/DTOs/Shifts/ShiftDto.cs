@@ -18,6 +18,28 @@ public class ShiftDto
     public int TotalOrders { get; set; }
     public string UserName { get; set; } = string.Empty;
     
+    // Inactivity tracking
+    public DateTime LastActivityAt { get; set; }
+    public int InactiveHours { get; set; } // Calculated
+    
+    // Force close
+    public bool IsForceClosed { get; set; }
+    public string? ForceClosedByUserName { get; set; }
+    public DateTime? ForceClosedAt { get; set; }
+    public string? ForceCloseReason { get; set; }
+    
+    // Handover
+    public bool IsHandedOver { get; set; }
+    public string? HandedOverFromUserName { get; set; }
+    public string? HandedOverToUserName { get; set; }
+    public DateTime? HandedOverAt { get; set; }
+    public decimal HandoverBalance { get; set; }
+    public string? HandoverNotes { get; set; }
+    
+    // Calculated fields
+    public int DurationHours { get; set; }
+    public int DurationMinutes { get; set; }
+    
     // Orders in this shift
     public List<ShiftOrderDto> Orders { get; set; } = new();
 }

@@ -19,6 +19,7 @@ import {
   Building2,
   Receipt,
   Wallet,
+  Boxes,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
@@ -28,6 +29,7 @@ const navItems = [
   { path: "/pos", label: "نقطة البيع", icon: ShoppingCart },
   { path: "/orders", label: "الطلبات", icon: ClipboardList },
   { path: "/shift", label: "الوردية", icon: Timer },
+  { path: "/shifts-management", label: "إدارة الورديات", icon: Clock, adminOnly: true },
   { path: "/customers", label: "العملاء", icon: Users, adminOnly: true },
   { path: "/products", label: "المنتجات", icon: Package, adminOnly: true },
   {
@@ -38,16 +40,18 @@ const navItems = [
   },
   { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
   { path: "/purchase-invoices", label: "فواتير الشراء", icon: FileText, adminOnly: true },
+  { path: "/inventory", label: "المخزون", icon: Boxes, adminOnly: true },
   { path: "/expenses", label: "المصروفات", icon: Receipt, adminOnly: true },
   { path: "/cash-register", label: "الخزينة", icon: Wallet, adminOnly: true },
   { path: "/branches", label: "الفروع", icon: Building2, adminOnly: true },
   { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
   { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
   { path: "/settings", label: "الإعدادات", icon: Settings, adminOnly: true },
+  { path: "/owner/tenants", label: "إدارة الشركات", icon: Building2, systemOwnerOnly: true },
 ];
 
 export const MainLayout = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isSystemOwner } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentTime = new Date().toLocaleTimeString("ar-EG", {
@@ -56,7 +60,12 @@ export const MainLayout = () => {
   });
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.adminOnly || isAdmin
+    (item) => {
+      if (isSystemOwner) return !!item.systemOwnerOnly;
+      if (item.systemOwnerOnly) return isSystemOwner;
+      if (item.adminOnly) return isAdmin;
+      return true;
+    }
   );
 
   return (
@@ -106,7 +115,7 @@ export const MainLayout = () => {
             <div>
               <p className="font-medium">{user?.name}</p>
               <p className="text-xs text-gray-400">
-                {user?.role === "Admin" ? "مدير" : "كاشير"}
+                {user?.role === "SystemOwner" ? "مالك النظام" : user?.role === "Admin" ? "مدير" : "كاشير"}
               </p>
             </div>
           </div>
@@ -216,6 +225,11 @@ export const MainLayout = () => {
               {user?.role === "Admin" && (
                 <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full hidden sm:inline">
                   مدير
+                </span>
+              )}
+              {user?.role === "SystemOwner" && (
+                <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full hidden sm:inline">
+                  مالك النظام
                 </span>
               )}
             </div>

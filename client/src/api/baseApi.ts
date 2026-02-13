@@ -42,14 +42,39 @@ const baseQueryWithReauth = retry(
     if (result.error) {
       const error = result.error as FetchBaseQueryError;
 
-      // Network error (offline) - retry
+      // P0-7: NEVER retry mutations (POST, PUT, DELETE).
+      // Retrying a payment or order completion can cause double-charges.
+      // Only GET requests (queries) are safe to retry.
+      const isMutation =
+        typeof args === "object" &&
+        args !== null &&
+        "method" in args &&
+        typeof (args as Record<string, unknown>).method === "string" &&
+        ["POST", "PUT", "DELETE"].includes(
+          ((args as Record<string, unknown>).method as string).toUpperCase()
+        );
+
+      if (isMutation) {
+        // Show error but do NOT retry
+        if (error.status === "FETCH_ERROR") {
+          toast.error("فشل الاتصال. تحقق من الشبكة وحاول يدوياً.");
+        } else if (error.status === 500) {
+          toast.error("حدث خطأ في الخادم. لا تكرر العملية — تحقق من البيانات أولاً.");
+        }
+        retry.fail(error);
+        return result;
+      }
+
+      // --- Below: only applies to GET queries ---
+
+      // Network error (offline) - retry query
       if (error.status === "FETCH_ERROR") {
         toast.error("لا يوجد اتصال بالإنترنت");
         // Retry will happen automatically
         return result;
       }
 
-      // Timeout error - retry
+      // Timeout error - retry query
       if (error.status === "TIMEOUT_ERROR") {
         toast.error("انتهت مهلة الاتصال، حاول مرة أخرى");
         // Retry will happen automatically
@@ -89,7 +114,7 @@ const baseQueryWithReauth = retry(
         return result;
       }
 
-      // 500 Server Error - retry
+      // 500 Server Error - retry query only
       if (error.status === 500) {
         toast.error("حدث خطأ في الخادم، حاول مرة أخرى");
         // Retry will happen automatically

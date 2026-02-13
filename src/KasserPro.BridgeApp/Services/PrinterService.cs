@@ -47,7 +47,7 @@ public class PrinterService : IPrinterService
     /// <summary>
     /// Prints a receipt on the configured thermal printer
     /// </summary>
-    public async Task<bool> PrintReceiptAsync(ReceiptDto receipt)
+    public async Task<bool> PrintReceiptAsync(PrintCommandDto command)
     {
         try
         {
@@ -60,19 +60,19 @@ public class PrinterService : IPrinterService
                 return false;
             }
 
-            Log.Information("Printing receipt {ReceiptNumber} on printer {Printer}", 
-                receipt.ReceiptNumber, printerName);
+            Log.Information("Printing receipt {ReceiptNumber} on printer {Printer}",
+                command.Receipt.ReceiptNumber, printerName);
 
             // Use PrintDocument (Windows Print API) for all printers
             // This ensures proper Arabic text rendering
-            await PrintUsingPrintDocumentAsync(printerName, receipt);
+            await PrintUsingPrintDocumentAsync(printerName, command.Receipt, command.Settings);
 
-            Log.Information("Receipt {ReceiptNumber} printed successfully", receipt.ReceiptNumber);
+            Log.Information("Receipt {ReceiptNumber} printed successfully", command.Receipt.ReceiptNumber);
             return true;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to print receipt {ReceiptNumber}", receipt.ReceiptNumber);
+            Log.Error(ex, "Failed to print receipt {ReceiptNumber}", command.Receipt.ReceiptNumber);
             return false;
         }
     }
@@ -88,155 +88,204 @@ public class PrinterService : IPrinterService
 
     /// <summary>
     /// Prints receipt using PrintDocument (Windows Print API)
-    /// Supports Arabic text rendering with proper RTL layout
+    /// Uses settings from server (tenant configuration) instead of local settings
     /// </summary>
-    private Task PrintUsingPrintDocumentAsync(string printerName, ReceiptDto receipt)
+    private Task PrintUsingPrintDocumentAsync(string printerName, ReceiptDto receipt, ReceiptPrintSettings rs)
     {
-        return Task.Run(async () =>
+        return Task.Run(() =>
         {
-            var settings = await _settingsManager.GetSettingsAsync();
-            var receiptSettings = settings.Receipt;
-
             var printDoc = new PrintDocument();
             printDoc.PrinterSettings.PrinterName = printerName;
-            
-            // Set paper size for thermal receipt (80mm width)
-            printDoc.DefaultPageSettings.PaperSize = new PaperSize("Receipt", 315, 1200);
-            
+
+            // Set paper size based on server settings
+            float paperWidth = rs.PaperSize switch
+            {
+                "58mm" => 219,
+                "custom" => rs.CustomWidth ?? 280,
+                _ => 302  // 80mm
+            };
+            printDoc.DefaultPageSettings.PaperSize = new PaperSize("Receipt", (int)paperWidth, 1200);
+
             printDoc.PrintPage += (sender, e) =>
             {
                 if (e.Graphics == null) return;
 
                 var graphics = e.Graphics;
-                
-                // Fonts - using customizable settings
-                var regularFont = new Font(receiptSettings.FontName, receiptSettings.RegularFontSize, FontStyle.Regular);
-                var boldFont = new Font(receiptSettings.FontName, receiptSettings.BoldFontSize, FontStyle.Bold);
-                var headerFont = new Font(receiptSettings.FontName, receiptSettings.HeaderFontSize, FontStyle.Bold);
-                var totalFont = new Font(receiptSettings.FontName, receiptSettings.TotalFontSize, FontStyle.Bold);
-                
-                float yPos = 20;
-                float leftMargin = 20;
-                float rightMargin = 295;
-                float centerX = 157.5f;
-                float lineHeight = regularFont.GetHeight(graphics) * receiptSettings.LineSpacing;
+                graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-                void DrawCentered(string text, Font font, float y)
+                float margin = 4;
+                float W = paperWidth - (margin * 2);
+                float y = 4;
+
+                // Fonts from server settings
+                var font = new Font("Arial", rs.BodyFontSize, FontStyle.Regular);
+                var fontBold = new Font("Arial", rs.BodyFontSize, FontStyle.Bold);
+                var fontHeader = new Font("Arial", rs.HeaderFontSize, FontStyle.Bold);
+                var fontTotal = new Font("Arial", rs.TotalFontSize, FontStyle.Bold);
+                var fontSmall = new Font("Arial", Math.Max(rs.BodyFontSize - 1, 7), FontStyle.Regular);
+
+                float lineH = font.GetHeight(graphics) + 4;
+
+                // RTL format
+                var sfCenter = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Near };
+                var sfRight = new StringFormat(StringFormatFlags.DirectionRightToLeft) { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
+                var sfLeft = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
+
+                // Dashed line pen
+                var dashPen = new Pen(System.Drawing.Color.Black, 0.8f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+
+                // Helper: draw text centered
+                void DrawCenter(string text, Font f)
                 {
-                    var size = graphics.MeasureString(text, font);
-                    graphics.DrawString(text, font, Brushes.Black, centerX - (size.Width / 2), y);
+                    graphics.DrawString(text, f, Brushes.Black, new RectangleF(margin, y, W, f.GetHeight(graphics) + 4), sfCenter);
+                    y += f.GetHeight(graphics) + 4;
                 }
 
-                void DrawRight(string text, Font font, float y)
+                // Helper: draw two texts on same line (right and left)
+                void DrawRow(string right, string left, Font f)
                 {
-                    var size = graphics.MeasureString(text, font);
-                    graphics.DrawString(text, font, Brushes.Black, rightMargin - size.Width, y);
+                    var h = f.GetHeight(graphics) + 4;
+                    graphics.DrawString(right, f, Brushes.Black, new RectangleF(margin, y, W, h), sfRight);
+                    graphics.DrawString(left, f, Brushes.Black, new RectangleF(margin, y, W, h), sfLeft);
+                    y += h;
                 }
 
-                void DrawSeparator(float y, bool dashed = false)
+                // Helper: draw dashed line
+                void DrawDash()
                 {
-                    if (dashed)
+                    y += 2;
+                    graphics.DrawLine(dashPen, margin, y, margin + W, y);
+                    y += 3;
+                }
+
+                // ========== 1. LOGO (if enabled and URL exists) ==========
+                if (rs.ShowLogo && !string.IsNullOrEmpty(rs.LogoUrl))
+                {
+                    try
                     {
-                        var pen = new Pen(System.Drawing.Color.Gray, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-                        graphics.DrawLine(pen, leftMargin, y, rightMargin, y);
+                        using var client = new System.Net.Http.HttpClient();
+                        client.Timeout = TimeSpan.FromSeconds(5);
+                        var imageBytes = client.GetByteArrayAsync(rs.LogoUrl).Result;
+                        using var ms = new System.IO.MemoryStream(imageBytes);
+                        using var logo = System.Drawing.Image.FromStream(ms);
+                        
+                        // Scale logo to fit receipt width (max 80px height)
+                        float maxLogoHeight = 60;
+                        float logoRatio = (float)logo.Width / logo.Height;
+                        float logoHeight = Math.Min(maxLogoHeight, logo.Height);
+                        float logoWidth = logoHeight * logoRatio;
+                        if (logoWidth > W * 0.6f)
+                        {
+                            logoWidth = W * 0.6f;
+                            logoHeight = logoWidth / logoRatio;
+                        }
+                        
+                        float logoX = margin + (W - logoWidth) / 2;
+                        graphics.DrawImage(logo, logoX, y, logoWidth, logoHeight);
+                        y += logoHeight + 6;
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        graphics.DrawLine(Pens.Black, leftMargin, y, rightMargin, y);
+                        Log.Warning("Failed to load logo: {Error}", ex.Message);
                     }
                 }
 
-                // ============ HEADER ============
-                if (receiptSettings.ShowBranchName)
+                // ========== 2. HEADER ==========
+                if (rs.ShowBranchName)
                 {
-                    DrawCentered(receipt.BranchName, headerFont, yPos);
-                    yPos += headerFont.GetHeight(graphics) * receiptSettings.LineSpacing + 5;
+                    DrawCenter(receipt.BranchName, fontHeader);
+                    y += 2;
                 }
 
-                DrawSeparator(yPos);
-                yPos += 8;
+                DrawRow("فاتورة رقم", receipt.ReceiptNumber, font);
+                DrawCenter(receipt.Date.ToString("dd/MM/yyyy  hh:mm tt"), font);
 
-                // Receipt info
-                DrawRight($"فاتورة رقم: {receipt.ReceiptNumber}", boldFont, yPos);
-                yPos += lineHeight + 3;
+                DrawDash();
 
-                DrawRight($"التاريخ: {receipt.Date:dd/MM/yyyy}", regularFont, yPos);
-                yPos += lineHeight + 2;
+                // ========== 3. CASHIER, CUSTOMER & PAYMENT ==========
+                var paymentAr = TranslatePaymentMethod(receipt.PaymentMethod);
+                if (rs.ShowCashier)
+                {
+                    DrawRow($"الكاشير: {receipt.CashierName}", $"الدفع: {paymentAr}", font);
+                }
+                else
+                {
+                    DrawRow($"الدفع: {paymentAr}", "", font);
+                }
+                if (rs.ShowCustomerName && !string.IsNullOrEmpty(receipt.CustomerName))
+                {
+                    DrawRow($"العميل: {receipt.CustomerName}", "", font);
+                }
 
-                DrawRight($"الوقت: {receipt.Date:HH:mm}", regularFont, yPos);
-                yPos += lineHeight + 2;
+                DrawDash();
 
-                DrawRight($"الكاشير: {receipt.CashierName}", regularFont, yPos);
-                yPos += lineHeight + 5;
-
-                DrawSeparator(yPos);
-                yPos += 8;
-
-                // ============ ITEMS ============
-                DrawRight("المنتجات:", boldFont, yPos);
-                yPos += boldFont.GetHeight(graphics) * receiptSettings.LineSpacing + 3;
-
-                DrawSeparator(yPos, dashed: true);
-                yPos += 5;
-
+                // ========== 4. ITEMS ==========
                 foreach (var item in receipt.Items)
                 {
-                    DrawRight(item.Name, boldFont, yPos);
-                    yPos += lineHeight + 2;
-
-                    DrawRight($"الكمية: {item.Quantity}  |  السعر: {item.UnitPrice:F2} ج.م", regularFont, yPos);
-                    yPos += lineHeight + 2;
-
-                    DrawRight($"الإجمالي: {item.TotalPrice:F2} ج.م", boldFont, yPos);
-                    yPos += lineHeight + 5;
+                    DrawRow($"{item.Name} × {item.Quantity:F0}", $"{item.TotalPrice:F0} ج.م", font);
                 }
 
-                DrawSeparator(yPos);
-                yPos += 8;
+                DrawDash();
 
-                // ============ TOTALS ============
-                DrawRight("الملخص المالي:", boldFont, yPos);
-                yPos += boldFont.GetHeight(graphics) * receiptSettings.LineSpacing + 3;
+                // ========== 5. TOTALS ==========
+                DrawRow("المجموع", $"{receipt.NetTotal:F2} ج.م", font);
 
-                DrawSeparator(yPos, dashed: true);
-                yPos += 5;
-
-                DrawRight($"المجموع الفرعي: {receipt.NetTotal:F2} ج.م", regularFont, yPos);
-                yPos += lineHeight + 3;
-
-                DrawRight($"الضريبة (14%): {receipt.TaxAmount:F2} ج.م", regularFont, yPos);
-                yPos += lineHeight + 5;
-
-                DrawSeparator(yPos);
-                yPos += 5;
-
-                DrawRight($"الإجمالي الكلي: {receipt.TotalAmount:F2} ج.م", totalFont, yPos);
-                yPos += totalFont.GetHeight(graphics) * receiptSettings.LineSpacing + 8;
-
-                DrawSeparator(yPos);
-                yPos += 8;
-
-                // ============ PAYMENT ============
-                var paymentMethodAr = TranslatePaymentMethod(receipt.PaymentMethod);
-                DrawRight($"طريقة الدفع: {paymentMethodAr}", boldFont, yPos);
-                yPos += lineHeight + 10;
-
-                DrawSeparator(yPos, dashed: true);
-                yPos += 8;
-
-                // ============ FOOTER ============
-                if (receiptSettings.ShowBarcode)
+                if (receipt.TaxAmount > 0 && rs.IsTaxEnabled)
                 {
-                    DrawCentered($"*{receipt.ReceiptNumber}*", regularFont, yPos);
-                    yPos += lineHeight + 8;
+                    DrawRow($"الضريبة ({rs.TaxRate:F0}%)", $"{receipt.TaxAmount:F2} ج.م", font);
                 }
 
-                if (receiptSettings.ShowThankYou)
+                var discount = receipt.NetTotal - receipt.TotalAmount + receipt.TaxAmount;
+                if (discount > 0)
                 {
-                    DrawCentered("شكراً لزيارتكم", boldFont, yPos);
-                    yPos += boldFont.GetHeight(graphics) * receiptSettings.LineSpacing + 3;
-                    DrawCentered("THANK YOU!", regularFont, yPos);
+                    DrawRow("الخصم", $"-{discount:F2} ج.م", font);
                 }
+
+                DrawDash();
+
+                // Total - bold and bigger
+                DrawRow("الإجمالي", $"{receipt.TotalAmount:F2} ج.م", fontTotal);
+
+                // ========== 6. PAYMENT AMOUNTS ==========
+                // Amount paid and change/due
+                if (receipt.AmountPaid > 0)
+                {
+                    DrawDash();
+                    DrawRow("المبلغ المدفوع", $"{receipt.AmountPaid:F2} ج.م", font);
+                    if (receipt.ChangeAmount > 0)
+                    {
+                        DrawRow("الباقي", $"{receipt.ChangeAmount:F2} ج.م", font);
+                    }
+                    if (receipt.AmountDue > 0)
+                    {
+                        DrawRow("المتبقي على العميل", $"{receipt.AmountDue:F2} ج.م", fontBold);
+                    }
+                }
+
+                // ========== 7. FOOTER ==========
+                y += 2;
+                if (rs.ShowThankYou)
+                {
+                    DrawCenter("شكراً لزيارتكم ✨", fontBold);
+                }
+
+                if (!string.IsNullOrEmpty(rs.FooterMessage))
+                {
+                    DrawCenter(rs.FooterMessage, fontSmall);
+                }
+
+                if (!string.IsNullOrEmpty(rs.PhoneNumber))
+                {
+                    DrawCenter(rs.PhoneNumber, fontSmall);
+                }
+
+                // Cleanup
+                font.Dispose();
+                fontBold.Dispose();
+                fontHeader.Dispose();
+                fontTotal.Dispose();
+                fontSmall.Dispose();
+                dashPen.Dispose();
             };
 
             printDoc.Print();
@@ -249,17 +298,17 @@ public class PrinterService : IPrinterService
     private byte[] GenerateReceiptEscPos(ReceiptDto receipt)
     {
         var commands = new List<byte[]>();
-        
+
         // Use Windows-1256 encoding for Arabic support
         var arabicEncoding = Encoding.GetEncoding(1256);
 
         // Initialize printer
         commands.Add(new byte[] { 0x1B, 0x40 }); // ESC @ - Initialize
-        
+
         // ============ HEADER ============
         // Center align
         commands.Add(new byte[] { 0x1B, 0x61, 0x01 }); // ESC a 1
-        
+
         // Branch name - double size, bold
         commands.Add(new byte[] { 0x1B, 0x21, 0x38 }); // ESC ! 56 (double width + double height + bold)
         commands.Add(arabicEncoding.GetBytes(receipt.BranchName + "\n"));
@@ -270,11 +319,11 @@ public class PrinterService : IPrinterService
 
         // Receipt info - left align
         commands.Add(new byte[] { 0x1B, 0x61, 0x00 }); // ESC a 0 (left)
-        
+
         commands.Add(new byte[] { 0x1B, 0x21, 0x08 }); // Bold
         commands.Add(arabicEncoding.GetBytes($"فاتورة رقم: {receipt.ReceiptNumber}\n"));
         commands.Add(new byte[] { 0x1B, 0x21, 0x00 }); // Reset
-        
+
         commands.Add(arabicEncoding.GetBytes($"التاريخ: {receipt.Date:dd/MM/yyyy}\n"));
         commands.Add(arabicEncoding.GetBytes($"الوقت: {receipt.Date:HH:mm}\n"));
         commands.Add(arabicEncoding.GetBytes($"الكاشير: {receipt.CashierName}\n"));
@@ -294,13 +343,13 @@ public class PrinterService : IPrinterService
             commands.Add(new byte[] { 0x1B, 0x21, 0x08 }); // Bold
             commands.Add(arabicEncoding.GetBytes(TruncateText(item.Name, 32) + "\n"));
             commands.Add(new byte[] { 0x1B, 0x21, 0x00 }); // Reset
-            
+
             // Quantity
             commands.Add(arabicEncoding.GetBytes($"  الكمية: {item.Quantity}\n"));
-            
+
             // Price
             commands.Add(arabicEncoding.GetBytes($"  السعر: {item.UnitPrice:F2} ج.م\n"));
-            
+
             // Total
             commands.Add(new byte[] { 0x1B, 0x21, 0x08 }); // Bold
             commands.Add(arabicEncoding.GetBytes($"  الاجمالي: {item.TotalPrice:F2} ج.م\n"));
@@ -316,20 +365,20 @@ public class PrinterService : IPrinterService
         commands.Add(arabicEncoding.GetBytes("الملخص المالي:\n"));
         commands.Add(new byte[] { 0x1B, 0x21, 0x00 }); // Reset
         commands.Add(arabicEncoding.GetBytes("--------------------------------\n"));
-        
+
         // Subtotal
         commands.Add(arabicEncoding.GetBytes(FormatLineArabic("المجموع الفرعي:", $"{receipt.NetTotal:F2} ج.م", 32) + "\n"));
-        
+
         // Tax
         commands.Add(arabicEncoding.GetBytes(FormatLineArabic("الضريبة (14%):", $"{receipt.TaxAmount:F2} ج.م", 32) + "\n"));
-        
+
         commands.Add(arabicEncoding.GetBytes("--------------------------------\n"));
-        
+
         // Total - large and bold
         commands.Add(new byte[] { 0x1B, 0x21, 0x18 }); // Double height + bold
         commands.Add(arabicEncoding.GetBytes(FormatLineArabic("الاجمالي:", $"{receipt.TotalAmount:F2} ج.م", 32) + "\n"));
         commands.Add(new byte[] { 0x1B, 0x21, 0x00 }); // Reset
-        
+
         commands.Add(arabicEncoding.GetBytes("================================\n"));
         commands.Add(arabicEncoding.GetBytes("\n"));
 
@@ -344,13 +393,13 @@ public class PrinterService : IPrinterService
         // ============ FOOTER ============
         // Center align
         commands.Add(new byte[] { 0x1B, 0x61, 0x01 }); // ESC a 1
-        
+
         commands.Add(new byte[] { 0x1B, 0x21, 0x08 }); // Bold
         commands.Add(arabicEncoding.GetBytes("شكراً لزيارتكم\n"));
         commands.Add(arabicEncoding.GetBytes("THANK YOU!\n"));
         commands.Add(new byte[] { 0x1B, 0x21, 0x00 }); // Reset
         commands.Add(arabicEncoding.GetBytes("\n"));
-        
+
         // Barcode
         try
         {
@@ -390,8 +439,8 @@ public class PrinterService : IPrinterService
     {
         return method.ToLower() switch
         {
-            "cash" => "نقدي",
-            "card" => "بطاقة",
+            "cash" => "كاش",
+            "card" => "فيزا",
             "fawry" => "فوري",
             _ => method
         };

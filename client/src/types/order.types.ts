@@ -132,6 +132,9 @@ export interface CreateOrderRequest {
   customerPhone?: string;
   customerId?: number;
   notes?: string;
+  // Order-level discount
+  discountType?: "Percentage" | "Fixed";
+  discountValue?: number;
 }
 
 export interface CompleteOrderRequest {

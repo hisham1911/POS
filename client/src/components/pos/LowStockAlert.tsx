@@ -8,8 +8,8 @@ export const LowStockAlert = () => {
   const [dismissed, setDismissed] = useState(false);
   const user = useAppSelector(selectCurrentUser);
 
-  // Only show for Admin or Manager
-  const canViewAlert = user?.role === "Admin" || user?.role === "Manager";
+  // Only show for Admin or SystemOwner
+  const canViewAlert = user?.role === "Admin" || user?.role === "SystemOwner";
 
   const { data } = useGetLowStockProductsQuery(undefined, {
     skip: !canViewAlert,
@@ -17,11 +17,11 @@ export const LowStockAlert = () => {
   });
 
   // Don't show if not authorized, no data, or dismissed
-  if (!canViewAlert || dismissed || !data?.data || data.data.length === 0) {
+  if (!canViewAlert || dismissed || !data || data.length === 0) {
     return null;
   }
 
-  const lowStockCount = data.data.length;
+  const lowStockCount = data.length;
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 flex items-center justify-between gap-3 mb-4 animate-fade-in">

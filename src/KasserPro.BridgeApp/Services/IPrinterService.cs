@@ -20,5 +20,5 @@ public interface IPrinterService
     /// <summary>
     /// Prints a receipt on the configured thermal printer
     /// </summary>
-    Task<bool> PrintReceiptAsync(ReceiptDto receipt);
+    Task<bool> PrintReceiptAsync(PrintCommandDto command);
 }

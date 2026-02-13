@@ -51,6 +51,14 @@ export const branchesApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Tenant"],
     }),
+    uploadLogo: builder.mutation<ApiResponse<{ logoUrl: string }>, FormData>({
+      query: (formData) => ({
+        url: "/tenants/current/logo",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Tenant"],
+    }),
   }),
 });
 
@@ -62,4 +70,5 @@ export const {
   useDeleteBranchMutation,
   useGetCurrentTenantQuery,
   useUpdateCurrentTenantMutation,
+  useUploadLogoMutation,
 } = branchesApi;

@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Product } from "../../types/product.types";
 
+export type DiscountType = "Percentage" | "Fixed";
+
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -12,6 +14,9 @@ interface CartState {
   taxRate: number;
   isTaxEnabled: boolean;
   allowNegativeStock: boolean;
+  // Order-level discount
+  discountType?: DiscountType;
+  discountValue?: number;
 }
 
 const initialState: CartState = {
@@ -19,6 +24,8 @@ const initialState: CartState = {
   taxRate: 14, // Default VAT 14% (الضريبة المصرية) - will be updated from tenant
   isTaxEnabled: true,
   allowNegativeStock: false, // Default: don't allow selling when stock is 0
+  discountType: undefined,
+  discountValue: undefined,
 };
 
 const cartSlice = createSlice({
@@ -119,6 +126,8 @@ const cartSlice = createSlice({
 
     clearCart: (state) => {
       state.items = [];
+      state.discountType = undefined;
+      state.discountValue = undefined;
     },
 
     // تحديث إعدادات الضريبة والمخزون من بيانات الشركة
@@ -136,6 +145,23 @@ const cartSlice = createSlice({
         state.allowNegativeStock = action.payload.allowNegativeStock;
       }
     },
+
+    // تطبيق خصم على الطلب
+    setDiscount: (
+      state,
+      action: PayloadAction<{
+        type: DiscountType;
+        value: number;
+      } | undefined>
+    ) => {
+      if (!action.payload) {
+        state.discountType = undefined;
+        state.discountValue = undefined;
+      } else {
+        state.discountType = action.payload.type;
+        state.discountValue = action.payload.value;
+      }
+    },
   },
 });
 
@@ -146,6 +172,7 @@ export const {
   updateNotes,
   clearCart,
   setTaxSettings,
+  setDiscount,
 } = cartSlice.actions;
 
 // Selectors
@@ -157,11 +184,17 @@ export const selectIsTaxEnabled = (state: { cart: CartState }) =>
 export const selectAllowNegativeStock = (state: { cart: CartState }) =>
   state.cart.allowNegativeStock;
 
+export const selectDiscountType = (state: { cart: CartState }) =>
+  state.cart.discountType;
+
+export const selectDiscountValue = (state: { cart: CartState }) =>
+  state.cart.discountValue;
+
 export const selectItemsCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
 /**
- * Subtotal = Sum of all item prices (Net, before tax)
+ * Subtotal = Sum of all item prices (Net, before tax and discount)
  * Product.price is the NET price (excluding tax)
  */
 export const selectSubtotal = (state: { cart: CartState }) =>
@@ -173,11 +206,35 @@ export const selectSubtotal = (state: { cart: CartState }) =>
   ) / 100;
 
 /**
- * Tax Exclusive (Additive): Tax is calculated on top of Net price
- * TaxAmount = Subtotal * (TaxRate / 100)
+ * Calculate discount amount based on type and value
+ */
+export const selectDiscountAmount = (state: { cart: CartState }) => {
+  if (!state.cart.discountType || !state.cart.discountValue) return 0;
+
+  const subtotal = state.cart.items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+
+  let discountAmount = 0;
+  if (state.cart.discountType === "Percentage") {
+    // Percentage discount: value is percentage (e.g., 10 for 10%)
+    discountAmount = subtotal * (state.cart.discountValue / 100);
+  } else {
+    // Fixed discount: value is the amount
+    discountAmount = state.cart.discountValue;
+  }
+
+  // Discount cannot exceed subtotal
+  return Math.round(Math.min(discountAmount, subtotal) * 100) / 100;
+};
+
+/**
+ * Tax Exclusive (Additive): Tax is calculated on (Subtotal - Discount)
+ * TaxAmount = (Subtotal - Discount) * (TaxRate / 100)
  *
- * Example (100 EGP Net with 14% VAT):
- *   TaxAmount = 100 * 0.14 = 14 EGP
+ * Example (100 EGP Net with 10 EGP discount and 14% VAT):
+ *   TaxAmount = (100 - 10) * 0.14 = 12.6 EGP
  */
 export const selectTaxAmount = (state: { cart: CartState }) => {
   // If tax is disabled, return 0
@@ -188,16 +245,28 @@ export const selectTaxAmount = (state: { cart: CartState }) => {
     0
   );
 
-  // Tax Exclusive: TaxAmount = Subtotal * (Rate / 100)
-  const taxAmount = subtotal * (state.cart.taxRate / 100);
+  // Calculate discount
+  let discountAmount = 0;
+  if (state.cart.discountType && state.cart.discountValue) {
+    if (state.cart.discountType === "Percentage") {
+      discountAmount = subtotal * (state.cart.discountValue / 100);
+    } else {
+      discountAmount = state.cart.discountValue;
+    }
+    discountAmount = Math.min(discountAmount, subtotal);
+  }
+
+  // Tax is calculated on (Subtotal - Discount)
+  const taxableAmount = subtotal - discountAmount;
+  const taxAmount = taxableAmount * (state.cart.taxRate / 100);
   return Math.round(taxAmount * 100) / 100;
 };
 
 /**
- * Total = Subtotal + Tax
+ * Total = Subtotal - Discount + Tax
  *
- * Example (100 EGP Net with 14% VAT):
- *   Total = 100 + 14 = 114 EGP
+ * Example (100 EGP Net with 10 EGP discount and 14% VAT):
+ *   Total = 100 - 10 + 12.6 = 102.6 EGP
  */
 export const selectTotal = (state: { cart: CartState }) => {
   const subtotal = state.cart.items.reduce(
@@ -205,14 +274,27 @@ export const selectTotal = (state: { cart: CartState }) => {
     0
   );
 
-  // If tax is disabled, Total = Subtotal
-  if (!state.cart.isTaxEnabled) {
-    return Math.round(subtotal * 100) / 100;
+  // Calculate discount
+  let discountAmount = 0;
+  if (state.cart.discountType && state.cart.discountValue) {
+    if (state.cart.discountType === "Percentage") {
+      discountAmount = subtotal * (state.cart.discountValue / 100);
+    } else {
+      discountAmount = state.cart.discountValue;
+    }
+    discountAmount = Math.min(discountAmount, subtotal);
   }
 
-  // Tax Exclusive: Total = Subtotal + Tax
-  const taxAmount = subtotal * (state.cart.taxRate / 100);
-  return Math.round((subtotal + taxAmount) * 100) / 100;
+  const afterDiscount = subtotal - discountAmount;
+
+  // If tax is disabled, Total = Subtotal - Discount
+  if (!state.cart.isTaxEnabled) {
+    return Math.round(afterDiscount * 100) / 100;
+  }
+
+  // Tax Exclusive: Total = (Subtotal - Discount) + Tax
+  const taxAmount = afterDiscount * (state.cart.taxRate / 100);
+  return Math.round((afterDiscount + taxAmount) * 100) / 100;
 };
 
 export default cartSlice.reducer;

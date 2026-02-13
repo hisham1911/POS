@@ -39,5 +39,43 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 
         builder.Property(t => t.IsTaxEnabled)
             .HasDefaultValue(true);
+
+        // Receipt Settings
+        builder.Property(t => t.ReceiptPaperSize)
+            .HasMaxLength(10)
+            .HasDefaultValue("80mm");
+
+        builder.Property(t => t.ReceiptCustomWidth)
+            .IsRequired(false);
+
+        builder.Property(t => t.ReceiptHeaderFontSize)
+            .HasDefaultValue(12);
+
+        builder.Property(t => t.ReceiptBodyFontSize)
+            .HasDefaultValue(9);
+
+        builder.Property(t => t.ReceiptTotalFontSize)
+            .HasDefaultValue(11);
+
+        builder.Property(t => t.ReceiptShowBranchName)
+            .HasDefaultValue(true);
+
+        builder.Property(t => t.ReceiptShowCashier)
+            .HasDefaultValue(true);
+
+        builder.Property(t => t.ReceiptShowThankYou)
+            .HasDefaultValue(true);
+
+        builder.Property(t => t.ReceiptFooterMessage)
+            .HasMaxLength(500);
+
+        builder.Property(t => t.ReceiptPhoneNumber)
+            .HasMaxLength(20);
+
+        builder.Property(t => t.ReceiptShowCustomerName)
+            .HasDefaultValue(true);
+
+        builder.Property(t => t.ReceiptShowLogo)
+            .HasDefaultValue(true);
     }
 }

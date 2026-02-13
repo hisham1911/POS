@@ -15,7 +15,7 @@ namespace KasserPro.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
 
             modelBuilder.Entity("KasserPro.Domain.Entities.AuditLog", b =>
                 {
@@ -109,6 +109,9 @@ namespace KasserPro.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsWarehouse")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -128,6 +131,114 @@ namespace KasserPro.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Branches");
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.BranchInventory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReorderLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastUpdatedAt")
+                        .HasDatabaseName("IX_BranchInventories_LastUpdatedAt");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("Quantity")
+                        .HasDatabaseName("IX_BranchInventories_Quantity");
+
+                    b.HasIndex("BranchId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_BranchInventories_BranchId_ProductId");
+
+                    b.HasIndex("TenantId", "BranchId")
+                        .HasDatabaseName("IX_BranchInventories_TenantId_BranchId");
+
+                    b.ToTable("BranchInventories", (string)null);
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.BranchProductPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EffectiveFrom")
+                        .HasDatabaseName("IX_BranchProductPrices_EffectiveFrom");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("TenantId", "BranchId")
+                        .HasDatabaseName("IX_BranchProductPrices_TenantId_BranchId");
+
+                    b.HasIndex("BranchId", "ProductId", "IsActive")
+                        .HasDatabaseName("IX_BranchProductPrices_BranchId_ProductId_IsActive");
+
+                    b.ToTable("BranchProductPrices", (string)null);
                 });
 
             modelBuilder.Entity("KasserPro.Domain.Entities.CashRegisterTransaction", b =>
@@ -280,6 +391,9 @@ namespace KasserPro.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("CreditLimit")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
@@ -311,6 +425,9 @@ namespace KasserPro.Infrastructure.Migrations
 
                     b.Property<int>("TenantId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("TotalDue")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("TotalOrders")
                         .HasColumnType("INTEGER");
@@ -580,6 +697,136 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("ExpenseCategories", (string)null);
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.InventoryTransfer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ApprovedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ApprovedByUserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CancelledByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CancelledByUserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CreatedByUserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FromBranchId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProductSku")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ReceivedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReceivedByUserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ToBranchId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TransferNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_InventoryTransfers_CreatedAt");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("IX_InventoryTransfers_ProductId");
+
+                    b.HasIndex("ReceivedByUserId");
+
+                    b.HasIndex("TransferNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_InventoryTransfers_TransferNumber");
+
+                    b.HasIndex("FromBranchId", "Status")
+                        .HasDatabaseName("IX_InventoryTransfers_FromBranchId_Status");
+
+                    b.HasIndex("TenantId", "Status")
+                        .HasDatabaseName("IX_InventoryTransfers_TenantId_Status");
+
+                    b.HasIndex("ToBranchId", "Status")
+                        .HasDatabaseName("IX_InventoryTransfers_ToBranchId_Status");
+
+                    b.ToTable("InventoryTransfers", (string)null);
                 });
 
             modelBuilder.Entity("KasserPro.Domain.Entities.Order", b =>
@@ -1270,14 +1517,58 @@ namespace KasserPro.Infrastructure.Migrations
                     b.Property<decimal>("ExpectedBalance")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("ForceCloseReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ForceClosedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ForceClosedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ForceClosedByUserName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("HandedOverAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("HandedOverFromUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HandedOverFromUserName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("HandedOverToUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HandedOverToUserName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("HandoverBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("HandoverNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsClosed")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsForceClosed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsHandedOver")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("IsReconciled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
@@ -1331,6 +1622,12 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("ForceClosedByUserId");
+
+                    b.HasIndex("HandedOverFromUserId");
+
+                    b.HasIndex("HandedOverToUserId");
 
                     b.HasIndex("IsClosed");
 
@@ -1574,6 +1871,64 @@ namespace KasserPro.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("ReceiptBodyFontSize")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(9);
+
+                    b.Property<int?>("ReceiptCustomWidth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReceiptFooterMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ReceiptHeaderFontSize")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(12);
+
+                    b.Property<string>("ReceiptPaperSize")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("80mm");
+
+                    b.Property<string>("ReceiptPhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ReceiptShowBranchName")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ReceiptShowCashier")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ReceiptShowCustomerName")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ReceiptShowLogo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ReceiptShowThankYou")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("ReceiptTotalFontSize")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(11);
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1644,7 +1999,7 @@ namespace KasserPro.Infrastructure.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("TenantId")
+                    b.Property<int?>("TenantId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -1694,6 +2049,60 @@ namespace KasserPro.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.BranchInventory", b =>
+                {
+                    b.HasOne("KasserPro.Domain.Entities.Branch", "Branch")
+                        .WithMany("Inventories")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Product", "Product")
+                        .WithMany("BranchInventories")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.BranchProductPrice", b =>
+                {
+                    b.HasOne("KasserPro.Domain.Entities.Branch", "Branch")
+                        .WithMany("ProductPrices")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Product", "Product")
+                        .WithMany("BranchPrices")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Product");
 
                     b.Navigation("Tenant");
                 });
@@ -1845,6 +2254,63 @@ namespace KasserPro.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.InventoryTransfer", b =>
+                {
+                    b.HasOne("KasserPro.Domain.Entities.User", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KasserPro.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Branch", "FromBranch")
+                        .WithMany("TransfersFrom")
+                        .HasForeignKey("FromBranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Product", "Product")
+                        .WithMany("InventoryTransfers")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.User", "ReceivedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReceivedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KasserPro.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KasserPro.Domain.Entities.Branch", "ToBranch")
+                        .WithMany("TransfersTo")
+                        .HasForeignKey("ToBranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("FromBranch");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ReceivedByUser");
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("ToBranch");
                 });
 
             modelBuilder.Entity("KasserPro.Domain.Entities.Order", b =>
@@ -2076,6 +2542,24 @@ namespace KasserPro.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("KasserPro.Domain.Entities.User", "ForceClosedByUser")
+                        .WithMany()
+                        .HasForeignKey("ForceClosedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Shifts_Users_ForceClosedByUserId");
+
+                    b.HasOne("KasserPro.Domain.Entities.User", "HandedOverFromUser")
+                        .WithMany()
+                        .HasForeignKey("HandedOverFromUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Shifts_Users_HandedOverFromUserId");
+
+                    b.HasOne("KasserPro.Domain.Entities.User", "HandedOverToUser")
+                        .WithMany()
+                        .HasForeignKey("HandedOverToUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Shifts_Users_HandedOverToUserId");
+
                     b.HasOne("KasserPro.Domain.Entities.User", "ReconciledByUser")
                         .WithMany()
                         .HasForeignKey("ReconciledByUserId")
@@ -2100,6 +2584,12 @@ namespace KasserPro.Infrastructure.Migrations
                         .HasForeignKey("UserId1");
 
                     b.Navigation("Branch");
+
+                    b.Navigation("ForceClosedByUser");
+
+                    b.Navigation("HandedOverFromUser");
+
+                    b.Navigation("HandedOverToUser");
 
                     b.Navigation("ReconciledByUser");
 
@@ -2191,8 +2681,7 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasOne("KasserPro.Domain.Entities.Tenant", "Tenant")
                         .WithMany("Users")
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Branch");
 
@@ -2201,9 +2690,17 @@ namespace KasserPro.Infrastructure.Migrations
 
             modelBuilder.Entity("KasserPro.Domain.Entities.Branch", b =>
                 {
+                    b.Navigation("Inventories");
+
                     b.Navigation("Orders");
 
+                    b.Navigation("ProductPrices");
+
                     b.Navigation("Shifts");
+
+                    b.Navigation("TransfersFrom");
+
+                    b.Navigation("TransfersTo");
 
                     b.Navigation("Users");
                 });
@@ -2239,6 +2736,12 @@ namespace KasserPro.Infrastructure.Migrations
 
             modelBuilder.Entity("KasserPro.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("BranchInventories");
+
+                    b.Navigation("BranchPrices");
+
+                    b.Navigation("InventoryTransfers");
+
                     b.Navigation("OrderItems");
 
                     b.Navigation("PurchaseInvoiceItems");

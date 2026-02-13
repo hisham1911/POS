@@ -10,8 +10,20 @@ using KasserPro.Infrastructure.Repositories;
 using KasserPro.Infrastructure.Services;
 using KasserPro.API.Middleware;
 using KasserPro.API;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// P0-1: Fail startup if JWT secret is missing or too short
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "FATAL: JWT Key is missing or too short. " +
+        "Set environment variable 'Jwt__Key' to a random string of at least 32 characters. " +
+        "Example PowerShell: $env:Jwt__Key = [Convert]::ToBase64String((1..40 | ForEach-Object { Get-Random -Max 256 }) -as [byte[]])");
+}
 
 // HttpContextAccessor for CurrentUserService
 builder.Services.AddHttpContextAccessor();
@@ -44,7 +56,8 @@ builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 // Sellable V1: New services for inventory and customer management
-builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IInventoryService, KasserPro.Infrastructure.Services.InventoryService>();
+builder.Services.AddScoped<IInventoryReportService, InventoryReportService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
@@ -56,6 +69,9 @@ builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 
 // Device Command Service for SignalR
 builder.Services.AddScoped<IDeviceCommandService, DeviceCommandService>();
+
+// Background Services
+builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -75,9 +91,57 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var userIdClaim = context.Principal?.FindFirst("userId")?.Value;
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    context.Fail("Invalid token payload");
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                var user = await db.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null || !user.IsActive)
+                {
+                    context.Fail("User is inactive or not found");
+                    return;
+                }
+
+                if (user.TenantId.HasValue)
+                {
+                    var tenant = await db.Tenants
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(t => t.Id == user.TenantId.Value);
+
+                    if (tenant == null || !tenant.IsActive)
+                    {
+                        context.Fail("Tenant is inactive");
+                    }
+                }
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("SystemTenantCreation", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(10);
+        limiterOptions.QueueLimit = 0;
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -112,17 +176,15 @@ if (!app.Environment.IsEnvironment("Testing"))
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await DbInitializer.InitializeAsync(context);
         
-        // Seed test categories for pagination testing
-        await SeedTestCategories.SeedAsync(context);
+        // Apply migrations
+        await context.Database.MigrateAsync();
         
-        // Seed test orders for filters and pagination testing
-        await SeedTestOrders.SeedAsync(context);
-        
-        // Seed default expense categories
-        var expenseCategoryService = scope.ServiceProvider.GetRequiredService<IExpenseCategoryService>();
-        await expenseCategoryService.SeedDefaultCategoriesAsync();
+        // P0-2: Only seed demo data in Development environment
+        if (app.Environment.IsDevelopment())
+        {
+            await ButcherDataSeeder.SeedAsync(context);
+        }
     }
 }
 
@@ -135,7 +197,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles(); // Serve uploaded logos from wwwroot
 app.UseCors("AllowAll");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

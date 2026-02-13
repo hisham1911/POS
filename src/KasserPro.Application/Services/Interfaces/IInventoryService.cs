@@ -1,69 +1,43 @@
 namespace KasserPro.Application.Services.Interfaces;
 
+using KasserPro.Application.Common;
 using KasserPro.Application.DTOs.Common;
 using KasserPro.Application.DTOs.Inventory;
-using KasserPro.Domain.Enums;
 
-/// <summary>
-/// Service for inventory/stock management operations
-/// </summary>
 public interface IInventoryService
 {
-    /// <summary>
-    /// Decrement stock when order is completed (sale)
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="quantity">Quantity to decrement (positive number)</param>
-    /// <param name="orderId">Reference order ID</param>
-    /// <returns>New stock balance</returns>
-    Task<int> DecrementStockAsync(int productId, int quantity, int orderId);
+    // Branch Inventory Queries
+    Task<ApiResponse<List<BranchInventoryDto>>> GetBranchInventoryAsync(int branchId);
+    Task<ApiResponse<BranchInventorySummaryDto>> GetProductInventoryAcrossBranchesAsync(int productId);
+    Task<ApiResponse<List<BranchInventoryDto>>> GetLowStockItemsAsync(int? branchId = null);
     
-    /// <summary>
-    /// Increment stock when order is refunded
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="quantity">Quantity to increment (positive number)</param>
-    /// <param name="orderId">Reference order ID</param>
-    /// <returns>New stock balance</returns>
-    Task<int> IncrementStockAsync(int productId, int quantity, int orderId);
+    // Inventory Adjustments
+    Task<ApiResponse<BranchInventoryDto>> AdjustInventoryAsync(AdjustInventoryRequest request);
     
-    /// <summary>
-    /// Manual stock adjustment (receiving, damage, transfer, etc.)
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="request">Adjustment details</param>
-    /// <returns>New stock balance</returns>
-    Task<int> AdjustStockAsync(int productId, StockAdjustmentRequest request);
+    // Inventory Transfers
+    Task<ApiResponse<InventoryTransferDto>> CreateTransferAsync(CreateTransferRequest request);
+    Task<ApiResponse<InventoryTransferDto>> ApproveTransferAsync(int transferId);
+    Task<ApiResponse<InventoryTransferDto>> ReceiveTransferAsync(int transferId);
+    Task<ApiResponse<InventoryTransferDto>> CancelTransferAsync(int transferId, CancelTransferRequest request);
+    Task<ApiResponse<InventoryTransferDto>> GetTransferByIdAsync(int transferId);
+    Task<ApiResponse<PaginatedResponse<InventoryTransferDto>>> GetTransfersAsync(
+        int? fromBranchId = null,
+        int? toBranchId = null,
+        string? status = null,
+        int pageNumber = 1,
+        int pageSize = 20);
     
-    /// <summary>
-    /// Batch decrement for order completion (all items at once)
-    /// </summary>
-    /// <param name="items">List of product ID and quantity pairs</param>
-    /// <param name="orderId">Reference order ID</param>
-    Task BatchDecrementStockAsync(IEnumerable<(int ProductId, int Quantity)> items, int orderId);
+    // Branch Prices
+    Task<ApiResponse<List<BranchProductPriceDto>>> GetBranchPricesAsync(int branchId);
+    Task<ApiResponse<BranchProductPriceDto>> SetBranchPriceAsync(SetBranchPriceRequest request);
+    Task<ApiResponse<bool>> RemoveBranchPriceAsync(int branchId, int productId);
     
-    /// <summary>
-    /// Batch increment for order refund (all items at once)
-    /// </summary>
-    /// <param name="items">List of product ID and quantity pairs</param>
-    /// <param name="orderId">Reference order ID</param>
-    Task BatchIncrementStockAsync(IEnumerable<(int ProductId, int Quantity)> items, int orderId);
+    // Helper Methods
+    Task<decimal> GetEffectivePriceAsync(int productId, int branchId);
+    Task<int> GetAvailableQuantityAsync(int productId, int branchId);
     
-    /// <summary>
-    /// Get all products below their low stock threshold
-    /// </summary>
-    Task<List<LowStockProductDto>> GetLowStockProductsAsync();
-    
-    /// <summary>
-    /// Get stock movement history for a product
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="page">Page number (1-based)</param>
-    /// <param name="pageSize">Items per page</param>
-    Task<PagedResult<StockMovementDto>> GetStockHistoryAsync(int productId, int page = 1, int pageSize = 20);
-    
-    /// <summary>
-    /// Get current stock level for a product
-    /// </summary>
+    // Legacy compatibility methods for OrderService
+    Task BatchDecrementStockAsync(List<(int ProductId, int Quantity)> items, int orderId);
     Task<int> GetCurrentStockAsync(int productId);
+    Task<int> IncrementStockAsync(int productId, int quantity, int referenceId);
 }

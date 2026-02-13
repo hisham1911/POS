@@ -9,6 +9,7 @@ import {
   Users,
   Star,
   Eye,
+  AlertCircle,
 } from "lucide-react";
 import {
   useGetCustomersQuery,
@@ -167,6 +168,9 @@ export const CustomersPage = () => {
                 <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">
                   إجمالي المشتريات
                 </th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 hidden xl:table-cell">
+                  المبلغ المستحق
+                </th>
                 <th className="text-center px-6 py-4 text-sm font-semibold text-gray-600">
                   الإجراءات
                 </th>
@@ -176,7 +180,7 @@ export const CustomersPage = () => {
               {customers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -231,6 +235,22 @@ export const CustomersPage = () => {
                     </td>
                     <td className="px-6 py-4 text-gray-600 hidden lg:table-cell">
                       {formatCurrency(customer.totalSpent)}
+                    </td>
+                    <td className="px-6 py-4 hidden xl:table-cell">
+                      {customer.totalDue > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="font-semibold text-orange-600">
+                            {formatCurrency(customer.totalDue)}
+                          </span>
+                          {customer.creditLimit > 0 && (
+                            <span className="text-xs text-gray-500">
+                              من {formatCurrency(customer.creditLimit)}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">

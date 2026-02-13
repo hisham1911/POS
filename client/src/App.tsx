@@ -1,15 +1,20 @@
 import type React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useAppSelector } from "./store/hooks";
-import { selectIsAuthenticated, selectIsAdmin } from "./store/slices/authSlice";
+import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin, selectIsSystemOwner } from "./store/slices/authSlice";
+import { useGetCurrentShiftQuery } from "./api/shiftsApi";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
+import { ShiftRecoveryModal } from "./components/shifts";
+import { shiftPersistence } from "./utils/shiftPersistence";
 import LoginPage from "./pages/auth/LoginPage";
 import POSPage from "./pages/pos/POSPage";
 import ProductsPage from "./pages/products/ProductsPage";
 import CategoriesPage from "./pages/categories/CategoriesPage";
 import OrdersPage from "./pages/orders/OrdersPage";
 import ShiftPage from "./pages/shifts/ShiftPage";
+import ShiftsManagementPage from "./pages/shifts/ShiftsManagementPage";
 import CustomersPage from "./pages/customers/CustomersPage";
 import SuppliersPage from "./pages/suppliers/SuppliersPage";
 import { BranchesPage } from "./pages/branches/BranchesPage";
@@ -24,6 +29,8 @@ import { ExpenseFormPage } from "./pages/expenses/ExpenseFormPage";
 import { ExpenseDetailsPage } from "./pages/expenses/ExpenseDetailsPage";
 import { CashRegisterDashboard } from "./pages/cash-register/CashRegisterDashboard";
 import { CashRegisterTransactionsPage } from "./pages/cash-register/CashRegisterTransactionsPage";
+import InventoryPage from "./pages/inventory/InventoryPage";
+import TenantCreationPage from "./pages/owner/TenantCreationPage";
 import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -38,15 +45,37 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const SystemOwnerRoute = ({ children }: { children: React.ReactNode }) => {
+  const isSystemOwner = useAppSelector(selectIsSystemOwner);
+  if (!isSystemOwner) return <Navigate to="/pos" replace />;
+  return <>{children}</>;
+};
+
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  if (isAuthenticated) return <Navigate to="/pos" replace />;
+  const user = useAppSelector(selectCurrentUser);
+  if (isAuthenticated) {
+    return <Navigate to={user?.role === "SystemOwner" ? "/owner/tenants" : "/pos"} replace />;
+  }
+  return <>{children}</>;
+};
+
+const NonSystemOwnerRoute = ({ children }: { children: React.ReactNode }) => {
+  const isSystemOwner = useAppSelector(selectIsSystemOwner);
+  if (isSystemOwner) return <Navigate to="/owner/tenants" replace />;
   return <>{children}</>;
 };
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/" element={<Navigate to="/login" replace />} />
+    <Route
+      path="/"
+      element={
+        <PublicRoute>
+          <Navigate to="/login" replace />
+        </PublicRoute>
+      }
+    />
     <Route
       path="/login"
       element={
@@ -62,151 +91,236 @@ const AppRoutes = () => (
         </ProtectedRoute>
       }
     >
-      <Route path="/pos" element={<POSPage />} />
-      <Route path="/orders" element={<OrdersPage />} />
-      <Route path="/shift" element={<ShiftPage />} />
+      <Route
+        path="/pos"
+        element={
+          <NonSystemOwnerRoute>
+            <POSPage />
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <NonSystemOwnerRoute>
+            <OrdersPage />
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/shift"
+        element={
+          <NonSystemOwnerRoute>
+            <ShiftPage />
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/shifts-management"
+        element={
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <ShiftsManagementPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
+        }
+      />
       <Route
         path="/customers"
         element={
-          <AdminRoute>
-            <CustomersPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <CustomersPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/products"
         element={
-          <AdminRoute>
-            <ProductsPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <ProductsPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/categories"
         element={
-          <AdminRoute>
-            <CategoriesPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <CategoriesPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/suppliers"
         element={
-          <AdminRoute>
-            <SuppliersPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <SuppliersPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/purchase-invoices"
         element={
-          <AdminRoute>
-            <PurchaseInvoicesPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <PurchaseInvoicesPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/purchase-invoices/new"
         element={
-          <AdminRoute>
-            <PurchaseInvoiceFormPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <PurchaseInvoiceFormPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/purchase-invoices/:id"
         element={
-          <AdminRoute>
-            <PurchaseInvoiceDetailsPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <PurchaseInvoiceDetailsPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/purchase-invoices/:id/edit"
         element={
-          <AdminRoute>
-            <PurchaseInvoiceFormPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <PurchaseInvoiceFormPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/branches"
         element={
-          <AdminRoute>
-            <BranchesPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <BranchesPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/reports"
         element={
-          <AdminRoute>
-            <DailyReportPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <DailyReportPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/audit"
         element={
-          <AdminRoute>
-            <AuditLogPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <AuditLogPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/settings"
         element={
-          <AdminRoute>
-            <SettingsPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <SettingsPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/expenses"
         element={
-          <AdminRoute>
-            <ExpensesPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <ExpensesPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/expenses/new"
         element={
-          <AdminRoute>
-            <ExpenseFormPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <ExpenseFormPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/expenses/:id"
         element={
-          <AdminRoute>
-            <ExpenseDetailsPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <ExpenseDetailsPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/expenses/:id/edit"
         element={
-          <AdminRoute>
-            <ExpenseFormPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <ExpenseFormPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/cash-register"
         element={
-          <AdminRoute>
-            <CashRegisterDashboard />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <CashRegisterDashboard />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
         }
       />
       <Route
         path="/cash-register/transactions"
         element={
-          <AdminRoute>
-            <CashRegisterTransactionsPage />
-          </AdminRoute>
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <CashRegisterTransactionsPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/inventory"
+        element={
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <InventoryPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/owner/tenants"
+        element={
+          <SystemOwnerRoute>
+            <TenantCreationPage />
+          </SystemOwnerRoute>
         }
       />
     </Route>
@@ -214,12 +328,89 @@ const AppRoutes = () => (
   </Routes>
 );
 
-const App = () => (
-  <ErrorBoundary>
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
-  </ErrorBoundary>
-);
+const App = () => {
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const { data: currentShiftData, isLoading: isLoadingShift } = useGetCurrentShiftQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveredShift, setRecoveredShift] = useState<any>(null);
+  const [savedAt, setSavedAt] = useState<string>("");
+
+  // Check for saved shift on app start
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    // Wait for API to load before checking
+    if (isLoadingShift) return;
+
+    const saved = shiftPersistence.load();
+    const currentShift = currentShiftData?.data;
+
+    // Show recovery modal ONLY if:
+    // 1. There's a saved shift in localStorage
+    // 2. API has loaded (not loading)
+    // 3. There IS an active shift from API (shift exists and matches saved shift)
+    // 4. Saved shift is not closed
+    if (saved && currentShift && !currentShift.isClosed && saved.shift.id === currentShift.id) {
+      setRecoveredShift(saved.shift);
+      setSavedAt(saved.savedAt);
+      setShowRecovery(true);
+    } else if (saved && !currentShift) {
+      // If there's a saved shift but no current shift, clear it
+      shiftPersistence.clear();
+    }
+  }, [isAuthenticated, currentShiftData, isLoadingShift]);
+
+  // Start auto-save when shift is open
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const currentShift = currentShiftData?.data;
+    if (currentShift && !currentShift.isClosed) {
+      shiftPersistence.startAutoSave(() => currentShift);
+    } else {
+      shiftPersistence.stopAutoSave();
+      // Clear saved shift if current shift is closed
+      if (currentShift?.isClosed) {
+        shiftPersistence.clear();
+      }
+    }
+
+    return () => shiftPersistence.stopAutoSave();
+  }, [isAuthenticated, currentShiftData]);
+
+  const handleRestore = () => {
+    // The shift is already in the backend, just close the modal
+    // The user can continue working with the existing shift
+    setShowRecovery(false);
+    setRecoveredShift(null);
+  };
+
+  const handleDiscard = () => {
+    shiftPersistence.clear();
+    setShowRecovery(false);
+    setRecoveredShift(null);
+  };
+
+  return (
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AppRoutes />
+        
+        {/* Shift Recovery Modal */}
+        {recoveredShift && (
+          <ShiftRecoveryModal
+            shift={recoveredShift}
+            savedAt={savedAt}
+            isOpen={showRecovery}
+            onRestore={handleRestore}
+            onDiscard={handleDiscard}
+          />
+        )}
+      </BrowserRouter>
+    </ErrorBoundary>
+  );
+};
 
 export default App;

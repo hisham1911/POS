@@ -16,17 +16,20 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<PurchaseInvoiceService> _logger;
     private readonly ICashRegisterService _cashRegisterService;
+    private readonly IInventoryService _inventoryService;
 
     public PurchaseInvoiceService(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
         ILogger<PurchaseInvoiceService> logger,
-        ICashRegisterService cashRegisterService)
+        ICashRegisterService cashRegisterService,
+        IInventoryService inventoryService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _logger = logger;
         _cashRegisterService = cashRegisterService;
+        _inventoryService = inventoryService;
     }
 
     public async Task<ApiResponse<PagedResult<PurchaseInvoiceDto>>> GetAllAsync(
@@ -342,7 +345,10 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
             var user = await _unitOfWork.Users.Query()
                 .FirstOrDefaultAsync(u => u.Id == _currentUserService.UserId);
 
-            // Update inventory for each item
+            // Get branch ID explicitly from current user
+            var branchId = _currentUserService.BranchId;
+
+            // Update inventory for each item using BranchInventory
             foreach (var item in invoice.Items)
             {
                 var product = await _unitOfWork.Products.Query()
@@ -351,26 +357,49 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
                 if (product == null)
                     continue;
 
-                // Calculate balance before
-                var balanceBefore = product.StockQuantity ?? 0;
+                // Get or create BranchInventory record
+                var branchInventory = await _unitOfWork.BranchInventories.Query()
+                    .FirstOrDefaultAsync(bi => bi.BranchId == branchId && bi.ProductId == item.ProductId);
 
-                if (product.TrackInventory)
+                var balanceBefore = branchInventory?.Quantity ?? 0;
+
+                if (branchInventory == null)
                 {
-                    product.StockQuantity = (product.StockQuantity ?? 0) + item.Quantity;
-                    product.LastStockUpdate = DateTime.UtcNow;
+                    // Create new BranchInventory record
+                    branchInventory = new BranchInventory
+                    {
+                        TenantId = _currentUserService.TenantId,
+                        BranchId = branchId,
+                        ProductId = item.ProductId,
+                        Quantity = product.TrackInventory ? item.Quantity : 0,
+                        ReorderLevel = product.ReorderPoint ?? 10,
+                        LastUpdatedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.BranchInventories.AddAsync(branchInventory);
+                }
+                else if (product.TrackInventory)
+                {
+                    // Update existing BranchInventory
+                    branchInventory.Quantity += item.Quantity;
+                    branchInventory.LastUpdatedAt = DateTime.UtcNow;
+                    _unitOfWork.BranchInventories.Update(branchInventory);
                 }
 
-                // Update cost tracking
+                // Update cost tracking on Product (global)
                 product.LastPurchasePrice = item.PurchasePrice;
                 product.LastPurchaseDate = invoice.InvoiceDate;
 
                 // Update average cost (weighted average)
-                if (product.AverageCost.HasValue && product.StockQuantity.HasValue && product.StockQuantity > 0)
+                var totalQuantityAcrossBranches = await _unitOfWork.BranchInventories.Query()
+                    .Where(bi => bi.ProductId == item.ProductId && bi.TenantId == _currentUserService.TenantId)
+                    .SumAsync(bi => bi.Quantity);
+
+                if (product.AverageCost.HasValue && totalQuantityAcrossBranches > 0)
                 {
-                    var oldStock = product.StockQuantity.Value - item.Quantity;
+                    var oldStock = totalQuantityAcrossBranches - item.Quantity;
                     var oldTotalCost = product.AverageCost.Value * oldStock;
                     var newTotalCost = oldTotalCost + (item.PurchasePrice * item.Quantity);
-                    product.AverageCost = newTotalCost / product.StockQuantity.Value;
+                    product.AverageCost = newTotalCost / totalQuantityAcrossBranches;
                 }
                 else
                 {
@@ -379,7 +408,7 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
 
                 _unitOfWork.Products.Update(product);
 
-                // Create stock movement
+                // Create stock movement with BranchInventory balance
                 var movement = new StockMovement
                 {
                     TenantId = invoice.TenantId,
@@ -391,7 +420,7 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
                     ReferenceId = invoice.Id,
                     Reason = $"Purchase Invoice {invoice.InvoiceNumber}",
                     BalanceBefore = balanceBefore,
-                    BalanceAfter = product.StockQuantity ?? 0,
+                    BalanceAfter = branchInventory.Quantity,
                     UserId = _currentUserService.UserId
                 };
                 await _unitOfWork.StockMovements.AddAsync(movement);
@@ -469,6 +498,9 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
             var user = await _unitOfWork.Users.Query()
                 .FirstOrDefaultAsync(u => u.Id == _currentUserService.UserId);
 
+            // Get branch ID explicitly from current user
+            var branchId = _currentUserService.BranchId;
+
             // If confirmed and user wants to adjust inventory
             if (invoice.Status == PurchaseInvoiceStatus.Confirmed && request.AdjustInventory)
             {
@@ -479,27 +511,49 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
 
                     if (product != null && product.TrackInventory)
                     {
-                        var balanceBefore = product.StockQuantity ?? 0;
-                        product.StockQuantity = (product.StockQuantity ?? 0) - item.Quantity;
-                        product.LastStockUpdate = DateTime.UtcNow;
-                        _unitOfWork.Products.Update(product);
+                        // Get BranchInventory record
+                        var branchInventory = await _unitOfWork.BranchInventories.Query()
+                            .FirstOrDefaultAsync(bi => bi.BranchId == branchId && bi.ProductId == item.ProductId);
 
-                        // Create stock movement
-                        var movement = new StockMovement
+                        if (branchInventory != null)
                         {
-                            TenantId = invoice.TenantId,
-                            BranchId = invoice.BranchId,
-                            ProductId = item.ProductId,
-                            Type = StockMovementType.Adjustment,
-                            Quantity = -item.Quantity,
-                            ReferenceType = "PurchaseInvoiceCancellation",
-                            ReferenceId = invoice.Id,
-                            Reason = $"Cancelled Purchase Invoice {invoice.InvoiceNumber}: {request.Reason}",
-                            BalanceBefore = balanceBefore,
-                            BalanceAfter = product.StockQuantity ?? 0,
-                            UserId = _currentUserService.UserId
-                        };
-                        await _unitOfWork.StockMovements.AddAsync(movement);
+                            var balanceBefore = branchInventory.Quantity;
+                            
+                            // Check if we have enough stock to deduct
+                            if (branchInventory.Quantity < item.Quantity)
+                            {
+                                _logger.LogWarning(
+                                    "Insufficient stock in branch {BranchId} for product {ProductId}. Available: {Available}, Required: {Required}",
+                                    branchId, item.ProductId, branchInventory.Quantity, item.Quantity);
+                                
+                                // Deduct what's available
+                                branchInventory.Quantity = 0;
+                            }
+                            else
+                            {
+                                branchInventory.Quantity -= item.Quantity;
+                            }
+                            
+                            branchInventory.LastUpdatedAt = DateTime.UtcNow;
+                            _unitOfWork.BranchInventories.Update(branchInventory);
+
+                            // Create stock movement
+                            var movement = new StockMovement
+                            {
+                                TenantId = invoice.TenantId,
+                                BranchId = invoice.BranchId,
+                                ProductId = item.ProductId,
+                                Type = StockMovementType.Adjustment,
+                                Quantity = -item.Quantity,
+                                ReferenceType = "PurchaseInvoiceCancellation",
+                                ReferenceId = invoice.Id,
+                                Reason = $"Cancelled Purchase Invoice {invoice.InvoiceNumber}: {request.Reason}",
+                                BalanceBefore = balanceBefore,
+                                BalanceAfter = branchInventory.Quantity,
+                                UserId = _currentUserService.UserId
+                            };
+                            await _unitOfWork.StockMovements.AddAsync(movement);
+                        }
                     }
                 }
 
@@ -612,7 +666,7 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
                 
                 await _cashRegisterService.RecordTransactionAsync(
                     type: CashRegisterTransactionType.SupplierPayment,
-                    amount: -request.Amount, // Negative amount for cash outflow
+                    amount: request.Amount, // ✅ POSITIVE amount - type determines sign
                     description: $"دفع للمورد - فاتورة #{invoice.InvoiceNumber} - {supplier.Name}",
                     referenceType: "PurchaseInvoicePayment",
                     referenceId: payment.Id,

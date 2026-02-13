@@ -89,11 +89,6 @@ export const ordersApi = baseApi.injectEndpoints({
         url: "/orders",
         method: "POST",
         body: order,
-        headers: {
-          "Idempotency-Key": `order-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(7)}`,
-        },
       }),
       invalidatesTags: [{ type: "Orders", id: "LIST" }, "Shifts"],
     }),
@@ -139,9 +134,6 @@ export const ordersApi = baseApi.injectEndpoints({
         url: `/orders/${orderId}/complete`,
         method: "POST",
         body: data,
-        headers: {
-          "Idempotency-Key": `complete-${orderId}-${Date.now()}`,
-        },
       }),
       invalidatesTags: (_result, _error, { orderId }) => [
         { type: "Orders", id: orderId },
@@ -159,9 +151,6 @@ export const ordersApi = baseApi.injectEndpoints({
         url: `/orders/${orderId}/cancel`,
         method: "POST",
         body: { reason },
-        headers: {
-          "Idempotency-Key": `cancel-${orderId}-${Date.now()}`,
-        },
       }),
       invalidatesTags: (_result, _error, { orderId }) => [
         { type: "Orders", id: orderId },
@@ -182,9 +171,6 @@ export const ordersApi = baseApi.injectEndpoints({
         url: `/orders/${orderId}/refund`,
         method: "POST",
         body: { reason, items },
-        headers: {
-          "Idempotency-Key": `refund-${orderId}-${Date.now()}`,
-        },
       }),
       // Invalidate Orders AND Inventory (stock is restored on refund)
       invalidatesTags: (_result, _error, { orderId }) => [

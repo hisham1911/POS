@@ -37,10 +37,9 @@ public class CurrentUserService : ICurrentUserService
             var claim = User?.FindFirst("tenantId");
             if (claim != null && int.TryParse(claim.Value, out var id))
                 return id;
-            
-            // Default to 1 for now (single-tenant mode)
-            // In production, this should throw if not found
-            return 1;
+
+            // No tenant claim (e.g., SystemOwner)
+            return 0;
         }
     }
 
@@ -58,9 +57,8 @@ public class CurrentUserService : ICurrentUserService
             if (claim != null && int.TryParse(claim.Value, out var claimId))
                 return claimId;
 
-            // Default to 1 for now (single-branch mode)
-            // In production, this should throw if not found
-            return 1;
+            // No branch claim (e.g., SystemOwner)
+            return 0;
         }
     }
 

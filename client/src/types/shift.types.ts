@@ -1,5 +1,6 @@
 export interface Shift {
   id: number;
+  userId?: number;
   openingBalance: number;
   closingBalance: number;
   expectedBalance: number;
@@ -13,6 +14,28 @@ export interface Shift {
   totalOrders: number;
   userName?: string;
   orders?: ShiftOrder[];
+  
+  // Activity tracking
+  lastActivityAt: string;
+  inactiveHours: number;
+  
+  // Force close
+  isForceClosed: boolean;
+  forceClosedByUserName?: string;
+  forceClosedAt?: string;
+  forceCloseReason?: string;
+  
+  // Handover
+  isHandedOver: boolean;
+  handedOverFromUserName?: string;
+  handedOverToUserName?: string;
+  handedOverAt?: string;
+  handoverBalance: number;
+  handoverNotes?: string;
+  
+  // Calculated fields
+  durationHours: number;
+  durationMinutes: number;
 }
 
 export interface ShiftOrder {
@@ -32,5 +55,17 @@ export interface OpenShiftRequest {
 
 export interface CloseShiftRequest {
   closingBalance: number;
+  notes?: string;
+}
+
+export interface ForceCloseShiftRequest {
+  reason: string;
+  actualBalance?: number;
+  notes?: string;
+}
+
+export interface HandoverShiftRequest {
+  toUserId: number;
+  currentBalance: number;
   notes?: string;
 }

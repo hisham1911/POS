@@ -13,10 +13,20 @@ public class Branch : BaseEntity
     public bool DefaultTaxInclusive { get; set; } = true;
     public string CurrencyCode { get; set; } = "EGP";
     public bool IsActive { get; set; } = true;
+    
+    /// <summary>
+    /// Is this branch a central warehouse?
+    /// Warehouse branches can supply other branches
+    /// </summary>
+    public bool IsWarehouse { get; set; } = false;
 
     // Navigation
     public Tenant Tenant { get; set; } = null!;
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Shift> Shifts { get; set; } = new List<Shift>();
     public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<BranchInventory> Inventories { get; set; } = new List<BranchInventory>();
+    public ICollection<BranchProductPrice> ProductPrices { get; set; } = new List<BranchProductPrice>();
+    public ICollection<InventoryTransfer> TransfersFrom { get; set; } = new List<InventoryTransfer>();
+    public ICollection<InventoryTransfer> TransfersTo { get; set; } = new List<InventoryTransfer>();
 }

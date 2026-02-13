@@ -21,9 +21,9 @@ export const OrderDetailsModal = ({
   const [showRefundModal, setShowRefundModal] = useState(false);
   const user = useAppSelector(selectCurrentUser);
 
-  // Only Admin or Manager can refund - can also do additional partial refund on PartiallyRefunded orders
+  // Only Admin or SystemOwner can refund - can also do additional partial refund on PartiallyRefunded orders
   const canRefund =
-    (user?.role === "Admin" || user?.role === "Manager") &&
+    (user?.role === "Admin" || user?.role === "SystemOwner") &&
     (order.status === "Completed" || order.status === "PartiallyRefunded");
 
   const isFullyRefunded = order.status === "Refunded";

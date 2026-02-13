@@ -7,6 +7,29 @@ public class PrintCommandDto
 {
     public string CommandId { get; set; } = string.Empty;
     public ReceiptDto Receipt { get; set; } = new();
+    public ReceiptPrintSettings Settings { get; set; } = new();
+}
+
+/// <summary>
+/// Receipt print settings from tenant configuration
+/// </summary>
+public class ReceiptPrintSettings
+{
+    public string PaperSize { get; set; } = "80mm";
+    public int? CustomWidth { get; set; }
+    public int HeaderFontSize { get; set; } = 12;
+    public int BodyFontSize { get; set; } = 9;
+    public int TotalFontSize { get; set; } = 11;
+    public bool ShowBranchName { get; set; } = true;
+    public bool ShowCashier { get; set; } = true;
+    public bool ShowThankYou { get; set; } = true;
+    public bool ShowCustomerName { get; set; } = true;
+    public bool ShowLogo { get; set; } = true;
+    public string? FooterMessage { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? LogoUrl { get; set; }
+    public decimal TaxRate { get; set; } = 14;
+    public bool IsTaxEnabled { get; set; } = true;
 }
 
 /// <summary>
@@ -21,8 +44,12 @@ public class ReceiptDto
     public decimal NetTotal { get; set; }
     public decimal TaxAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal AmountPaid { get; set; }
+    public decimal ChangeAmount { get; set; }
+    public decimal AmountDue { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
     public string CashierName { get; set; } = string.Empty;
+    public string? CustomerName { get; set; }
 }
 
 /// <summary>

@@ -38,6 +38,9 @@ export interface Expense {
   notes?: string;
   referenceNumber?: string;
   beneficiary?: string;
+  vendorName?: string;
+  receiptNumber?: string;
+  branchName?: string;
   paymentMethod?: string;
   paymentDate?: string;
   paymentReferenceNumber?: string;

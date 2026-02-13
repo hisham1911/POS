@@ -21,8 +21,8 @@ export const POSPage = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [barcodeInput, setBarcodeInput] = useState("");
-  const barcodeInputRef = useRef<HTMLInputElement>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Hooks must be called at the top level before any callbacks that use their data
   const { products, isLoading } = useProducts();
@@ -33,56 +33,69 @@ export const POSPage = () => {
   usePOSShortcuts({
     onCheckout: () => setShowPayment(true),
     onSearch: () => {
-      barcodeInputRef.current?.focus();
+      searchInputRef.current?.focus();
     },
   });
 
-  // Auto-focus barcode input on mount
+  // Auto-focus search input on mount
   useEffect(() => {
-    if (barcodeInputRef.current) {
-      barcodeInputRef.current.focus();
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
     }
   }, []);
 
-  // Handle barcode scan (Enter key)
-  const handleBarcodeScan = useCallback(
+  // Handle search/barcode scan (Enter key)
+  const handleSearchSubmit = useCallback(
     (value: string) => {
       const trimmedValue = value.trim();
       if (!trimmedValue) return;
 
-      // Search by barcode or SKU
+      // Search by barcode, SKU, or name
       const foundProduct = products.find(
         (p) =>
           (p.barcode &&
             p.barcode.toLowerCase() === trimmedValue.toLowerCase()) ||
-          (p.sku && p.sku.toLowerCase() === trimmedValue.toLowerCase())
+          (p.sku && p.sku.toLowerCase() === trimmedValue.toLowerCase()) ||
+          p.name.toLowerCase() === trimmedValue.toLowerCase()
       );
 
       if (foundProduct) {
         addItem(foundProduct, 1);
         toast.success(`تمت الإضافة: ${foundProduct.name}`);
+        // Clear input and refocus
+        setSearchInput("");
+        searchInputRef.current?.focus();
       } else {
-        toast.error(`لم يتم العثور على منتج بالباركود: ${trimmedValue}`);
+        toast.error(`لم يتم العثور على منتج: ${trimmedValue}`);
       }
-
-      // Clear input and refocus
-      setBarcodeInput("");
-      barcodeInputRef.current?.focus();
     },
     [products, addItem]
   );
 
-  const handleBarcodeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleBarcodeScan(barcodeInput);
+      handleSearchSubmit(searchInput);
     }
   };
 
-  // Filter products by category and availability
-  let filteredProducts = selectedCategory
-    ? products.filter((p) => p.categoryId === selectedCategory)
-    : products;
+  // Filter products by search, category and availability
+  let filteredProducts = products;
+
+  // Filter by search text
+  if (searchInput.trim()) {
+    const searchLower = searchInput.toLowerCase().trim();
+    filteredProducts = filteredProducts.filter((p) =>
+      p.name.toLowerCase().includes(searchLower) ||
+      (p.barcode && p.barcode.toLowerCase().includes(searchLower)) ||
+      (p.sku && p.sku.toLowerCase().includes(searchLower))
+    );
+  }
+
+  // Filter by category
+  if (selectedCategory) {
+    filteredProducts = filteredProducts.filter((p) => p.categoryId === selectedCategory);
+  }
 
   // Filter by available stock if enabled
   if (showAvailableOnly) {
@@ -109,17 +122,17 @@ export const POSPage = () => {
         {/* Low Stock Alert - Admin/Manager only */}
         <LowStockAlert />
 
-        {/* Barcode Scanner Input */}
+        {/* Search Input */}
         <div className="mb-4">
           <div className="relative">
             <ScanBarcode className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
-              ref={barcodeInputRef}
+              ref={searchInputRef}
               type="text"
-              value={barcodeInput}
-              onChange={(e) => setBarcodeInput(e.target.value)}
-              onKeyDown={handleBarcodeKeyDown}
-              placeholder="🔍 مسح الباركود أو الـ SKU"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="🔍 بحث بالاسم، الباركود أو SKU (اضغط Enter للإضافة)"
               className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
               autoComplete="off"
             />

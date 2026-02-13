@@ -55,4 +55,11 @@ public class ProductsController : ControllerBase
         var result = await _productService.DeleteAsync(id);
         return result.Success ? Ok(result) : NotFound(result);
     }
+
+    [HttpPost("{id}/adjust-stock")]
+    public async Task<IActionResult> AdjustStock(int id, [FromBody] AdjustStockRequest request)
+    {
+        var result = await _productService.AdjustStockAsync(id, request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 }

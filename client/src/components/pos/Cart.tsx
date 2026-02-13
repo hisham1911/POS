@@ -1,4 +1,4 @@
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2, Tag } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { CartItemComponent } from "./CartItem";
 import { OrderSummary } from "./OrderSummary";
@@ -6,6 +6,8 @@ import { Button } from "@/components/common/Button";
 import { formatCurrency } from "@/utils/formatters";
 import { CustomerSearch } from "./CustomerSearch";
 import { Customer } from "@/types/customer.types";
+import { useState } from "react";
+import { DiscountModal } from "./DiscountModal";
 
 interface CartProps {
   onCheckout: () => void;
@@ -18,7 +20,8 @@ export const Cart = ({
   selectedCustomer,
   onCustomerSelect,
 }: CartProps) => {
-  const { items, clearCart, total, itemsCount } = useCart();
+  const { items, clearCart, total, itemsCount, discountAmount } = useCart();
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
 
   if (items.length === 0) {
     return (
@@ -75,15 +78,31 @@ export const Cart = ({
       {/* Summary */}
       <OrderSummary />
 
+      {/* Discount Button */}
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full mt-3"
+        onClick={() => setShowDiscountModal(true)}
+        leftIcon={<Tag className="w-5 h-5" />}
+      >
+        {discountAmount > 0 ? "تعديل الخصم" : "إضافة خصم"}
+      </Button>
+
       {/* Checkout Button */}
       <Button
         variant="success"
         size="xl"
-        className="w-full mt-4"
+        className="w-full mt-2"
         onClick={onCheckout}
       >
         💳 الدفع {formatCurrency(total)}
       </Button>
+
+      {/* Discount Modal */}
+      {showDiscountModal && (
+        <DiscountModal onClose={() => setShowDiscountModal(false)} />
+      )}
     </div>
   );
 };

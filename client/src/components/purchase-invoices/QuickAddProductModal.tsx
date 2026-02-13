@@ -53,8 +53,6 @@ export function QuickAddProductModal({
         categoryId,
         price,
         cost: 0, // Will be set from purchase invoice
-        taxRate: 14,
-        taxInclusive: true,
         trackInventory: true,
         stockQuantity: 0,
         lowStockThreshold: 5,

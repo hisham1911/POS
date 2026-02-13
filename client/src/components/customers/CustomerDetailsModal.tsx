@@ -170,7 +170,7 @@ export const CustomerDetailsModal = ({
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 border-b">
+          <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 border-b">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mb-1">
                 <ShoppingBag className="w-4 h-4" />
@@ -188,6 +188,20 @@ export const CustomerDetailsModal = ({
               <p className="font-bold text-lg text-green-600">
                 {formatCurrency(customer.totalSpent)}
               </p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 text-orange-500 text-sm mb-1">
+                <Wallet className="w-4 h-4" />
+                المبلغ المستحق
+              </div>
+              <p className="font-bold text-lg text-orange-600">
+                {customer.totalDue > 0 ? formatCurrency(customer.totalDue) : "—"}
+              </p>
+              {customer.creditLimit > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  من {formatCurrency(customer.creditLimit)}
+                </p>
+              )}
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mb-1">
@@ -415,6 +429,66 @@ export const CustomerDetailsModal = ({
                     </div>
                   </div>
                 </div>
+
+                {/* Credit Info */}
+                {(customer.totalDue > 0 || customer.creditLimit > 0) && (
+                  <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                    <h3 className="font-semibold text-gray-800 mb-3">
+                      معلومات الائتمان
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">المبلغ المستحق:</span>
+                        <span className="font-bold text-orange-600 text-lg">
+                          {formatCurrency(customer.totalDue)}
+                        </span>
+                      </div>
+                      {customer.creditLimit > 0 && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">حد الائتمان:</span>
+                            <span className="font-semibold text-gray-800">
+                              {formatCurrency(customer.creditLimit)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">المتاح:</span>
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(customer.creditLimit - customer.totalDue)}
+                            </span>
+                          </div>
+                          {/* Progress Bar */}
+                          <div className="mt-2">
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                              <span>استخدام الائتمان</span>
+                              <span>
+                                {((customer.totalDue / customer.creditLimit) * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className={clsx(
+                                  "h-2 rounded-full transition-all",
+                                  (customer.totalDue / customer.creditLimit) > 0.8
+                                    ? "bg-red-500"
+                                    : (customer.totalDue / customer.creditLimit) > 0.5
+                                    ? "bg-orange-500"
+                                    : "bg-green-500"
+                                )}
+                                style={{
+                                  width: `${Math.min(
+                                    (customer.totalDue / customer.creditLimit) * 100,
+                                    100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Edit Button */}
                 <Button

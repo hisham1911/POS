@@ -12,6 +12,11 @@ import {
   selectTotal,
   selectTaxRate,
   selectIsTaxEnabled,
+  selectDiscountAmount,
+  selectDiscountType,
+  selectDiscountValue,
+  setDiscount,
+  DiscountType,
 } from "../store/slices/cartSlice";
 import { Product } from "../types/product.types";
 
@@ -21,6 +26,9 @@ export const useCart = () => {
   const items = useAppSelector(selectCartItems);
   const itemsCount = useAppSelector(selectItemsCount);
   const subtotal = useAppSelector(selectSubtotal);
+  const discountAmount = useAppSelector(selectDiscountAmount);
+  const discountType = useAppSelector(selectDiscountType);
+  const discountValue = useAppSelector(selectDiscountValue);
   const taxAmount = useAppSelector(selectTaxAmount);
   const total = useAppSelector(selectTotal);
   const taxRate = useAppSelector(selectTaxRate);
@@ -46,10 +54,21 @@ export const useCart = () => {
     dispatch(clearCart());
   };
 
+  const applyDiscount = (type: DiscountType, value: number) => {
+    dispatch(setDiscount({ type, value }));
+  };
+
+  const removeDiscount = () => {
+    dispatch(setDiscount(undefined));
+  };
+
   return {
     items,
     itemsCount,
     subtotal,
+    discountAmount,
+    discountType,
+    discountValue,
     taxAmount,
     total,
     taxRate,
@@ -59,5 +78,7 @@ export const useCart = () => {
     updateQuantity: setQuantity,
     updateNotes: setNotes,
     clearCart: clear,
+    applyDiscount,
+    removeDiscount,
   };
 };

@@ -33,6 +33,11 @@ public class UnitOfWork : IUnitOfWork
         PurchaseInvoicePayments = new GenericRepository<PurchaseInvoicePayment>(context);
         SupplierProducts = new GenericRepository<SupplierProduct>(context);
         
+        // Multi-Branch Inventory repositories
+        BranchInventories = new GenericRepository<BranchInventory>(context);
+        BranchProductPrices = new GenericRepository<BranchProductPrice>(context);
+        InventoryTransfers = new GenericRepository<InventoryTransfer>(context);
+        
         // Expenses and Cash Register repositories
         ExpenseCategories = new GenericRepository<ExpenseCategory>(context);
         Expenses = new GenericRepository<Expense>(context);
@@ -61,6 +66,11 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<PurchaseInvoicePayment> PurchaseInvoicePayments { get; }
     public IRepository<SupplierProduct> SupplierProducts { get; }
     
+    // Multi-Branch Inventory repository properties
+    public IRepository<BranchInventory> BranchInventories { get; }
+    public IRepository<BranchProductPrice> BranchProductPrices { get; }
+    public IRepository<InventoryTransfer> InventoryTransfers { get; }
+    
     // Expenses and Cash Register repository properties
     public IRepository<ExpenseCategory> ExpenseCategories { get; }
     public IRepository<Expense> Expenses { get; }
@@ -74,6 +84,9 @@ public class UnitOfWork : IUnitOfWork
     /// </summary>
     public async Task<IDbContextTransaction> BeginTransactionAsync() 
         => await _context.Database.BeginTransactionAsync();
+    
+    // P0-8: Check if a transaction is already in progress
+    public bool HasActiveTransaction => _context.Database.CurrentTransaction != null;
 
     public void Dispose() => _context.Dispose();
 }

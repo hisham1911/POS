@@ -38,8 +38,18 @@ public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
         builder.Property(s => s.TotalCard)
             .HasColumnType("decimal(18,2)");
         
+        builder.Property(s => s.HandoverBalance)
+            .HasColumnType("decimal(18,2)");
+        
         builder.Property(s => s.RowVersion)
             .IsRowVersion();
+        
+        // String length constraints
+        builder.Property(s => s.ForceCloseReason)
+            .HasMaxLength(500);
+            
+        builder.Property(s => s.HandoverNotes)
+            .HasMaxLength(1000);
         
         // Relationships
         builder.HasOne(s => s.Tenant)
@@ -63,6 +73,24 @@ public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
             .HasForeignKey(s => s.ReconciledByUserId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("FK_Shifts_Users_ReconciledByUserId");
+            
+        builder.HasOne(s => s.ForceClosedByUser)
+            .WithMany()
+            .HasForeignKey(s => s.ForceClosedByUserId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("FK_Shifts_Users_ForceClosedByUserId");
+            
+        builder.HasOne(s => s.HandedOverFromUser)
+            .WithMany()
+            .HasForeignKey(s => s.HandedOverFromUserId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("FK_Shifts_Users_HandedOverFromUserId");
+            
+        builder.HasOne(s => s.HandedOverToUser)
+            .WithMany()
+            .HasForeignKey(s => s.HandedOverToUserId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("FK_Shifts_Users_HandedOverToUserId");
             
         builder.HasMany(s => s.Orders)
             .WithOne(o => o.Shift)

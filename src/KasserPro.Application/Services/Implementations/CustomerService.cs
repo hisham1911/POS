@@ -130,6 +130,8 @@ public class CustomerService : ICustomerService
             customer.Notes = request.Notes;
         if (request.IsActive.HasValue)
             customer.IsActive = request.IsActive.Value;
+        if (request.CreditLimit.HasValue)
+            customer.CreditLimit = request.CreditLimit.Value;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -203,6 +205,41 @@ public class CustomerService : ICustomerService
             customer.LoyaltyPoints = 0;
 
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task UpdateCreditBalanceAsync(int customerId, decimal amountDue)
+    {
+        var tenantId = _currentUser.TenantId;
+        
+        var customer = await _unitOfWork.Customers.Query()
+            .FirstOrDefaultAsync(c => c.Id == customerId && c.TenantId == tenantId);
+
+        if (customer == null)
+            return;
+
+        // Add to TotalDue (customer owes more money)
+        customer.TotalDue += amountDue;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<bool> ValidateCreditLimitAsync(int customerId, decimal additionalAmount)
+    {
+        var tenantId = _currentUser.TenantId;
+        
+        var customer = await _unitOfWork.Customers.Query()
+            .FirstOrDefaultAsync(c => c.Id == customerId && c.TenantId == tenantId);
+
+        if (customer == null)
+            return false;
+
+        // If credit limit is 0, no limit is enforced
+        if (customer.CreditLimit == 0)
+            return true;
+
+        // Check if adding this amount would exceed the credit limit
+        var newTotalDue = customer.TotalDue + additionalAmount;
+        return newTotalDue <= customer.CreditLimit;
     }
 
     public async Task AddLoyaltyPointsAsync(int customerId, int points)
@@ -281,7 +318,9 @@ public class CustomerService : ICustomerService
         TotalSpent = c.TotalSpent,
         LastOrderAt = c.LastOrderAt,
         IsActive = c.IsActive,
-        CreatedAt = c.CreatedAt
+        CreatedAt = c.CreatedAt,
+        TotalDue = c.TotalDue,
+        CreditLimit = c.CreditLimit
     };
 
     #endregion

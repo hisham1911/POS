@@ -17,6 +17,10 @@ public class CustomerDto
     public DateTime? LastOrderAt { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    // Credit Sales Fields
+    public decimal TotalDue { get; set; }
+    public decimal CreditLimit { get; set; }
 }
 
 /// <summary>
@@ -60,6 +64,7 @@ public class UpdateCustomerRequest
     public string? Address { get; set; }
     public string? Notes { get; set; }
     public bool? IsActive { get; set; }
+    public decimal? CreditLimit { get; set; }
 }
 
 /// <summary>
@@ -71,4 +76,6 @@ public class CustomerSummaryDto
     public string Phone { get; set; } = string.Empty;
     public string? Name { get; set; }
     public int LoyaltyPoints { get; set; }
+    public decimal TotalDue { get; set; }
+    public decimal CreditLimit { get; set; }
 }

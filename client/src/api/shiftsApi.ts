@@ -3,6 +3,8 @@ import {
   Shift,
   OpenShiftRequest,
   CloseShiftRequest,
+  ForceCloseShiftRequest,
+  HandoverShiftRequest,
 } from "../types/shift.types";
 import { ApiResponse } from "../types/api.types";
 
@@ -45,6 +47,47 @@ export const shiftsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Shifts"],
     }),
+
+    // إغلاق وردية بالقوة (Admin only)
+    forceCloseShift: builder.mutation<
+      ApiResponse<Shift>,
+      { id: number; request: ForceCloseShiftRequest }
+    >({
+      query: ({ id, request }) => ({
+        url: `/shifts/${id}/force-close`,
+        method: "POST",
+        body: request,
+      }),
+      invalidatesTags: ["Shifts"],
+    }),
+
+    // تسليم وردية
+    handoverShift: builder.mutation<
+      ApiResponse<Shift>,
+      { id: number; request: HandoverShiftRequest }
+    >({
+      query: ({ id, request }) => ({
+        url: `/shifts/${id}/handover`,
+        method: "POST",
+        body: request,
+      }),
+      invalidatesTags: ["Shifts"],
+    }),
+
+    // تحديث النشاط
+    updateShiftActivity: builder.mutation<ApiResponse<boolean>, number>({
+      query: (id) => ({
+        url: `/shifts/${id}/update-activity`,
+        method: "POST",
+      }),
+      // لا نحتاج invalidate لأنه مجرد timestamp update
+    }),
+
+    // جلب الورديات المفتوحة
+    getActiveShifts: builder.query<ApiResponse<Shift[]>, void>({
+      query: () => "/shifts/active",
+      providesTags: ["Shifts"],
+    }),
   }),
 });
 
@@ -54,4 +97,8 @@ export const {
   useGetShiftQuery,
   useOpenShiftMutation,
   useCloseShiftMutation,
+  useForceCloseShiftMutation,
+  useHandoverShiftMutation,
+  useUpdateShiftActivityMutation,
+  useGetActiveShiftsQuery,
 } = shiftsApi;

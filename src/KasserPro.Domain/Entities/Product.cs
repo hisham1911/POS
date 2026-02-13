@@ -59,4 +59,7 @@ public class Product : BaseEntity
     public ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
     public ICollection<SupplierProduct> SupplierProducts { get; set; } = new List<SupplierProduct>();
     public ICollection<PurchaseInvoiceItem> PurchaseInvoiceItems { get; set; } = new List<PurchaseInvoiceItem>();
+    public ICollection<BranchInventory> BranchInventories { get; set; } = new List<BranchInventory>();
+    public ICollection<BranchProductPrice> BranchPrices { get; set; } = new List<BranchProductPrice>();
+    public ICollection<InventoryTransfer> InventoryTransfers { get; set; } = new List<InventoryTransfer>();
 }

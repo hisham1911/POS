@@ -31,6 +31,7 @@ export const CustomerFormModal = ({
     email: "",
     address: "",
     notes: "",
+    creditLimit: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -49,6 +50,7 @@ export const CustomerFormModal = ({
         email: customer.email || "",
         address: customer.address || "",
         notes: customer.notes || "",
+        creditLimit: customer.creditLimit > 0 ? customer.creditLimit.toString() : "",
       });
     }
   }, [customer]);
@@ -82,6 +84,7 @@ export const CustomerFormModal = ({
           email: formData.email || undefined,
           address: formData.address || undefined,
           notes: formData.notes || undefined,
+          creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : 0,
         };
 
         const result = await updateCustomer({
@@ -236,6 +239,30 @@ export const CustomerFormModal = ({
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
             />
           </div>
+
+          {/* Credit Limit */}
+          {isEditing && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                حد الائتمان (ج.م)
+              </label>
+              <input
+                type="number"
+                value={formData.creditLimit}
+                onChange={(e) =>
+                  setFormData({ ...formData, creditLimit: e.target.value })
+                }
+                placeholder="0 = بدون حد"
+                min="0"
+                step="0.01"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                dir="ltr"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                اترك 0 للسماح بائتمان غير محدود
+              </p>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

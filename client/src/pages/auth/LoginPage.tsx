@@ -68,16 +68,18 @@ export const LoginPage = () => {
           </Button>
         </form>
 
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl text-sm">
-          <p className="font-medium text-gray-700 mb-2">بيانات تجريبية:</p>
-          <p className="text-gray-600">
-            <span className="font-medium">المدير:</span> admin@kasserpro.com / Admin@123
-          </p>
-          <p className="text-gray-600">
-            <span className="font-medium">الكاشير:</span> ahmed@kasserpro.com / 123456
-          </p>
-        </div>
+        {/* Demo Credentials — Development Only */}
+        {import.meta.env.DEV && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-xl text-sm">
+            <p className="font-medium text-gray-700 mb-2">بيانات تجريبية:</p>
+            <p className="text-gray-600">
+              <span className="font-medium">المدير:</span> admin@kasserpro.com / Admin@123
+            </p>
+            <p className="text-gray-600">
+              <span className="font-medium">الكاشير:</span> ahmed@kasserpro.com / 123456
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

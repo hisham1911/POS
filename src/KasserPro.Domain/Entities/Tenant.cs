@@ -29,6 +29,32 @@ public class Tenant : BaseEntity
     /// </summary>
     public bool AllowNegativeStock { get; set; } = false;
 
+    // Receipt Settings - إعدادات تنسيق الفاتورة
+    /// <summary>مقاس الورق: "80mm" أو "58mm" أو "custom"</summary>
+    public string ReceiptPaperSize { get; set; } = "80mm";
+    /// <summary>عرض الورق المخصص بالبيكسل (يستخدم فقط إذا كان ReceiptPaperSize = "custom")</summary>
+    public int? ReceiptCustomWidth { get; set; }
+    /// <summary>حجم خط العنوان (الهيدر)</summary>
+    public int ReceiptHeaderFontSize { get; set; } = 12;
+    /// <summary>حجم الخط العادي</summary>
+    public int ReceiptBodyFontSize { get; set; } = 9;
+    /// <summary>حجم خط الإجمالي</summary>
+    public int ReceiptTotalFontSize { get; set; } = 11;
+    /// <summary>إظهار اسم الفرع في الفاتورة</summary>
+    public bool ReceiptShowBranchName { get; set; } = true;
+    /// <summary>إظهار اسم الكاشير</summary>
+    public bool ReceiptShowCashier { get; set; } = true;
+    /// <summary>إظهار رسالة الشكر</summary>
+    public bool ReceiptShowThankYou { get; set; } = true;
+    /// <summary>رسالة الفوتر المخصصة</summary>
+    public string? ReceiptFooterMessage { get; set; }
+    /// <summary>رقم هاتف المتجر في الفاتورة</summary>
+    public string? ReceiptPhoneNumber { get; set; }
+    /// <summary>إظهار اسم العميل في الفاتورة</summary>
+    public bool ReceiptShowCustomerName { get; set; } = true;
+    /// <summary>إظهار لوجو الشركة في الفاتورة</summary>
+    public bool ReceiptShowLogo { get; set; } = true;
+
     // Navigation
     public ICollection<Branch> Branches { get; set; } = new List<Branch>();
     public ICollection<User> Users { get; set; } = new List<User>();

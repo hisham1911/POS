@@ -52,8 +52,15 @@ public class DeviceHub : Hub
             _deviceConnections[deviceId] = Context.ConnectionId;
         }
 
-        _logger.LogInformation("Device {DeviceId} connected with connection ID {ConnectionId}", 
-            deviceId, Context.ConnectionId);
+        // P0-5: Add device to a branch group for targeted receipt delivery.
+        // Branch ID comes from the X-Branch-Id header (set by desktop bridge config).
+        // Default to "branch-default" if not provided.
+        var branchId = httpContext.Request.Headers["X-Branch-Id"].ToString();
+        var groupName = !string.IsNullOrEmpty(branchId) ? $"branch-{branchId}" : "branch-default";
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogInformation("Device {DeviceId} connected with connection ID {ConnectionId} and added to group {GroupName}", 
+            deviceId, Context.ConnectionId, groupName);
 
         await base.OnConnectedAsync();
     }
@@ -100,8 +107,8 @@ public class DeviceHub : Hub
             eventDto.ErrorMessage ?? "None"
         );
 
-        // Notify all web clients that print is complete
-        await Clients.All.SendAsync("PrintCompleted", eventDto);
+        // P0-5: Notify the caller that print is complete (no need to broadcast status)
+        await Clients.Caller.SendAsync("PrintCompleted", eventDto);
     }
 
     /// <summary>

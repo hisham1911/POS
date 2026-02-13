@@ -6,6 +6,7 @@ using KasserPro.Application.Services.Interfaces;
 using KasserPro.Domain.Entities;
 using KasserPro.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 namespace KasserPro.Application.Services.Implementations;
@@ -435,19 +436,26 @@ public class CashRegisterService : ICashRegisterService
         int? referenceId = null,
         int? shiftId = null)
     {
+        // P0-8: If we're already inside a caller's transaction (e.g., CompleteAsync),
+        // piggyback on it. If not, create our own to ensure read+write atomicity.
+        var ownsTransaction = !_unitOfWork.HasActiveTransaction;
+        IDbContextTransaction? transaction = null;
+        
+        if (ownsTransaction)
+        {
+            transaction = await _unitOfWork.BeginTransactionAsync();
+        }
+        
         try
         {
-            // Get current balance
+            // Read current balance — inside transaction, so SQLite write lock protects us
             var currentBalance = await GetCurrentBalanceForBranchAsync(_currentUserService.BranchId);
 
-            // Get user name
             var user = await _unitOfWork.Users.Query()
                 .FirstOrDefaultAsync(u => u.Id == _currentUserService.UserId);
 
-            // Generate transaction number
             var transactionNumber = await GenerateTransactionNumberAsync();
 
-            // Calculate new balance based on transaction type
             var balanceAfter = type switch
             {
                 CashRegisterTransactionType.Sale => currentBalance + amount,
@@ -461,8 +469,7 @@ public class CashRegisterService : ICashRegisterService
                 _ => currentBalance
             };
 
-            // Create transaction
-            var transaction = new CashRegisterTransaction
+            var cashTransaction = new CashRegisterTransaction
             {
                 TenantId = _currentUserService.TenantId,
                 BranchId = _currentUserService.BranchId,
@@ -480,15 +487,31 @@ public class CashRegisterService : ICashRegisterService
                 UserName = user?.Name ?? _currentUserService.Email ?? "Unknown"
             };
 
-            await _unitOfWork.CashRegisterTransactions.AddAsync(transaction);
+            await _unitOfWork.CashRegisterTransactions.AddAsync(cashTransaction);
             await _unitOfWork.SaveChangesAsync();
+            
+            if (ownsTransaction && transaction != null)
+            {
+                await transaction.CommitAsync();
+            }
 
             _logger.LogInformation("Cash register transaction recorded: {Type} - {Amount}", type, amount);
         }
         catch (Exception ex)
         {
+            if (ownsTransaction && transaction != null)
+            {
+                await transaction.RollbackAsync();
+            }
             _logger.LogError(ex, "Error recording cash register transaction");
             throw;
+        }
+        finally
+        {
+            if (ownsTransaction)
+            {
+                transaction?.Dispose();
+            }
         }
     }
 

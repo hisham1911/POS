@@ -55,6 +55,16 @@ public interface ICustomerService
     Task DeductRefundStatsAsync(int customerId, decimal refundAmount, int pointsToDeduct);
     
     /// <summary>
+    /// Update customer credit balance (TotalDue) when order has unpaid amount
+    /// </summary>
+    Task UpdateCreditBalanceAsync(int customerId, decimal amountDue);
+    
+    /// <summary>
+    /// Validate if customer can take additional credit without exceeding limit
+    /// </summary>
+    Task<bool> ValidateCreditLimitAsync(int customerId, decimal additionalAmount);
+    
+    /// <summary>
     /// Add loyalty points to customer
     /// </summary>
     Task AddLoyaltyPointsAsync(int customerId, int points);

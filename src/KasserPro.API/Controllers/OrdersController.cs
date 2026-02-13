@@ -13,15 +13,18 @@ using KasserPro.API.Hubs;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly ITenantService _tenantService;
     private readonly IHubContext<DeviceHub> _hubContext;
     private readonly ILogger<OrdersController> _logger;
 
     public OrdersController(
         IOrderService orderService,
+        ITenantService tenantService,
         IHubContext<DeviceHub> hubContext,
         ILogger<OrdersController> logger)
     {
         _orderService = orderService;
+        _tenantService = tenantService;
         _hubContext = hubContext;
         _logger = logger;
     }
@@ -97,6 +100,10 @@ public class OrdersController : ControllerBase
                 var order = result.Data;
                 var userName = User.FindFirst("name")?.Value ?? "Cashier";
                 
+                // Get tenant settings for receipt configuration
+                var tenantResult = await _tenantService.GetCurrentTenantAsync();
+                var tenant = tenantResult.Data;
+
                 var printCommand = new
                 {
                     CommandId = Guid.NewGuid().ToString(),
@@ -104,7 +111,7 @@ public class OrdersController : ControllerBase
                     {
                         ReceiptNumber = order.OrderNumber,
                         BranchName = order.BranchName ?? "KasserPro Store",
-                        Date = order.CompletedAt ?? DateTime.Now,
+                        Date = ConvertToLocalTime(order.CompletedAt ?? DateTime.UtcNow, tenant?.Timezone),
                         Items = order.Items.Select(item => new
                         {
                             Name = item.ProductName,
@@ -115,13 +122,38 @@ public class OrdersController : ControllerBase
                         NetTotal = order.Subtotal,
                         TaxAmount = order.TaxAmount,
                         TotalAmount = order.Total,
+                        AmountPaid = order.AmountPaid,
+                        ChangeAmount = order.ChangeAmount,
+                        AmountDue = order.AmountDue,
                         PaymentMethod = order.Payments.FirstOrDefault()?.Method ?? "Cash",
-                        CashierName = order.UserName ?? userName
-                    }
+                        CashierName = order.UserName ?? userName,
+                        CustomerName = order.CustomerName ?? ""
+                    },
+                    Settings = tenant != null ? new
+                    {
+                        PaperSize = tenant.ReceiptPaperSize,
+                        CustomWidth = tenant.ReceiptCustomWidth,
+                        HeaderFontSize = tenant.ReceiptHeaderFontSize,
+                        BodyFontSize = tenant.ReceiptBodyFontSize,
+                        TotalFontSize = tenant.ReceiptTotalFontSize,
+                        ShowBranchName = tenant.ReceiptShowBranchName,
+                        ShowCashier = tenant.ReceiptShowCashier,
+                        ShowThankYou = tenant.ReceiptShowThankYou,
+                        ShowCustomerName = tenant.ReceiptShowCustomerName,
+                        ShowLogo = tenant.ReceiptShowLogo,
+                        FooterMessage = tenant.ReceiptFooterMessage,
+                        PhoneNumber = tenant.ReceiptPhoneNumber,
+                        LogoUrl = tenant.LogoUrl,
+                        TaxRate = tenant.TaxRate,
+                        IsTaxEnabled = tenant.IsTaxEnabled
+                    } : (object?)null
                 };
 
-                await _hubContext.Clients.All.SendAsync("PrintReceipt", printCommand);
-                _logger.LogInformation("Print command sent for order {OrderId}", order.Id);
+                // P0-5: Send receipt only to devices in this branch's group
+                var branchId = User.FindFirst("branchId")?.Value ?? "default";
+                await _hubContext.Clients.Group($"branch-{branchId}")
+                    .SendAsync("PrintReceipt", printCommand);
+                _logger.LogInformation("Print command sent for order {OrderId} to branch group {BranchId}", order.Id, branchId);
             }
             catch (Exception ex)
             {
@@ -165,6 +197,49 @@ public class OrdersController : ControllerBase
         
         var result = await _orderService.RefundAsync(id, userId, request?.Reason, refundItems);
         return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Convert UTC time to local time based on tenant timezone (IANA or Windows ID)
+    /// </summary>
+    private static DateTime ConvertToLocalTime(DateTime utcTime, string? timezone)
+    {
+        if (string.IsNullOrEmpty(timezone))
+            return utcTime.ToLocalTime();
+
+        try
+        {
+            // Try direct lookup (Windows timezone ID like "Egypt Standard Time")
+            var tz = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+            return TimeZoneInfo.ConvertTimeFromUtc(utcTime, tz);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            // Map common IANA timezone IDs to Windows IDs
+            var ianaToWindows = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Africa/Cairo"] = "Egypt Standard Time",
+                ["Asia/Riyadh"] = "Arab Standard Time",
+                ["Asia/Dubai"] = "Arabian Standard Time",
+                ["Asia/Kuwait"] = "Arab Standard Time",
+                ["Europe/London"] = "GMT Standard Time",
+                ["America/New_York"] = "Eastern Standard Time",
+                ["UTC"] = "UTC",
+            };
+
+            if (ianaToWindows.TryGetValue(timezone, out var windowsId))
+            {
+                try
+                {
+                    var tz = TimeZoneInfo.FindSystemTimeZoneById(windowsId);
+                    return TimeZoneInfo.ConvertTimeFromUtc(utcTime, tz);
+                }
+                catch { }
+            }
+
+            // Fallback to local time
+            return utcTime.ToLocalTime();
+        }
     }
 }
 

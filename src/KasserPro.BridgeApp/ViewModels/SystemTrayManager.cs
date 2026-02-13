@@ -150,24 +150,42 @@ public class SystemTrayManager : IDisposable
         {
             Log.Information("Test print requested");
             
-            var testReceipt = new Models.ReceiptDto
+            var testCommand = new Models.PrintCommandDto
             {
-                ReceiptNumber = "TEST-001",
-                BranchName = "Test Branch",
-                Date = DateTime.Now,
-                Items = new List<Models.ReceiptItemDto>
+                CommandId = Guid.NewGuid().ToString(),
+                Receipt = new Models.ReceiptDto
                 {
-                    new() { Name = "Test Item 1", Quantity = 2, UnitPrice = 10.00m, TotalPrice = 20.00m },
-                    new() { Name = "Test Item 2", Quantity = 1, UnitPrice = 15.50m, TotalPrice = 15.50m }
+                    ReceiptNumber = "TEST-001",
+                    BranchName = "Test Branch",
+                    Date = DateTime.Now,
+                    Items = new List<Models.ReceiptItemDto>
+                    {
+                        new() { Name = "Test Item 1", Quantity = 2, UnitPrice = 10.00m, TotalPrice = 20.00m },
+                        new() { Name = "Test Item 2", Quantity = 1, UnitPrice = 15.50m, TotalPrice = 15.50m }
+                    },
+                    NetTotal = 35.50m,
+                    TaxAmount = 4.97m,
+                    TotalAmount = 40.47m,
+                    PaymentMethod = "Cash",
+                    CashierName = "Test User"
                 },
-                NetTotal = 35.50m,
-                TaxAmount = 4.97m,
-                TotalAmount = 40.47m,
-                PaymentMethod = "Cash",
-                CashierName = "Test User"
+                Settings = new Models.ReceiptPrintSettings
+                {
+                    PaperSize = "80mm",
+                    HeaderFontSize = 12,
+                    BodyFontSize = 9,
+                    TotalFontSize = 11,
+                    ShowBranchName = true,
+                    ShowCashier = true,
+                    ShowThankYou = true,
+                    ShowCustomerName = false,
+                    ShowLogo = false,
+                    TaxRate = 14,
+                    IsTaxEnabled = true
+                }
             };
 
-            var success = await _printerService.PrintReceiptAsync(testReceipt);
+            var success = await _printerService.PrintReceiptAsync(testCommand);
             
             if (success)
             {

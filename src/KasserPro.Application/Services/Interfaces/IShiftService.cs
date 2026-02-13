@@ -10,6 +10,12 @@ public interface IShiftService
     Task<ApiResponse<ShiftDto>> CloseAsync(CloseShiftRequest request, int userId);
     Task<ApiResponse<List<ShiftDto>>> GetUserShiftsAsync(int userId);
     
+    // Enhanced shift management
+    Task<ApiResponse<ShiftDto>> ForceCloseAsync(int shiftId, ForceCloseShiftRequest request);
+    Task<ApiResponse<ShiftDto>> HandoverAsync(int shiftId, HandoverShiftRequest request);
+    Task<ApiResponse<bool>> UpdateActivityAsync(int shiftId);
+    Task<ApiResponse<List<ShiftDto>>> GetActiveShiftsAsync();
+    
     /// <summary>
     /// Shift deletion is NOT supported for audit/financial integrity.
     /// This method always throws NotSupportedException.

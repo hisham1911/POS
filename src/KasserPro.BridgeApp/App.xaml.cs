@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -105,14 +105,14 @@ public partial class App : Application
 
             // Connect SignalR client
             var signalRClient = _serviceProvider.GetRequiredService<ISignalRClientService>();
-            
+
             // Wire up print command handler
             signalRClient.OnPrintCommandReceived += async (sender, args) =>
             {
                 Log.Information("Processing print command {CommandId}", args.Command.CommandId);
-                
-                var success = await printerService.PrintReceiptAsync(args.Command.Receipt);
-                
+
+                var success = await printerService.PrintReceiptAsync(args.Command);
+
                 await signalRClient.SendPrintCompletedAsync(
                     args.Command.CommandId,
                     success,

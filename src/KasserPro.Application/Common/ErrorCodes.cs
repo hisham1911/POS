@@ -52,6 +52,9 @@ public static class ErrorCodes
     public const string PAYMENT_INSUFFICIENT = "PAYMENT_INSUFFICIENT";
     public const string PAYMENT_INVALID_METHOD = "PAYMENT_INVALID_METHOD";
     public const string PAYMENT_OVERPAYMENT_LIMIT = "PAYMENT_OVERPAYMENT_LIMIT";
+    
+    // Customer Errors (1750-1799)
+    public const string CUSTOMER_CREDIT_LIMIT_EXCEEDED = "CUSTOMER_CREDIT_LIMIT_EXCEEDED";
 
     // Shift Errors (1800-1899)
     public const string SHIFT_NOT_FOUND = "SHIFT_NOT_FOUND";
@@ -66,6 +69,12 @@ public static class ErrorCodes
     public const string SHIFT_USER_HAS_OPEN_SHIFT = "SHIFT_USER_HAS_OPEN_SHIFT";
     public const string SHIFT_HANDOVER_NOT_FOUND = "SHIFT_HANDOVER_NOT_FOUND";
     public const string SHIFT_INACTIVITY_WARNING = "SHIFT_INACTIVITY_WARNING";
+    public const string SHIFT_ALREADY_FORCE_CLOSED = "SHIFT_ALREADY_FORCE_CLOSED";
+    public const string SHIFT_CANNOT_HANDOVER_CLOSED = "SHIFT_CANNOT_HANDOVER_CLOSED";
+    public const string SHIFT_HANDOVER_USER_REQUIRED = "SHIFT_HANDOVER_USER_REQUIRED";
+    public const string SHIFT_HANDOVER_TO_SAME_USER = "SHIFT_HANDOVER_TO_SAME_USER";
+    public const string SHIFT_ALREADY_HANDED_OVER = "SHIFT_ALREADY_HANDED_OVER";
+    public const string SHIFT_INACTIVE_TOO_LONG = "SHIFT_INACTIVE_TOO_LONG";
 
     // System Errors (1900-1999)
     public const string SYSTEM_INTERNAL_ERROR = "SYSTEM_INTERNAL_ERROR";
@@ -121,6 +130,19 @@ public static class ErrorCodes
     public const string CASH_REGISTER_INVALID_TYPE = "CASH_REGISTER_INVALID_TYPE";
     public const string CASH_REGISTER_SAME_BRANCH = "CASH_REGISTER_SAME_BRANCH";
     public const string SHIFT_NOT_OPEN = "SHIFT_NOT_OPEN";
+    
+    // Branch Inventory Errors (7000-7099)
+    public const string INVENTORY_NOT_FOUND = "INVENTORY_NOT_FOUND";
+    public const string INVENTORY_INVALID_QUANTITY = "INVENTORY_INVALID_QUANTITY";
+    public const string INVENTORY_INSUFFICIENT_STOCK = "INVENTORY_INSUFFICIENT_STOCK";
+    public const string INVENTORY_TRANSFER_SAME_BRANCH = "INVENTORY_TRANSFER_SAME_BRANCH";
+    public const string INVENTORY_TRANSFER_NOT_FOUND = "INVENTORY_TRANSFER_NOT_FOUND";
+    public const string INVENTORY_TRANSFER_ALREADY_APPROVED = "INVENTORY_TRANSFER_ALREADY_APPROVED";
+    public const string INVENTORY_TRANSFER_NOT_APPROVED = "INVENTORY_TRANSFER_NOT_APPROVED";
+    public const string INVENTORY_TRANSFER_ALREADY_COMPLETED = "INVENTORY_TRANSFER_ALREADY_COMPLETED";
+    public const string INVENTORY_TRANSFER_ALREADY_CANCELLED = "INVENTORY_TRANSFER_ALREADY_CANCELLED";
+    public const string BRANCH_PRICE_NOT_FOUND = "BRANCH_PRICE_NOT_FOUND";
+    public const string BRANCH_PRICE_ALREADY_EXISTS = "BRANCH_PRICE_ALREADY_EXISTS";
 }
 
 /// <summary>
@@ -176,6 +198,9 @@ public static class ErrorMessages
         { ErrorCodes.PAYMENT_INSUFFICIENT, "المبلغ المدفوع غير كافي" },
         { ErrorCodes.PAYMENT_INVALID_METHOD, "طريقة الدفع غير صالحة" },
         { ErrorCodes.PAYMENT_OVERPAYMENT_LIMIT, "المبلغ المدفوع يتجاوز الحد المسموح" },
+        
+        // Customer
+        { ErrorCodes.CUSTOMER_CREDIT_LIMIT_EXCEEDED, "تجاوز حد الائتمان المسموح للعميل" },
 
         // Shift
         { ErrorCodes.SHIFT_NOT_FOUND, "الوردية غير موجودة" },
@@ -244,7 +269,20 @@ public static class ErrorMessages
         { ErrorCodes.CASH_REGISTER_RECONCILIATION_REQUIRED, "يجب تسوية الخزينة قبل إغلاق الوردية" },
         { ErrorCodes.CASH_REGISTER_INVALID_TYPE, "نوع المعاملة غير صحيح" },
         { ErrorCodes.CASH_REGISTER_SAME_BRANCH, "لا يمكن التحويل لنفس الفرع" },
-        { ErrorCodes.SHIFT_NOT_OPEN, "الوردية غير مفتوحة" }
+        { ErrorCodes.SHIFT_NOT_OPEN, "الوردية غير مفتوحة" },
+        
+        // Branch Inventory
+        { ErrorCodes.INVENTORY_NOT_FOUND, "المخزون غير موجود" },
+        { ErrorCodes.INVENTORY_INVALID_QUANTITY, "الكمية غير صحيحة" },
+        { ErrorCodes.INVENTORY_INSUFFICIENT_STOCK, "الكمية المتوفرة في المخزون غير كافية" },
+        { ErrorCodes.INVENTORY_TRANSFER_SAME_BRANCH, "لا يمكن نقل المخزون لنفس الفرع" },
+        { ErrorCodes.INVENTORY_TRANSFER_NOT_FOUND, "عملية النقل غير موجودة" },
+        { ErrorCodes.INVENTORY_TRANSFER_ALREADY_APPROVED, "عملية النقل موافق عليها بالفعل" },
+        { ErrorCodes.INVENTORY_TRANSFER_NOT_APPROVED, "عملية النقل غير موافق عليها" },
+        { ErrorCodes.INVENTORY_TRANSFER_ALREADY_COMPLETED, "عملية النقل مكتملة بالفعل" },
+        { ErrorCodes.INVENTORY_TRANSFER_ALREADY_CANCELLED, "عملية النقل ملغاة بالفعل" },
+        { ErrorCodes.BRANCH_PRICE_NOT_FOUND, "سعر الفرع غير موجود" },
+        { ErrorCodes.BRANCH_PRICE_ALREADY_EXISTS, "سعر الفرع موجود بالفعل" }
     };
 
     public static string Get(string code) => Messages.TryGetValue(code, out var msg) ? msg : code;

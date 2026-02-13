@@ -6,6 +6,7 @@ import {
   selectCurrentUser,
   selectIsAuthenticated,
   selectIsAdmin,
+  selectIsSystemOwner,
 } from "../store/slices/authSlice";
 import { useLoginMutation } from "../api/authApi";
 import { LoginRequest } from "../types/auth.types";
@@ -19,6 +20,7 @@ export const useAuth = () => {
   const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isAdmin = useAppSelector(selectIsAdmin);
+  const isSystemOwner = useAppSelector(selectIsSystemOwner);
 
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
 
@@ -33,7 +35,7 @@ export const useAuth = () => {
           token: result.data.accessToken,
         }));
         toast.success("تم تسجيل الدخول بنجاح");
-        navigate("/pos");
+        navigate(result.data.user.role === "SystemOwner" ? "/owner/tenants" : "/pos");
       } else {
         toast.error(result.message || "فشل تسجيل الدخول");
       }
@@ -54,6 +56,7 @@ export const useAuth = () => {
     user,
     isAuthenticated,
     isAdmin,
+    isSystemOwner,
     login,
     isLoggingIn,
     logout,

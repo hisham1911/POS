@@ -27,17 +27,23 @@ public class ReportService : IReportService
         // Get branch info for report
         var branch = await _unitOfWork.Branches.GetByIdAsync(branchId);
 
-        // Query orders for the specific date, tenant, and branch
-        var orders = await _unitOfWork.Orders.Query()
-            .Include(o => o.Items)
-            .Include(o => o.Payments)
-            .Where(o => o.TenantId == tenantId 
-                     && o.BranchId == branchId 
-                     && o.CreatedAt.Date == reportDate)
+        // ✨ NEW APPROACH: Get shifts closed on this date
+        var shifts = await _unitOfWork.Shifts.Query()
+            .Include(s => s.User)
+            .Include(s => s.Orders)
+                .ThenInclude(o => o.Items)
+            .Include(s => s.Orders)
+                .ThenInclude(o => o.Payments)
+            .Where(s => s.TenantId == tenantId 
+                     && s.BranchId == branchId 
+                     && s.IsClosed 
+                     && s.ClosedAt!.Value.Date == reportDate)
             .ToListAsync();
 
+        // Get all orders from these shifts
+        var orders = shifts.SelectMany(s => s.Orders).ToList();
+
         // Filter completed orders for sales calculations (EXCLUDE Return orders)
-        // Include: Completed, PartiallyRefunded, and Refunded orders
         var completedOrders = orders
             .Where(o => (o.Status == OrderStatus.Completed 
                       || o.Status == OrderStatus.PartiallyRefunded 
@@ -54,30 +60,16 @@ public class ReportService : IReportService
             .ToList();
 
         // DEBUG LOGGING
-        Console.WriteLine($"=== DAILY REPORT DEBUG ===");
+        Console.WriteLine($"=== DAILY REPORT (SHIFT-BASED) DEBUG ===");
         Console.WriteLine($"Report Date: {reportDate:yyyy-MM-dd}");
-        Console.WriteLine($"Total orders loaded: {orders.Count}");
+        Console.WriteLine($"Shifts closed on this date: {shifts.Count}");
+        foreach (var shift in shifts)
+        {
+            Console.WriteLine($"  Shift #{shift.Id}: {shift.User?.Name}, Opened: {shift.OpenedAt:yyyy-MM-dd HH:mm}, Closed: {shift.ClosedAt:yyyy-MM-dd HH:mm}");
+        }
+        Console.WriteLine($"Total orders from shifts: {orders.Count}");
         Console.WriteLine($"Completed orders (excl. returns): {completedOrders.Count}");
         Console.WriteLine($"Return orders: {returnOrders.Count}");
-        
-        foreach (var order in completedOrders)
-        {
-            Console.WriteLine($"  Order #{order.OrderNumber}: {order.Items.Count} items, Status: {order.Status}, Created: {order.CreatedAt:yyyy-MM-dd HH:mm}, Completed: {order.CompletedAt:yyyy-MM-dd HH:mm}");
-            foreach (var item in order.Items)
-            {
-                Console.WriteLine($"    - {item.ProductName} x{item.Quantity} = {item.Total} EGP");
-            }
-        }
-        
-        Console.WriteLine($"\nReturn Orders:");
-        foreach (var order in returnOrders)
-        {
-            Console.WriteLine($"  Return Order #{order.OrderNumber}: {order.Items.Count} items");
-            foreach (var item in order.Items)
-            {
-                Console.WriteLine($"    - {item.ProductName} x{item.Quantity} = {item.Total} EGP");
-            }
-        }
         Console.WriteLine($"=========================");
 
         // Calculate payment breakdown
@@ -168,11 +160,30 @@ public class ReportService : IReportService
             .OrderBy(h => h.Hour)
             .ToList();
 
+        // Shift summaries
+        var shiftSummaries = shifts.Select(s => new ShiftSummaryDto
+        {
+            ShiftId = s.Id,
+            UserName = s.User?.Name ?? "غير معروف",
+            OpenedAt = s.OpenedAt,
+            ClosedAt = s.ClosedAt!.Value,
+            TotalOrders = s.TotalOrders,
+            TotalCash = s.TotalCash,
+            TotalCard = s.TotalCard,
+            TotalSales = s.TotalCash + s.TotalCard,
+            IsForceClosed = s.IsForceClosed,
+            ForceCloseReason = s.ForceCloseReason
+        }).ToList();
+
         var report = new DailyReportDto
         {
             Date = reportDate,
             BranchId = branchId,
             BranchName = branch?.Name,
+            
+            // Shift Information
+            TotalShifts = shifts.Count,
+            Shifts = shiftSummaries,
             
             // Order Counts
             TotalOrders = orders.Count,

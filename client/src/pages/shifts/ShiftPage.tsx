@@ -1,20 +1,33 @@
 import { useState } from "react";
-import { Clock, DollarSign, ShoppingBag, CreditCard, Banknote, Play, Square } from "lucide-react";
+import { Clock, DollarSign, ShoppingBag, CreditCard, Banknote, Play, Square, Users } from "lucide-react";
 import { useShift } from "@/hooks/useShift";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { Card } from "@/components/common/Card";
 import { Modal } from "@/components/common/Modal";
 import { Loading } from "@/components/common/Loading";
 import { formatCurrency, formatDateTime } from "@/utils/formatters";
+import { shiftPersistence } from "@/utils/shiftPersistence";
+import {
+  HandoverShiftModal,
+  ActiveShiftsList,
+  ForceCloseShiftModal,
+} from "@/components/shifts";
 import clsx from "clsx";
 
 export const ShiftPage = () => {
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showHandoverModal, setShowHandoverModal] = useState(false);
+  const [showForceCloseModal, setShowForceCloseModal] = useState(false);
+  const [selectedShiftForForceClose, setSelectedShiftForForceClose] = useState<any>(null);
   const [openingBalance, setOpeningBalance] = useState("");
   const [closingBalance, setClosingBalance] = useState("");
   const [notes, setNotes] = useState("");
+
+  const { user } = useAuth();
+  const isAdmin = user?.role === "Admin";
 
   const {
     currentShift,
@@ -34,9 +47,16 @@ export const ShiftPage = () => {
 
   const handleCloseShift = async () => {
     await closeShift({ closingBalance: Number(closingBalance), notes });
+    // Clear shift persistence when closing shift
+    shiftPersistence.clear();
     setShowCloseModal(false);
     setClosingBalance("");
     setNotes("");
+  };
+
+  const handleForceClose = (shift: any) => {
+    setSelectedShiftForForceClose(shift);
+    setShowForceCloseModal(true);
   };
 
   if (isLoading) return <Loading />;
@@ -49,23 +69,34 @@ export const ShiftPage = () => {
           <h1 className="text-2xl font-bold text-gray-800">إدارة الوردية</h1>
           <p className="text-gray-500 mt-1">فتح وإغلاق الورديات ومتابعة المبيعات</p>
         </div>
-        {!hasActiveShift ? (
-          <Button
-            variant="success"
-            onClick={() => setShowOpenModal(true)}
-            rightIcon={<Play className="w-5 h-5" />}
-          >
-            فتح وردية جديدة
-          </Button>
-        ) : (
-          <Button
-            variant="danger"
-            onClick={() => setShowCloseModal(true)}
-            rightIcon={<Square className="w-5 h-5" />}
-          >
-            إغلاق الوردية
-          </Button>
-        )}
+        <div className="flex gap-3">
+          {!hasActiveShift ? (
+            <Button
+              variant="success"
+              onClick={() => setShowOpenModal(true)}
+              rightIcon={<Play className="w-5 h-5" />}
+            >
+              فتح وردية جديدة
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setShowHandoverModal(true)}
+                rightIcon={<Users className="w-5 h-5" />}
+              >
+                تسليم الوردية
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => setShowCloseModal(true)}
+                rightIcon={<Square className="w-5 h-5" />}
+              >
+                إغلاق الوردية
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Shift Status */}
@@ -92,6 +123,19 @@ export const ShiftPage = () => {
           </p>
         )}
       </Card>
+
+      {/* Handover Badge */}
+      {currentShift && hasActiveShift && currentShift.isHandedOver && (
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-blue-600" />
+            <p className="text-sm text-blue-800">
+              <strong>تم التسليم</strong> من {currentShift.handedOverFromUserName} في{" "}
+              {formatDateTime(currentShift.handedOverAt || "")}
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* Shift Stats */}
       {currentShift && hasActiveShift && (
@@ -171,6 +215,50 @@ export const ShiftPage = () => {
             </Card>
           </div>
         </>
+      )}
+
+      {/* Active Shifts List (Admin Only) */}
+      {isAdmin && (
+        <ActiveShiftsList
+          onForceClose={handleForceClose}
+          currentUserId={user?.id}
+          isAdmin={isAdmin}
+        />
+      )}
+
+      {/* Handover Modal */}
+      {currentShift && (
+        <HandoverShiftModal
+          shift={currentShift}
+          isOpen={showHandoverModal}
+          onClose={() => setShowHandoverModal(false)}
+          onSuccess={() => {
+            setShowHandoverModal(false);
+            // Shift will be refreshed automatically via RTK Query
+          }}
+          availableUsers={[
+            // TODO: Fetch from API - for now using mock data
+            { id: 2, name: "أحمد محمد", email: "ahmed@kasserpro.com" },
+            { id: 3, name: "فاطمة علي", email: "fatima@kasserpro.com" },
+          ]}
+        />
+      )}
+
+      {/* Force Close Modal (Admin Only) */}
+      {selectedShiftForForceClose && (
+        <ForceCloseShiftModal
+          shift={selectedShiftForForceClose}
+          isOpen={showForceCloseModal}
+          onClose={() => {
+            setShowForceCloseModal(false);
+            setSelectedShiftForForceClose(null);
+          }}
+          onSuccess={() => {
+            setShowForceCloseModal(false);
+            setSelectedShiftForForceClose(null);
+            // Shifts will be refreshed automatically via RTK Query
+          }}
+        />
       )}
 
       {/* Open Shift Modal */}

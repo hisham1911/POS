@@ -15,6 +15,9 @@ export interface Customer {
   lastOrderAt?: string;
   isActive: boolean;
   createdAt: string;
+  // Credit Sales Fields
+  totalDue: number;
+  creditLimit: number;
 }
 
 export interface CustomerSummary {
@@ -22,6 +25,8 @@ export interface CustomerSummary {
   phone: string;
   name?: string;
   loyaltyPoints: number;
+  totalDue: number;
+  creditLimit: number;
 }
 
 export interface CreateCustomerRequest {
@@ -38,6 +43,7 @@ export interface UpdateCustomerRequest {
   address?: string;
   notes?: string;
   isActive?: boolean;
+  creditLimit?: number;
 }
 
 export interface GetOrCreateCustomerRequest {

@@ -1,0 +1,288 @@
+### KasserPro - Post-Migration Smoke Tests
+### Use with REST Client extension in VS Code or copy to Postman
+
+@baseUrl = https://localhost:5243
+@adminToken = YOUR_ADMIN_TOKEN_HERE
+@cashierToken = YOUR_CASHIER_TOKEN_HERE
+
+### ============================================
+### SETUP: Get Authentication Tokens
+### ============================================
+
+### 1. Login as Admin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@kasserpro.com",
+  "password": "Admin@123"
+}
+
+### 2. Login as Cashier
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ahmed@kasserpro.com",
+  "password": "123456"
+}
+
+### ============================================
+### TEST 0: Verify Migration Status
+### ============================================
+
+### Check migration status
+GET {{baseUrl}}/api/migration/inventory-data/status
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### TEST 1: Order Creation (Core POS Flow)
+### ============================================
+
+### Get inventory before order
+GET {{baseUrl}}/api/inventory/branch/1
+Authorization: Bearer {{adminToken}}
+
+### Create order (will decrement inventory)
+POST {{baseUrl}}/api/orders
+Authorization: Bearer {{cashierToken}}
+Content-Type: application/json
+
+{
+  "orderType": "DineIn",
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 3
+    },
+    {
+      "productId": 2,
+      "quantity": 2
+    }
+  ]
+}
+
+### Get inventory after order (should be decremented)
+GET {{baseUrl}}/api/inventory/branch/1
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### TEST 2: Inventory Transfer
+### ============================================
+
+### Get Branch A inventory before transfer
+GET {{baseUrl}}/api/inventory/branch/1
+Authorization: Bearer {{adminToken}}
+
+### Get Branch B inventory before transfer
+GET {{baseUrl}}/api/inventory/branch/2
+Authorization: Bearer {{adminToken}}
+
+### Create transfer request
+POST {{baseUrl}}/api/inventory/transfer
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "fromBranchId": 1,
+  "toBranchId": 2,
+  "productId": 1,
+  "quantity": 10,
+  "reason": "Stock distribution for testing"
+}
+
+### Get transfer details (note the transferId from previous response)
+GET {{baseUrl}}/api/inventory/transfer/1
+Authorization: Bearer {{adminToken}}
+
+### Approve transfer (replace {id} with actual transferId)
+POST {{baseUrl}}/api/inventory/transfer/1/approve
+Authorization: Bearer {{adminToken}}
+
+### Receive transfer
+POST {{baseUrl}}/api/inventory/transfer/1/receive
+Authorization: Bearer {{adminToken}}
+
+### Verify final transfer status
+GET {{baseUrl}}/api/inventory/transfer/1
+Authorization: Bearer {{adminToken}}
+
+### Get Branch A inventory after transfer (should be -10)
+GET {{baseUrl}}/api/inventory/branch/1
+Authorization: Bearer {{adminToken}}
+
+### Get Branch B inventory after transfer (should be +10)
+GET {{baseUrl}}/api/inventory/branch/2
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### TEST 3: Branch-Specific Pricing
+### ============================================
+
+### Get current branch prices for Branch 1
+GET {{baseUrl}}/api/inventory/branch-prices/1
+Authorization: Bearer {{adminToken}}
+
+### Set branch-specific price (override)
+POST {{baseUrl}}/api/inventory/branch-prices
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "branchId": 1,
+  "productId": 1,
+  "price": 30.00,
+  "effectiveFrom": "2026-02-09T00:00:00Z"
+}
+
+### Get branch prices again (should show override)
+GET {{baseUrl}}/api/inventory/branch-prices/1
+Authorization: Bearer {{adminToken}}
+
+### Create order in Branch A (should use 30.00)
+POST {{baseUrl}}/api/orders
+Authorization: Bearer {{cashierToken}}
+Content-Type: application/json
+
+{
+  "orderType": "DineIn",
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 1
+    }
+  ]
+}
+
+### Remove branch price override
+DELETE {{baseUrl}}/api/inventory/branch-prices/1/1
+Authorization: Bearer {{adminToken}}
+
+### Verify price removed
+GET {{baseUrl}}/api/inventory/branch-prices/1
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### TEST 4: Low Stock Alert
+### ============================================
+
+### Check low stock items (should be empty initially)
+GET {{baseUrl}}/api/inventory/low-stock?branchId=1
+Authorization: Bearer {{adminToken}}
+
+### Adjust inventory below reorder level
+POST {{baseUrl}}/api/inventory/adjust
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "branchId": 1,
+  "productId": 3,
+  "quantityChange": -180,
+  "reason": "Testing low stock alert"
+}
+
+### Check low stock items again (should include product 3)
+GET {{baseUrl}}/api/inventory/low-stock?branchId=1
+Authorization: Bearer {{adminToken}}
+
+### Restore inventory
+POST {{baseUrl}}/api/inventory/adjust
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "branchId": 1,
+  "productId": 3,
+  "quantityChange": 180,
+  "reason": "Restoring stock after test"
+}
+
+### Verify low stock cleared
+GET {{baseUrl}}/api/inventory/low-stock?branchId=1
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### TEST 5: Authorization (Security)
+### ============================================
+
+### Cashier attempts to create transfer (should FAIL with 403)
+POST {{baseUrl}}/api/inventory/transfer
+Authorization: Bearer {{cashierToken}}
+Content-Type: application/json
+
+{
+  "fromBranchId": 1,
+  "toBranchId": 2,
+  "productId": 1,
+  "quantity": 5,
+  "reason": "Unauthorized attempt"
+}
+
+### Cashier attempts to adjust inventory (should FAIL with 403)
+POST {{baseUrl}}/api/inventory/adjust
+Authorization: Bearer {{cashierToken}}
+Content-Type: application/json
+
+{
+  "branchId": 1,
+  "productId": 1,
+  "quantityChange": 10,
+  "reason": "Unauthorized attempt"
+}
+
+### Cashier attempts to set branch price (should FAIL with 403)
+POST {{baseUrl}}/api/inventory/branch-prices
+Authorization: Bearer {{cashierToken}}
+Content-Type: application/json
+
+{
+  "branchId": 1,
+  "productId": 1,
+  "price": 50.00
+}
+
+### Cashier queries inventory (should SUCCEED with 200)
+GET {{baseUrl}}/api/inventory/branch/1
+Authorization: Bearer {{cashierToken}}
+
+### Admin creates transfer (should SUCCEED with 200)
+POST {{baseUrl}}/api/inventory/transfer
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "fromBranchId": 1,
+  "toBranchId": 2,
+  "productId": 2,
+  "quantity": 5,
+  "reason": "Admin authorized transfer"
+}
+
+### ============================================
+### TEST 6: Migration Idempotency
+### ============================================
+
+### Attempt to run migration again (should skip)
+POST {{baseUrl}}/api/migration/inventory-data
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ADDITIONAL QUERIES
+### ============================================
+
+### Get product inventory across all branches
+GET {{baseUrl}}/api/inventory/product/1
+Authorization: Bearer {{adminToken}}
+
+### Get all transfers
+GET {{baseUrl}}/api/inventory/transfer?pageNumber=1&pageSize=20
+Authorization: Bearer {{adminToken}}
+
+### Get transfers filtered by status
+GET {{baseUrl}}/api/inventory/transfer?status=Completed
+Authorization: Bearer {{adminToken}}
+
+### Get low stock items across all branches
+GET {{baseUrl}}/api/inventory/low-stock
+Authorization: Bearer {{adminToken}}

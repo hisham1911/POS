@@ -34,6 +34,13 @@ public class AuthService : IAuthService
         if (!user.IsActive)
             return ApiResponse<LoginResponse>.Fail("الحساب غير مفعل");
 
+        if (user.TenantId.HasValue)
+        {
+            var tenant = await _unitOfWork.Tenants.GetByIdAsync(user.TenantId.Value);
+            if (tenant == null || !tenant.IsActive)
+                return ApiResponse<LoginResponse>.Fail("الشركة معطلة. تواصل مع مالك النظام");
+        }
+
         var token = GenerateToken(user);
         var expiresAt = DateTime.UtcNow.AddHours(int.Parse(_config["Jwt:ExpiryInHours"]!));
 
@@ -93,12 +100,20 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new("userId", user.Id.ToString()),
-            new("tenantId", user.TenantId.ToString()),
-            new("branchId", user.BranchId?.ToString() ?? "1"),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Role, user.Role.ToString())
         };
+
+        if (user.BranchId.HasValue)
+        {
+            claims.Add(new Claim("branchId", user.BranchId.Value.ToString()));
+        }
+
+        if (user.TenantId.HasValue)
+        {
+            claims.Add(new Claim("tenantId", user.TenantId.Value.ToString()));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

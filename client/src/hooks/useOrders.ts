@@ -16,7 +16,7 @@ interface ApiErrorData {
 }
 
 export const useOrders = () => {
-  const { items, clearCart } = useCart();
+  const { items, clearCart, discountType, discountValue } = useCart();
 
   // Note: useGetOrdersQuery now returns paginated data, but we keep it for backward compatibility
   // For the full list with filters, use useGetOrdersQuery directly in components
@@ -54,6 +54,8 @@ export const useOrders = () => {
       const result = await createMutation({
         items: orderItems,
         customerId,
+        discountType,
+        discountValue,
       }).unwrap();
       if (result.success && result.data) {
         return result.data;
