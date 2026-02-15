@@ -222,6 +222,31 @@ public static class ButcherDataSeeder
         context.Products.AddRange(products);
         await context.SaveChangesAsync();
         Console.WriteLine($"   ✓ المنتجات: {products.Count} منتج");
+        
+        // Create BranchInventories for all products in all branches
+        var branches = await context.Branches.Where(b => b.TenantId == tenant.Id).ToListAsync();
+        var branchInventories = new List<BranchInventory>();
+        
+        foreach (var product in products)
+        {
+            foreach (var branch in branches)
+            {
+                branchInventories.Add(new BranchInventory
+                {
+                    TenantId = tenant.Id,
+                    BranchId = branch.Id,
+                    ProductId = product.Id,
+                    Quantity = product.StockQuantity ?? 0,
+                    ReorderLevel = product.LowStockThreshold ?? 10,
+                    LastUpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+        
+        context.BranchInventories.AddRange(branchInventories);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"   ✓ مخزون الفروع: {branchInventories.Count} سجل");
+        
         return products;
     }
 

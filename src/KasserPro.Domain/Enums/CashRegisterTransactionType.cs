@@ -48,5 +48,10 @@ public enum CashRegisterTransactionType
     /// <summary>
     /// Cash transfer between branches
     /// </summary>
-    Transfer = 8
+    Transfer = 8,
+    
+    /// <summary>
+    /// P3: Shift closing balance record
+    /// </summary>
+    ShiftClose = 9
 }

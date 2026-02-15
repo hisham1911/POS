@@ -5,6 +5,7 @@ import type {
   SetTenantStatusRequest,
   SystemTenantSummary,
 } from '../types/system';
+import type { ApiResponse } from '../types/api.types';
 
 export const systemApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -37,7 +38,27 @@ export const systemApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    // Inventory Migration
+    migrateInventory: builder.mutation<ApiResponse<{
+      productsMigrated: number;
+      inventoriesCreated: number;
+      productsWithStock: number;
+      totalStockBefore: number;
+      totalStockAfter: number;
+      durationMs: number;
+      alreadyMigrated: boolean;
+    }>, void>({
+      query: () => ({
+        url: "/system/migrate-inventory",
+        method: "POST",
+      }),
+    }),
   }),
 });
 
-export const { useGetTenantsQuery, useCreateTenantMutation, useSetTenantStatusMutation } = systemApi;
+export const { 
+  useGetTenantsQuery, 
+  useCreateTenantMutation, 
+  useSetTenantStatusMutation,
+  useMigrateInventoryMutation 
+} = systemApi;

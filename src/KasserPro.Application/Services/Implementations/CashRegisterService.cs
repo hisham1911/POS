@@ -466,6 +466,7 @@ public class CashRegisterService : ICashRegisterService
                 CashRegisterTransactionType.Expense => currentBalance - amount,
                 CashRegisterTransactionType.SupplierPayment => currentBalance - amount,
                 CashRegisterTransactionType.Adjustment => currentBalance + amount,
+                CashRegisterTransactionType.ShiftClose => amount, // P3: ShiftClose sets final balance
                 _ => currentBalance
             };
 

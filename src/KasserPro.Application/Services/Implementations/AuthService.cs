@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
 using KasserPro.Application.Common.Interfaces;
 using KasserPro.Application.DTOs.Auth;
 using KasserPro.Application.DTOs.Common;
@@ -16,11 +17,19 @@ public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _config;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IUnitOfWork unitOfWork, IConfiguration config)
+    public AuthService(
+        IUnitOfWork unitOfWork, 
+        IConfiguration config,
+        ICurrentUserService currentUserService,
+        ILogger<AuthService> logger)
     {
         _unitOfWork = unitOfWork;
         _config = config;
+        _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request)
@@ -64,13 +73,41 @@ public class AuthService : IAuthService
         if (exists.Any())
             return ApiResponse<bool>.Fail("البريد الإلكتروني مستخدم");
 
+        var requestedRole = Enum.Parse<UserRole>(request.Role);
+
+        // P0 SECURITY: Role escalation guard
+        if (_currentUserService.IsAuthenticated)
+        {
+            var currentUserRole = Enum.Parse<UserRole>(_currentUserService.Role!);
+
+            // Admin cannot create SystemOwner
+            if (currentUserRole == UserRole.Admin && requestedRole == UserRole.SystemOwner)
+            {
+                _logger.LogWarning(
+                    "Role escalation attempt: Admin {UserId} tried to create SystemOwner account",
+                    _currentUserService.UserId);
+                return ApiResponse<bool>.Fail("INSUFFICIENT_PRIVILEGES", "ليس لديك صلاحية إنشاء حساب مالك النظام");
+            }
+
+            // Admin can only create Admin or Cashier
+            if (currentUserRole == UserRole.Admin && 
+                requestedRole != UserRole.Admin && 
+                requestedRole != UserRole.Cashier)
+            {
+                _logger.LogWarning(
+                    "Role escalation attempt: Admin {UserId} tried to create {Role} account",
+                    _currentUserService.UserId, requestedRole);
+                return ApiResponse<bool>.Fail("INSUFFICIENT_PRIVILEGES", "يمكنك فقط إنشاء حسابات مدير أو كاشير");
+            }
+        }
+
         var user = new User
         {
             Name = request.Name,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Phone = request.Phone,
-            Role = Enum.Parse<UserRole>(request.Role)
+            Role = requestedRole
         };
 
         await _unitOfWork.Users.AddAsync(user);
@@ -100,6 +137,7 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new("userId", user.Id.ToString()),
+            new("security_stamp", user.SecurityStamp),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Role, user.Role.ToString())

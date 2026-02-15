@@ -38,17 +38,15 @@ export function CashRegisterDashboard() {
   } = useGetCurrentBalanceQuery(currentBranch?.id, {
     skip: !currentBranch?.id,
   });
-  const {
-    data: transactionsResponse,
-    isLoading: isLoadingTransactions,
-  } = useGetTransactionsQuery(
-    {
-      branchId: currentBranch?.id,
-      pageNumber: 1,
-      pageSize: 10,
-    },
-    { skip: !currentBranch?.id }
-  );
+  const { data: transactionsResponse, isLoading: isLoadingTransactions } =
+    useGetTransactionsQuery(
+      {
+        branchId: currentBranch?.id,
+        pageNumber: 1,
+        pageSize: 10,
+      },
+      { skip: !currentBranch?.id },
+    );
   const [deposit, { isLoading: isDepositing }] = useDepositMutation();
   const [withdraw, { isLoading: isWithdrawing }] = useWithdrawMutation();
 
@@ -156,16 +154,26 @@ export function CashRegisterDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <DollarSign className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">الخزينة</h1>
-            </div>
-            <p className="text-gray-600">
-              إدارة الخزينة والمعاملات النقدية اليومية
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <DollarSign className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">الخزينة</h1>
           </div>
+          <p className="text-gray-600">
+            إدارة الخزينة والمعاملات النقدية اليومية
+          </p>
+          {currentBranch && (
+            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <DollarSign className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-900">
+                الفرع الحالي: {currentBranch.name}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div></div>
           <div className="flex flex-wrap gap-2">
             <Button variant="success" onClick={() => setShowDepositModal(true)}>
               <ArrowUpCircle className="w-4 h-4" />
@@ -233,7 +241,9 @@ export function CashRegisterDashboard() {
               {balance?.lastTransactionDate && (
                 <p className="text-sm text-gray-500 mt-1">
                   آخر معاملة:{" "}
-                  {new Date(balance.lastTransactionDate).toLocaleString("ar-EG")}
+                  {new Date(balance.lastTransactionDate).toLocaleString(
+                    "ar-EG",
+                  )}
                 </p>
               )}
             </div>
@@ -274,7 +284,7 @@ export function CashRegisterDashboard() {
                       <div>
                         <p
                           className={`font-medium ${getTransactionTypeColor(
-                            transaction.type
+                            transaction.type,
                           )}`}
                         >
                           {getTransactionTypeLabel(transaction.type)}
@@ -284,7 +294,7 @@ export function CashRegisterDashboard() {
                         </p>
                         <p className="text-xs text-gray-500">
                           {new Date(transaction.createdAt).toLocaleString(
-                            "ar-EG"
+                            "ar-EG",
                           )}
                         </p>
                       </div>
@@ -420,7 +430,44 @@ export function CashRegisterDashboard() {
             </div>
           </div>
         </Modal>
-      </div>
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح استخدام الخزينة
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الرصيد الحالي:</strong> يظهر إجمالي النقد المتوفر في الخزينة الآن
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الإيداع:</strong> إضافة نقود جديدة إلى الخزينة (يتطلب وصف للعملية)
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>السحب:</strong> إخراج نقود من الخزينة (صرف لموظفين، مصروفات، إلخ)
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>آخر المعاملات:</strong> تعرض آخر 10 عمليات تمت على الخزينة
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>مهم:</strong> جميع العمليات مسجلة وقابلة للمراجعة والتدقيق
+              </span>
+            </li>
+          </ul>
+        </div>      </div>
     </div>
   );
 }

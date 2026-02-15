@@ -7,6 +7,8 @@ export interface Product {
   barcode?: string;
   price: number;
   cost?: number;
+  taxRate?: number;
+  taxInclusive: boolean;
   imageUrl?: string;
   isActive: boolean;
   categoryId: number;
@@ -28,11 +30,15 @@ export interface CreateProductRequest {
   barcode?: string;
   price: number;
   cost?: number;
+  taxRate?: number;
+  taxInclusive?: boolean;
   imageUrl?: string;
   categoryId: number;
   trackInventory?: boolean;
   stockQuantity?: number;
   lowStockThreshold?: number;
+  reorderPoint?: number;
+  branchStockQuantities?: Record<number, number>;
 }
 
 export interface UpdateProductRequest {
@@ -43,11 +49,14 @@ export interface UpdateProductRequest {
   barcode?: string;
   price: number;
   cost?: number;
+  taxRate?: number;
+  taxInclusive?: boolean;
   imageUrl?: string;
   categoryId: number;
   trackInventory?: boolean;
   stockQuantity?: number;
   lowStockThreshold?: number;
+  reorderPoint?: number;
   isActive: boolean;
 }
 

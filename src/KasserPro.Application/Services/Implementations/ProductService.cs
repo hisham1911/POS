@@ -142,14 +142,45 @@ public class ProductService : IProductService
             Cost = request.Cost,
             ImageUrl = request.ImageUrl,
             CategoryId = request.CategoryId,
+            // Tax settings
+            TaxRate = request.TaxRate,
+            TaxInclusive = request.TaxInclusive,
             // Inventory fields - always track inventory
             TrackInventory = true,
-            StockQuantity = request.StockQuantity,
+            StockQuantity = 0, // Set to 0, actual stock will be in BranchInventory
             LowStockThreshold = request.LowStockThreshold,
+            ReorderPoint = request.ReorderPoint,
             LastStockUpdate = DateTime.UtcNow
         };
 
         await _unitOfWork.Products.AddAsync(product);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Create BranchInventory records for all branches of this tenant
+        var branches = await _unitOfWork.Branches.Query()
+            .Where(b => b.TenantId == _currentUser.TenantId)
+            .ToListAsync();
+
+        foreach (var branch in branches)
+        {
+            // Use branch-specific quantity if provided, otherwise use default
+            var quantity = request.BranchStockQuantities?.ContainsKey(branch.Id) == true
+                ? request.BranchStockQuantities[branch.Id]
+                : request.StockQuantity;
+
+            var branchInventory = new BranchInventory
+            {
+                TenantId = _currentUser.TenantId,
+                BranchId = branch.Id,
+                ProductId = product.Id,
+                Quantity = quantity,
+                ReorderLevel = request.LowStockThreshold,
+                LastUpdatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.BranchInventories.AddAsync(branchInventory);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         return ApiResponse<ProductDto>.Ok(new ProductDto
@@ -163,7 +194,7 @@ public class ProductService : IProductService
             TaxInclusive = product.TaxInclusive,
             IsActive = product.IsActive,
             TrackInventory = product.TrackInventory,
-            StockQuantity = product.StockQuantity,
+            StockQuantity = request.StockQuantity, // Return requested quantity for consistency
             CategoryId = product.CategoryId
         }, "تم إنشاء المنتج بنجاح");
     }
@@ -195,10 +226,14 @@ public class ProductService : IProductService
         product.ImageUrl = request.ImageUrl;
         product.IsActive = request.IsActive;
         product.CategoryId = request.CategoryId;
+        // Tax settings
+        product.TaxRate = request.TaxRate;
+        product.TaxInclusive = request.TaxInclusive;
         // Inventory fields
         product.TrackInventory = true;
-        product.StockQuantity = request.StockQuantity;
+        product.StockQuantity = 0; // Keep at 0, use BranchInventory
         product.LowStockThreshold = request.LowStockThreshold;
+        product.ReorderPoint = request.ReorderPoint;
         product.LastStockUpdate = DateTime.UtcNow;
 
         _unitOfWork.Products.Update(product);

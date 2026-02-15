@@ -47,7 +47,7 @@ export const OrdersPage = () => {
   const filteredOrders = displayOrders.filter(
     (o) =>
       o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
+      o.customerName?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const isLoading = viewMode === "today" ? isLoadingOrders : isLoadingFiltered;
@@ -127,65 +127,157 @@ export const OrdersPage = () => {
   const completedOrders = filteredOrders.filter(
     (o) =>
       (o.status === "Completed" || o.status === "PartiallyRefunded") &&
-      o.orderType !== "Return"
+      o.orderType !== "Return",
   ).length;
   const returnedOrders = filteredOrders.filter(
-    (o) => o.status === "Refunded" || o.orderType === "Return"
+    (o) => o.status === "Refunded" || o.orderType === "Return",
   ).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+        <div className="flex items-start justify-between gap-6">
+          {/* Header Section */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
                 <ClipboardList className="w-5 h-5 text-emerald-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900">الطلبات</h1>
             </div>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm">
               {viewMode === "today"
                 ? "طلبات اليوم"
                 : viewMode === "date" && selectedDate
-                ? `طلبات يوم ${new Date(selectedDate).toLocaleDateString("ar-EG", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}`
-                : "عرض وإدارة الطلبات"}
+                  ? `طلبات يوم ${new Date(selectedDate).toLocaleDateString(
+                      "ar-EG",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}`
+                  : "عرض وإدارة جميع الطلبات والمبيعات"}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
-            <Button
-              variant={viewMode === "today" ? "primary" : "outline"}
-              onClick={() => handleViewModeChange("today")}
-              rightIcon={<Calendar className="w-4 h-4" />}
-            >
-              اليوم
-            </Button>
-            <Button
-              variant={viewMode === "all" ? "primary" : "outline"}
-              onClick={() => handleViewModeChange("all")}
-            >
-              الكل
-            </Button>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-600 font-medium">اختر يوم</label>
-              <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className={clsx(
-                  "w-40",
-                  viewMode === "date" && "ring-2 ring-primary-500"
-                )}
-              />
+          {/* View Mode Controls - Compact Section */}
+          <div className="flex flex-col gap-3 w-96">
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === "today" ? "primary" : "outline"}
+                onClick={() => handleViewModeChange("today")}
+                rightIcon={<Calendar className="w-4 h-4" />}
+                size="sm"
+              >
+                اليوم
+              </Button>
+              <Button
+                variant={viewMode === "all" ? "primary" : "outline"}
+                onClick={() => handleViewModeChange("all")}
+                size="sm"
+              >
+                الكل
+              </Button>
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 font-medium mb-1">
+                  اختر يوم
+                </label>
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className={clsx(
+                    "w-full",
+                    viewMode === "date" && "ring-2 ring-primary-500",
+                  )}
+                />
+              </div>
+              {viewMode === "date" && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Calendar className="w-4 h-4" />}
+                >
+                  تصفية
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
+        {/* Filters for All Mode */}
+        {viewMode === "all" && (
+          <Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  الحالة
+                </label>
+                <select
+                  value={filters.status || ""}
+                  onChange={(e) =>
+                    handleFilterChange("status", e.target.value || undefined)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                >
+                  <option value="">الكل</option>
+                  <option value="Completed">مكتمل</option>
+                  <option value="Cancelled">ملغي</option>
+                  <option value="Pending">قيد الانتظار</option>
+                  <option value="Refunded">مسترجع</option>
+                  <option value="PartiallyRefunded">مسترجع جزئياً</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  من تاريخ
+                </label>
+                <Input
+                  type="date"
+                  value={filters.fromDate || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "fromDate",
+                      e.target.value || undefined,
+                    )
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  إلى تاريخ
+                </label>
+                <Input
+                  type="date"
+                  value={filters.toDate || ""}
+                  onChange={(e) =>
+                    handleFilterChange("toDate", e.target.value || undefined)
+                  }
+                />
+              </div>
+
+              <div className="flex items-end">
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    rightIcon={<X className="w-4 h-4" />}
+                    className="w-full"
+                  >
+                    مسح الفلاتر
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <Card>
             <p className="text-sm text-gray-500">إجمالي الطلبات</p>
@@ -217,12 +309,12 @@ export const OrdersPage = () => {
                       (o.status === "Completed" ||
                         o.status === "PartiallyRefunded" ||
                         o.status === "Refunded") &&
-                      o.orderType !== "Return"
+                      o.orderType !== "Return",
                   )
                   .reduce((sum, o) => {
                     const netAmount = o.total - (o.refundAmount || 0);
                     return sum + netAmount;
-                  }, 0)
+                  }, 0),
               )}
             </p>
           </Card>
@@ -233,79 +325,15 @@ export const OrdersPage = () => {
                 Math.abs(
                   filteredOrders
                     .filter((o) => o.orderType === "Return")
-                    .reduce((sum, o) => sum + o.total, 0)
-                )
+                    .reduce((sum, o) => sum + o.total, 0),
+                ),
               )}
             </p>
           </Card>
         </div>
 
-        {viewMode === "all" && (
-          <Card className="shrink-0">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  الحالة
-                </label>
-                <select
-                  value={filters.status || ""}
-                  onChange={(e) =>
-                    handleFilterChange("status", e.target.value || undefined)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">الكل</option>
-                  <option value="Completed">مكتمل</option>
-                  <option value="Cancelled">ملغي</option>
-                  <option value="Pending">قيد الانتظار</option>
-                  <option value="Refunded">مسترجع</option>
-                  <option value="PartiallyRefunded">مسترجع جزئياً</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  من تاريخ
-                </label>
-                <Input
-                  type="date"
-                  value={filters.fromDate || ""}
-                  onChange={(e) =>
-                    handleFilterChange("fromDate", e.target.value || undefined)
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  إلى تاريخ
-                </label>
-                <Input
-                  type="date"
-                  value={filters.toDate || ""}
-                  onChange={(e) =>
-                    handleFilterChange("toDate", e.target.value || undefined)
-                  }
-                />
-              </div>
-
-              <div className="flex items-end">
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    rightIcon={<X className="w-4 h-4" />}
-                    className="w-full"
-                  >
-                    مسح الفلاتر
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        <Card className="shrink-0">
+        {/* Search Bar */}
+        <Card>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
@@ -317,7 +345,8 @@ export const OrdersPage = () => {
           </div>
         </Card>
 
-        <Card padding="none" className="flex-1 min-h-0 flex flex-col">
+        {/* Orders Table */}
+        <Card padding="none" className="flex flex-col">
           <div className="overflow-auto flex-1">
             <table className="w-full">
               <thead>
@@ -359,7 +388,7 @@ export const OrdersPage = () => {
                       key={order.id}
                       className={clsx(
                         "border-b hover:bg-gray-50",
-                        isReturnOrder(order) && "bg-orange-50/50"
+                        isReturnOrder(order) && "bg-orange-50/50",
                       )}
                     >
                       <td className="px-4 py-3 font-mono font-medium">
@@ -369,7 +398,7 @@ export const OrdersPage = () => {
                           )}
                           <span
                             className={clsx(
-                              isReturnOrder(order) && "text-orange-600"
+                              isReturnOrder(order) && "text-orange-600",
                             )}
                           >
                             #{order.orderNumber}
@@ -379,15 +408,13 @@ export const OrdersPage = () => {
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {formatDateTime(order.createdAt)}
                       </td>
-                      <td className="px-4 py-3">
-                        {order.customerName || "-"}
-                      </td>
+                      <td className="px-4 py-3">{order.customerName || "-"}</td>
                       <td
                         className={clsx(
                           "px-4 py-3 font-semibold",
                           isReturnOrder(order)
                             ? "text-orange-600"
-                            : "text-primary-600"
+                            : "text-primary-600",
                         )}
                       >
                         {formatCurrency(order.total)}
@@ -409,7 +436,7 @@ export const OrdersPage = () => {
                         <span
                           className={clsx(
                             "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            getStatusColor(order.status)
+                            getStatusColor(order.status),
                           )}
                         >
                           {ORDER_STATUS[order.status]?.label}
@@ -441,15 +468,18 @@ export const OrdersPage = () => {
           </div>
 
           {viewMode === "all" && pagedData && pagedData.totalPages > 1 && (
-            <div className="border-t px-4 py-3 flex items-center justify-between shrink-0">
+            <div className="border-t px-4 py-3 flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                صفحة {pagedData.page} من {pagedData.totalPages} ({pagedData.totalCount} طلب)
+                صفحة {pagedData.page} من {pagedData.totalPages} (
+                {pagedData.totalCount} طلب)
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleFilterChange("page", (filters.page || 1) - 1)}
+                  onClick={() =>
+                    handleFilterChange("page", (filters.page || 1) - 1)
+                  }
                   disabled={!pagedData.hasPreviousPage}
                   rightIcon={<ChevronRight className="w-4 h-4" />}
                 >
@@ -458,7 +488,9 @@ export const OrdersPage = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleFilterChange("page", (filters.page || 1) + 1)}
+                  onClick={() =>
+                    handleFilterChange("page", (filters.page || 1) + 1)
+                  }
                   disabled={!pagedData.hasNextPage}
                   leftIcon={<ChevronLeft className="w-4 h-4" />}
                 >
@@ -469,12 +501,52 @@ export const OrdersPage = () => {
           )}
         </Card>
 
+        {/* Order Details Modal */}
         {selectedOrder && (
           <OrderDetailsModal
             order={selectedOrder}
             onClose={() => setSelectedOrder(null)}
           />
         )}
+
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح إدارة الطلبات
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>أنماط العرض:</strong> عرض طلبات اليوم أو جميع الطلبات أو اختر يوم معين
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>طلبات المرتجعات:</strong> الطلبات البرتقالية هي طلبات مرتجعة من العملاء
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الإحصائيات:</strong> اتبع إجمالي الطلبات والمبيعات الصافية والنقدية
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>البحث:</strong> ابحث بسرعة باستخدام رقم الطلب أو اسم العميل
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التفاصيل:</strong> اضغط على أي طلب لرؤية البنود والمدفوعات
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

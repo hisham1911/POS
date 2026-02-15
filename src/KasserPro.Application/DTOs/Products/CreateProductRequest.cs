@@ -12,7 +12,16 @@ public class CreateProductRequest
     public string? ImageUrl { get; set; }
     public int CategoryId { get; set; }
     
+    // Tax settings
+    public decimal? TaxRate { get; set; } // null = use branch default
+    public bool TaxInclusive { get; set; } = true;
+    
     // Inventory fields
     public int StockQuantity { get; set; } = 0;
     public int LowStockThreshold { get; set; } = 5;
+    public int? ReorderPoint { get; set; }
+    
+    // Branch-specific initial stock (optional)
+    // Key: BranchId, Value: Initial Quantity
+    public Dictionary<int, int>? BranchStockQuantities { get; set; }
 }

@@ -15,7 +15,9 @@ import SupplierFormModal from "../../components/suppliers/SupplierFormModal";
 export default function SuppliersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+    null,
+  );
 
   const { data: response, isLoading } = useGetSuppliersQuery();
   const [deleteSupplier] = useDeleteSupplierMutation();
@@ -28,7 +30,7 @@ export default function SuppliersPage() {
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.nameEn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.phone?.includes(searchTerm) ||
-      supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      supplier.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleAddSupplier = () => {
@@ -60,7 +62,7 @@ export default function SuppliersPage() {
     return <Loading />;
   }
 
-  const activeSuppliers = filteredSuppliers.filter(s => s.isActive).length;
+  const activeSuppliers = filteredSuppliers.filter((s) => s.isActive).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,7 +77,10 @@ export default function SuppliersPage() {
             </div>
             <p className="text-gray-600">إدارة الموردين والشركات الموردة</p>
           </div>
-          <Button onClick={handleAddSupplier} className="flex items-center gap-2">
+          <Button
+            onClick={handleAddSupplier}
+            className="flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" />
             إضافة مورد
           </Button>
@@ -84,11 +89,15 @@ export default function SuppliersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="border-indigo-100">
             <p className="text-sm text-gray-600">إجمالي الموردين</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{filteredSuppliers.length}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">
+              {filteredSuppliers.length}
+            </p>
           </Card>
           <Card className="border-green-100">
             <p className="text-sm text-gray-600">الموردين النشطين</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">{activeSuppliers}</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">
+              {activeSuppliers}
+            </p>
           </Card>
         </div>
 
@@ -106,109 +115,109 @@ export default function SuppliersPage() {
         </Card>
 
         <Card padding="none">
-        {filteredSuppliers.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
-              {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد موردين"}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    الاسم
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    الهاتف
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    البريد الإلكتروني
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    جهة الاتصال
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    الحالة
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    الإجراءات
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredSuppliers.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {supplier.name}
-                        </div>
-                        {supplier.nameEn && (
-                          <div className="text-sm text-gray-500">
-                            {supplier.nameEn}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {supplier.phone || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {supplier.email || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {supplier.contactPerson || "-"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          supplier.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {supplier.isActive ? "نشط" : "غير نشط"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditSupplier(supplier)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="تعديل"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDeleteSupplier(supplier.id, supplier.name)
-                          }
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="حذف"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+          {filteredSuppliers.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد موردين"}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      الاسم
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      الهاتف
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      البريد الإلكتروني
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      جهة الاتصال
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      الحالة
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      الإجراءات
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredSuppliers.map((supplier) => (
+                    <tr key={supplier.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {supplier.name}
+                          </div>
+                          {supplier.nameEn && (
+                            <div className="text-sm text-gray-500">
+                              {supplier.nameEn}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {supplier.phone || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {supplier.email || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {supplier.contactPerson || "-"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            supplier.isActive
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {supplier.isActive ? "نشط" : "غير نشط"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditSupplier(supplier)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="تعديل"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteSupplier(supplier.id, supplier.name)
+                            }
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="حذف"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
 
         {isModalOpen && (
           <SupplierFormModal
-          supplier={selectedSupplier}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedSupplier(null);
-          }}
-        />
-      )}
+            supplier={selectedSupplier}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedSupplier(null);
+            }}
+          />
+        )}
       </div>
     </div>
   );

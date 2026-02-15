@@ -30,7 +30,7 @@ export const BranchesPage = () => {
   const handleDelete = async (branch: Branch) => {
     if (
       !window.confirm(
-        `هل أنت متأكد من حذف الفرع "${branch.name}"؟\n\nملاحظة: لن يتم حذف البيانات المرتبطة بهذا الفرع.`
+        `هل أنت متأكد من حذف الفرع "${branch.name}"؟\n\nملاحظة: لن يتم حذف البيانات المرتبطة بهذا الفرع.`,
       )
     ) {
       return;
@@ -60,18 +60,17 @@ export const BranchesPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-blue-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                إدارة الفروع
-              </h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-gray-600">إدارة فروع المؤسسة</p>
+            <h1 className="text-3xl font-bold text-gray-900">إدارة الفروع</h1>
           </div>
+          <p className="text-gray-600">إدارة جميع فروع المؤسسة والتحكم في بيانات كل فرع</p>
+        </div>
+
+        <div className="flex justify-end">
           <Button
             variant="primary"
             onClick={() => setShowFormModal(true)}
@@ -177,7 +176,7 @@ export const BranchesPage = () => {
                             "px-3 py-1 rounded-full text-xs font-medium",
                             branch.isActive
                               ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
+                              : "bg-red-100 text-red-700",
                           )}
                         >
                           {branch.isActive ? "نشط" : "غير نشط"}
@@ -216,6 +215,45 @@ export const BranchesPage = () => {
         {showFormModal && (
           <BranchFormModal branch={selectedBranch} onClose={handleCloseModal} />
         )}
+
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح إدارة الفروع
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الفرع:</strong> كل فرع يمثل موقع عمل منفصل بإدارة خزينة وعمليات خاصة بها
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الكود:</strong> رقم فريد يميز الفرع عن الفروع الأخرى
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>البيانات:</strong> احرص على إدخال بيانات صحيحة وكاملة (عنوان وهاتف)
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الحالة:</strong> يمكن تفعيل أو تعطيل الفرع حسب الحاجة
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التحديث:</strong> جميع البيانات المحفوظة يمكن تعديلها لاحقاً
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

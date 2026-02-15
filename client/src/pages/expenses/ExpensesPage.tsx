@@ -31,9 +31,16 @@ export function ExpensesPage() {
   const totalCount = expensesResponse?.data?.totalCount || 0;
   const totalPages = expensesResponse?.data?.totalPages || 1;
   const categories = categoriesResponse?.data || [];
-  const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const paidCount = expenses.filter((expense) => expense.status === "Paid").length;
-  const draftCount = expenses.filter((expense) => expense.status === "Draft").length;
+  const totalAmount = expenses.reduce(
+    (sum, expense) => sum + expense.amount,
+    0,
+  );
+  const paidCount = expenses.filter(
+    (expense) => expense.status === "Paid",
+  ).length;
+  const draftCount = expenses.filter(
+    (expense) => expense.status === "Draft",
+  ).length;
 
   const handleFilterChange = (key: keyof ExpenseFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value, pageNumber: 1 }));
@@ -79,21 +86,20 @@ export function ExpensesPage() {
 
   if (isLoading) return <Loading />;
   if (error)
-    return (
-      <div className="text-red-600">حدث خطأ في تحميل المصروفات</div>
-    );
+    return <div className="text-red-600">حدث خطأ في تحميل المصروفات</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Wallet className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">المصروفات</h1>
-            </div>
-            <p className="text-gray-600">إدارة مصروفات الشركة ومراجعة حالتها</p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Wallet className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">المصروفات</h1>
           </div>
+          <p className="text-gray-600">إدارة مصروفات الشركة ومراجعة حالتها والموافقة على الدفع</p>
+        </div>
+
+        <div className="flex justify-end">
           <Link to="/expenses/new">
             <Button>
               <Plus className="w-4 h-4" />
@@ -157,7 +163,7 @@ export function ExpensesPage() {
                 onChange={(e) =>
                   handleFilterChange(
                     "categoryId",
-                    e.target.value ? Number(e.target.value) : undefined
+                    e.target.value ? Number(e.target.value) : undefined,
                   )
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -275,7 +281,7 @@ export function ExpensesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(expense.expenseDate).toLocaleDateString(
-                          "ar-EG"
+                          "ar-EG",
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -326,7 +332,9 @@ export function ExpensesPage() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => handlePageChange((filters.pageNumber || 1) - 1)}
+                  onClick={() =>
+                    handlePageChange((filters.pageNumber || 1) - 1)
+                  }
                   disabled={filters.pageNumber === 1}
                 >
                   السابق
@@ -336,7 +344,9 @@ export function ExpensesPage() {
                 </span>
                 <Button
                   variant="outline"
-                  onClick={() => handlePageChange((filters.pageNumber || 1) + 1)}
+                  onClick={() =>
+                    handlePageChange((filters.pageNumber || 1) + 1)
+                  }
                   disabled={filters.pageNumber === totalPages}
                 >
                   التالي
@@ -345,6 +355,45 @@ export function ExpensesPage() {
             </div>
           )}
         </Card>
+
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح إدارة المصروفات
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>المصروف الجديد:</strong> أضف مصروف جديد وحدد الفئة والمبلغ والوصف
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الحالات:</strong> جميع المصروفات تبدأ كمسودة ثم تحتاج موافقة قبل الدفع
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التصفية:</strong> استخدم الفلاتر للبحث حسب الفئة والحالة والتاريخ
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التتبع:</strong> راقب إجمالي المصروفات والمبالغ المدفوعة والمعلقة
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التدقيق:</strong> جميع المصروفات موثقة بالتاريخ والمستخدم والتغييرات
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

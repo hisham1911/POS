@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using KasserPro.Infrastructure.Data;
 using KasserPro.Domain.Enums;
+using KasserPro.Application.Services.Interfaces;
 
 /// <summary>
 /// Background service that automatically closes shifts that have been open for more than 12 hours.
@@ -131,6 +132,44 @@ public class AutoCloseShiftBackgroundService : BackgroundService
                 context.Shifts.Update(shift);
                 await context.SaveChangesAsync(cancellationToken);
 
+                // P3: Record ShiftClose transaction in cash register
+                try
+                {
+                    var transactionNumber = await GenerateTransactionNumberAsync(context, shift.TenantId, shift.BranchId);
+                    
+                    var cashTransaction = new Domain.Entities.CashRegisterTransaction
+                    {
+                        TenantId = shift.TenantId,
+                        BranchId = shift.BranchId,
+                        TransactionNumber = transactionNumber,
+                        Type = CashRegisterTransactionType.ShiftClose,
+                        Amount = shift.ClosingBalance,
+                        BalanceBefore = shift.OpeningBalance,
+                        BalanceAfter = shift.ClosingBalance,
+                        TransactionDate = DateTime.UtcNow,
+                        Description = "إغلاق تلقائي للوردية",
+                        ReferenceType = "Shift",
+                        ReferenceId = shift.Id,
+                        ShiftId = shift.Id,
+                        UserId = shift.UserId,
+                        UserName = shift.User?.Name ?? "Unknown"
+                    };
+
+                    context.CashRegisterTransactions.Add(cashTransaction);
+                    await context.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogInformation(
+                        "Recorded ShiftClose cash register transaction for shift {ShiftId} - Amount: {Amount}",
+                        shift.Id, shift.ClosingBalance);
+                }
+                catch (Exception cashRegEx)
+                {
+                    _logger.LogError(cashRegEx, 
+                        "Failed to record cash register transaction for auto-closed shift {ShiftId}", 
+                        shift.Id);
+                    // Don't fail the entire auto-close if cash register transaction fails
+                }
+
                 _logger.LogInformation(
                     "Successfully auto-closed shift {ShiftId} - Total Cash: {TotalCash}, Total Card: {TotalCard}, Orders: {TotalOrders}",
                     shift.Id, totalCash, totalCard, completedOrders.Count);
@@ -142,5 +181,18 @@ public class AutoCloseShiftBackgroundService : BackgroundService
         }
 
         _logger.LogInformation("Auto-close process completed. Closed {Count} shift(s)", shiftsToClose.Count);
+    }
+
+    /// <summary>
+    /// P3: Generate transaction number for cash register transaction
+    /// </summary>
+    private async Task<string> GenerateTransactionNumberAsync(AppDbContext context, int tenantId, int branchId)
+    {
+        var today = DateTime.UtcNow.Date;
+        var todayTransactionCount = await context.CashRegisterTransactions
+            .Where(t => t.TenantId == tenantId && t.BranchId == branchId && t.CreatedAt >= today)
+            .CountAsync();
+
+        return $"CR-{branchId:D3}-{DateTime.UtcNow:yyyyMMdd}-{(todayTransactionCount + 1):D4}";
     }
 }

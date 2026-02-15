@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using KasserPro.Application.DTOs.System;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 
 [ApiController]
 [Route("api/system")]
@@ -12,10 +14,17 @@ using KasserPro.Application.Services.Interfaces;
 public class SystemController : ControllerBase
 {
     private readonly ITenantService _tenantService;
+    private readonly InventoryDataMigration _inventoryMigration;
+    private readonly ILogger<SystemController> _logger;
 
-    public SystemController(ITenantService tenantService)
+    public SystemController(
+        ITenantService tenantService,
+        InventoryDataMigration inventoryMigration,
+        ILogger<SystemController> logger)
     {
         _tenantService = tenantService;
+        _inventoryMigration = inventoryMigration;
+        _logger = logger;
     }
 
     /// <summary>
@@ -53,5 +62,59 @@ public class SystemController : ControllerBase
 
         var result = await _tenantService.CreateTenantWithAdminAsync(request);
         return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Migrate Product.StockQuantity to BranchInventory (Admin only)
+    /// This is a one-time migration to fix products missing from inventory
+    /// </summary>
+    [HttpPost("migrate-inventory")]
+    [Authorize(Roles = "Admin,SystemOwner")]
+    public async Task<IActionResult> MigrateInventory()
+    {
+        try
+        {
+            _logger.LogInformation("Starting inventory migration...");
+            var result = await _inventoryMigration.ExecuteAsync();
+            
+            if (result.Success)
+            {
+                _logger.LogInformation("Inventory migration completed successfully");
+                return Ok(new
+                {
+                    success = true,
+                    message = result.Message,
+                    summary = result.GetSummary(),
+                    data = new
+                    {
+                        productsMigrated = result.ProductsMigrated,
+                        inventoriesCreated = result.InventoriesCreated,
+                        productsWithStock = result.ProductsWithStock,
+                        totalStockBefore = result.TotalStockBefore,
+                        totalStockAfter = result.TotalStockAfter,
+                        durationMs = result.DurationMs,
+                        alreadyMigrated = result.AlreadyMigrated
+                    }
+                });
+            }
+            else
+            {
+                _logger.LogError("Inventory migration failed: {Message}", result.Message);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.Message
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during inventory migration");
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"Migration failed: {ex.Message}"
+            });
+        }
     }
 }

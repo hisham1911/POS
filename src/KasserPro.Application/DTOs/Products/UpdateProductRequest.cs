@@ -13,7 +13,12 @@ public class UpdateProductRequest
     public bool IsActive { get; set; }
     public int CategoryId { get; set; }
     
+    // Tax settings
+    public decimal? TaxRate { get; set; }
+    public bool TaxInclusive { get; set; } = true;
+    
     // Inventory fields
     public int StockQuantity { get; set; } = 0;
     public int LowStockThreshold { get; set; } = 5;
+    public int? ReorderPoint { get; set; }
 }

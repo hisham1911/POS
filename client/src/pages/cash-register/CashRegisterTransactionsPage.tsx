@@ -5,6 +5,7 @@ import {
   TrendingUp,
   TrendingDown,
   ListOrdered,
+  Building2,
 } from "lucide-react";
 import { useGetTransactionsQuery } from "../../api/cashRegisterApi";
 import type {
@@ -30,7 +31,7 @@ export function CashRegisterTransactionsPage() {
     error,
   } = useGetTransactionsQuery(
     { ...filters, branchId: currentBranch?.id },
-    { skip: !currentBranch?.id }
+    { skip: !currentBranch?.id },
   );
 
   const transactions = response?.data?.items || [];
@@ -87,25 +88,30 @@ export function CashRegisterTransactionsPage() {
 
   if (isLoading) return <Loading />;
   if (error)
-    return (
-      <div className="text-red-600">حدث خطأ في تحميل المعاملات</div>
-    );
+    return <div className="text-red-600">حدث خطأ في تحميل المعاملات</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <ListOrdered className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">
-                معاملات الخزينة
-              </h1>
-            </div>
-            <p className="text-gray-600">
-              سجل كامل لجميع المعاملات النقدية
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <ListOrdered className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">
+              معاملات الخزينة
+            </h1>
           </div>
+          <p className="text-gray-600">سجل كامل لجميع المعاملات النقدية</p>
+          {currentBranch && (
+            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <Building2 className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-900">
+                الفرع الحالي: {currentBranch.name}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end">
           <Link to="/cash-register">
             <Button variant="outline">
               <ArrowRight className="w-4 h-4" />
@@ -199,7 +205,7 @@ export function CashRegisterTransactionsPage() {
                 onChange={(e) =>
                   handleFilterChange(
                     "shiftId",
-                    e.target.value ? Number(e.target.value) : undefined
+                    e.target.value ? Number(e.target.value) : undefined,
                   )
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -252,13 +258,13 @@ export function CashRegisterTransactionsPage() {
                     <tr key={transaction.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(transaction.createdAt).toLocaleString(
-                          "ar-EG"
+                          "ar-EG",
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${getTransactionTypeBadge(
-                            transaction.type
+                            transaction.type,
                           )}`}
                         >
                           {getTransactionTypeLabel(transaction.type)}
@@ -329,6 +335,45 @@ export function CashRegisterTransactionsPage() {
             </div>
           )}
         </Card>
+
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح استخدام سجل المعاملات
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>البحث والفلترة:</strong> يمكنك البحث حسب نوع المعاملة والتاريخ ورقم الوردية
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الرصيد:</strong> الرصيد قبل وبعد يوضح تأثير كل معاملة على الرصيد
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الدخول والخروج:</strong> له ألوان مختلفة (أخضر للدخول، أحمر للخروج)
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التدقيق:</strong> جميع المعاملات موثقة باسم المستخدم والتاريخ والوقت الدقيق
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التصدير:</strong> يمكن استخدام الفلاتر لتحديد فترة معينة ثم حفظ التقرير
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

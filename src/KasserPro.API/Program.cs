@@ -12,8 +12,40 @@ using KasserPro.API.Middleware;
 using KasserPro.API;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
+using Serilog.Events;
+
+// P1 PRODUCTION: Configure Serilog for file-based logging
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: "logs/kasserpro-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{SourceContext}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("AuditType"))
+        .WriteTo.File(
+            path: "logs/financial-audit-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 90,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"))
+    .CreateLogger();
+
+try
+{
+    Log.Information("Starting KasserPro API");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// P1 PRODUCTION: Use Serilog for logging
+builder.Host.UseSerilog();
 
 // P0-1: Fail startup if JWT secret is missing or too short
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -30,6 +62,12 @@ builder.Services.AddHttpContextAccessor();
 
 // Current User Service (extracts TenantId, BranchId, UserId from JWT)
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// P0 SECURITY: Maintenance mode service
+builder.Services.AddSingleton<MaintenanceModeService>();
+
+// P1 PRODUCTION: SQLite configuration service
+builder.Services.AddSingleton<KasserPro.Infrastructure.Data.SqliteConfigurationService>();
 
 // Audit Interceptor
 builder.Services.AddSingleton<AuditSaveChangesInterceptor>();
@@ -62,6 +100,9 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
 
+// Inventory Data Migration (for one-time migration)
+builder.Services.AddScoped<InventoryDataMigration>();
+
 // Expenses and Cash Register services
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IExpenseCategoryService, ExpenseCategoryService>();
@@ -70,8 +111,13 @@ builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 // Device Command Service for SignalR
 builder.Services.AddScoped<IDeviceCommandService, DeviceCommandService>();
 
+// P2: Backup and Restore services
+builder.Services.AddScoped<IBackupService, BackupService>();
+builder.Services.AddScoped<IRestoreService, RestoreService>();
+
 // Background Services
 builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
+builder.Services.AddHostedService<KasserPro.Infrastructure.Services.DailyBackupBackgroundService>();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -103,6 +149,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     return;
                 }
 
+                var tokenStamp = context.Principal?.FindFirst("security_stamp")?.Value;
+
                 var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
                 var user = await db.Users
                     .AsNoTracking()
@@ -111,6 +159,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (user == null || !user.IsActive)
                 {
                     context.Fail("User is inactive or not found");
+                    return;
+                }
+
+                // P0 SECURITY: Validate SecurityStamp
+                if (!string.IsNullOrEmpty(tokenStamp) && user.SecurityStamp != tokenStamp)
+                {
+                    context.Fail("TOKEN_INVALIDATED");
                     return;
                 }
 
@@ -177,6 +232,31 @@ if (!app.Environment.IsEnvironment("Testing"))
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+        // P1 PRODUCTION: Configure SQLite for production use
+        var sqliteConfig = scope.ServiceProvider.GetRequiredService<KasserPro.Infrastructure.Data.SqliteConfigurationService>();
+        await sqliteConfig.ConfigureAsync(context.Database.GetDbConnection());
+
+        // P2: Pre-migration backup (if migrations pending)
+        var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+        if (pendingMigrations.Any())
+        {
+            var migrationCount = pendingMigrations.Count();
+            Log.Warning("Detected {MigrationCount} pending migrations - creating pre-migration backup", migrationCount);
+
+            var backupService = scope.ServiceProvider.GetRequiredService<IBackupService>();
+            var backupResult = await backupService.CreateBackupAsync("pre-migration");
+
+            if (!backupResult.Success)
+            {
+                Log.Fatal("Pre-migration backup FAILED - aborting startup: {ErrorMessage}", backupResult.ErrorMessage);
+                throw new InvalidOperationException($"Pre-migration backup failed: {backupResult.ErrorMessage}");
+            }
+
+            Log.Information("Pre-migration backup created: {BackupPath} ({SizeMB:F2} MB)", 
+                backupResult.BackupPath, 
+                backupResult.BackupSizeBytes / 1024.0 / 1024.0);
+        }
+
         // Apply migrations
         await context.Database.MigrateAsync();
 
@@ -187,6 +267,12 @@ if (!app.Environment.IsEnvironment("Testing"))
         }
     }
 }
+
+// P0 SECURITY: Maintenance mode middleware (FIRST - blocks all requests during critical operations)
+app.UseMiddleware<MaintenanceModeMiddleware>();
+
+// P1 PRODUCTION: Correlation ID middleware (SECOND - adds correlation ID to all requests)
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseIdempotency(); // Idempotency for critical operations
@@ -201,6 +287,10 @@ app.UseStaticFiles(); // Serve uploaded logos from wwwroot
 app.UseCors("AllowAll");
 app.UseRateLimiter();
 app.UseAuthentication();
+
+// P0 SECURITY: Branch access validation (AFTER authentication, BEFORE authorization)
+app.UseMiddleware<BranchAccessMiddleware>();
+
 app.UseAuthorization();
 app.MapControllers();
 
@@ -208,3 +298,13 @@ app.MapControllers();
 app.MapHub<KasserPro.API.Hubs.DeviceHub>("/hubs/devices");
 
 app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

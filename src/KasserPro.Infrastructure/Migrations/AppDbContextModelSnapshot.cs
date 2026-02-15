@@ -1999,6 +1999,10 @@ namespace KasserPro.Infrastructure.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("TenantId")
                         .HasColumnType("INTEGER");
 

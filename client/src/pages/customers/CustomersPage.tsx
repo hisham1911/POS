@@ -30,7 +30,9 @@ export const CustomersPage = () => {
   const [searchInput, setSearchInput] = useState("");
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(
+    null,
+  );
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
 
   const pageSize = 10;
@@ -92,16 +94,19 @@ export const CustomersPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-cyan-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">إدارة العملاء</h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center">
+              <Users className="w-5 h-5 text-cyan-600" />
             </div>
-            <p className="text-gray-600">إدارة قاعدة بيانات العملاء</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              إدارة العملاء
+            </h1>
           </div>
+          <p className="text-gray-600">إدارة قاعدة بيانات العملاء والمبيعات والديون</p>
+        </div>
+
+        <div className="flex justify-end">
           <Button variant="primary" onClick={() => setShowFormModal(true)}>
             <UserPlus className="w-5 h-5" />
             إضافة عميل جديد
@@ -211,14 +216,15 @@ export const CustomersPage = () => {
                       key={customer.id}
                       className={clsx(
                         "hover:bg-gray-50 transition-colors",
-                        isFetching && "opacity-50"
+                        isFetching && "opacity-50",
                       )}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
                             <span className="text-primary-600 font-semibold">
-                              {(customer.name || customer.phone)[0].toUpperCase()}
+                              {(customer.name ||
+                                customer.phone)[0].toUpperCase()}
                             </span>
                           </div>
                           <div>
@@ -233,7 +239,10 @@ export const CustomersPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-mono text-gray-600" dir="ltr">
+                      <td
+                        className="px-6 py-4 font-mono text-gray-600"
+                        dir="ltr"
+                      >
                         {customer.phone}
                       </td>
                       <td className="px-6 py-4 text-gray-600 hidden md:table-cell">
@@ -383,6 +392,45 @@ export const CustomersPage = () => {
             </div>
           </div>
         )}
+
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح إدارة العملاء
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>بيانات العميل:</strong> أضف كل بيانات العميل بشكل صحيح للرجوع إليها لاحقاً
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>نقاط الولاء:</strong> تراكم نقاط مع كل عملية شراء يمكن استبدالها بخصومات
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الديون:</strong> تتبع ما على كل عميل من مبالغ مستحقة الدفع
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>البحث:</strong> ابحث عن العميل باسمه أو رقم هاتفه للسرعة
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التفاصيل:</strong> اضغط على عينك لعرض كل معاملات العميل
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

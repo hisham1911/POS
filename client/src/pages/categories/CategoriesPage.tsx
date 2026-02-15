@@ -77,7 +77,7 @@ export const CategoriesPage = () => {
       handleCloseForm();
     } catch {
       toast.error(
-        editingCategory ? "فشل في تحديث التصنيف" : "فشل في إضافة التصنيف"
+        editingCategory ? "فشل في تحديث التصنيف" : "فشل في إضافة التصنيف",
       );
     }
   };
@@ -93,24 +93,25 @@ export const CategoriesPage = () => {
   const activeCategories = categories.filter((c) => c.isActive).length;
   const totalProducts = categories.reduce(
     (sum, c) => sum + (c.productCount || 0),
-    0
+    0,
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <FolderOpen className="w-5 h-5 text-purple-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                إدارة التصنيفات
-              </h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+              <FolderOpen className="w-5 h-5 text-purple-600" />
             </div>
-            <p className="text-gray-600">تنظيم المنتجات في تصنيفات</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              إدارة التصنيفات
+            </h1>
           </div>
+          <p className="text-gray-600">تنظيم المنتجات في تصنيفات لتسهيل البحث والعرض</p>
+        </div>
+
+        <div className="flex justify-end">
           <Button
             variant="primary"
             onClick={() => setShowForm(true)}
@@ -170,9 +171,7 @@ export const CategoriesPage = () => {
                       {category.name}
                     </h3>
                     {category.nameEn && (
-                      <p className="text-sm text-gray-500">
-                        {category.nameEn}
-                      </p>
+                      <p className="text-sm text-gray-500">{category.nameEn}</p>
                     )}
                   </div>
                 </div>
@@ -206,7 +205,7 @@ export const CategoriesPage = () => {
                     "px-2.5 py-0.5 rounded-full text-xs font-medium",
                     category.isActive
                       ? "bg-success-50 text-success-500"
-                      : "bg-gray-100 text-gray-500"
+                      : "bg-gray-100 text-gray-500",
                   )}
                 >
                   {category.isActive ? "نشط" : "غير نشط"}
@@ -300,6 +299,45 @@ export const CategoriesPage = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Help Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">
+            💡 نصائح إدارة التصنيفات
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>التصنيف:</strong> تصنيف واحد يجمع مجموعة منتجات متشابهة
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>الأسماء:</strong> أضف اسم بالعربية والإنجليزية لسهولة البحث
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>عدد المنتجات:</strong> يظهر تلقائياً كم منتج في كل تصنيف
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>النشاط:</strong> يمكن تعطيل تصنيف بدون حذف المنتجات بداخله
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>
+                <strong>البحث:</strong> استخدم البحث للعثور على تصنيف معين سريعاً
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

@@ -31,12 +31,21 @@ public class InventoryService : IInventoryService
     {
         try
         {
+            var tenantId = _currentUserService.TenantId;
+            var userId = _currentUserService.UserId;
+            
+            _logger.LogInformation("GetBranchInventory called: BranchId={BranchId}, TenantId={TenantId}, UserId={UserId}", 
+                branchId, tenantId, userId);
+
             var inventories = await _context.BranchInventories
-                .Where(i => i.TenantId == _currentUserService.TenantId && i.BranchId == branchId)
+                .Where(i => i.TenantId == tenantId && i.BranchId == branchId)
                 .Include(i => i.Branch)
                 .Include(i => i.Product)
                 .OrderBy(i => i.Product.Name)
                 .ToListAsync();
+
+            _logger.LogInformation("Found {Count} inventory records for BranchId={BranchId}, TenantId={TenantId}", 
+                inventories.Count, branchId, tenantId);
 
             var dtos = inventories.Select(i => new BranchInventoryDto
             {
@@ -67,7 +76,8 @@ public class InventoryService : IInventoryService
         try
         {
             var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == productId && p.TenantId == _currentUserService.TenantId);
+                .FirstOrDefaultAsync(p => p.Id == productId && 
+                                        p.TenantId == _currentUserService.TenantId);
 
             if (product == null)
                 return ApiResponse<BranchInventorySummaryDto>.Fail(ErrorCodes.PRODUCT_NOT_FOUND, "المنتج غير موجود");
@@ -115,7 +125,8 @@ public class InventoryService : IInventoryService
         try
         {
             var query = _context.BranchInventories
-                .Where(i => i.TenantId == _currentUserService.TenantId && i.Quantity <= i.ReorderLevel);
+                .Where(i => i.TenantId == _currentUserService.TenantId && 
+                           i.Quantity <= i.ReorderLevel);
 
             if (branchId.HasValue)
                 query = query.Where(i => i.BranchId == branchId.Value);
