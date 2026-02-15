@@ -108,7 +108,9 @@ export const CategoriesPage = () => {
               إدارة التصنيفات
             </h1>
           </div>
-          <p className="text-gray-600">تنظيم المنتجات في تصنيفات لتسهيل البحث والعرض</p>
+          <p className="text-gray-600">
+            تنظيم المنتجات في تصنيفات لتسهيل البحث والعرض
+          </p>
         </div>
 
         <div className="flex justify-end">
@@ -315,7 +317,8 @@ export const CategoriesPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الأسماء:</strong> أضف اسم بالعربية والإنجليزية لسهولة البحث
+                <strong>الأسماء:</strong> أضف اسم بالعربية والإنجليزية لسهولة
+                البحث
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -327,13 +330,15 @@ export const CategoriesPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>النشاط:</strong> يمكن تعطيل تصنيف بدون حذف المنتجات بداخله
+                <strong>النشاط:</strong> يمكن تعطيل تصنيف بدون حذف المنتجات
+                بداخله
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>البحث:</strong> استخدم البحث للعثور على تصنيف معين سريعاً
+                <strong>البحث:</strong> استخدم البحث للعثور على تصنيف معين
+                سريعاً
               </span>
             </li>
           </ul>

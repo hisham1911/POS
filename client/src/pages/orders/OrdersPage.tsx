@@ -240,10 +240,7 @@ export const OrdersPage = () => {
                   type="date"
                   value={filters.fromDate || ""}
                   onChange={(e) =>
-                    handleFilterChange(
-                      "fromDate",
-                      e.target.value || undefined,
-                    )
+                    handleFilterChange("fromDate", e.target.value || undefined)
                   }
                 />
               </div>
@@ -518,31 +515,36 @@ export const OrdersPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>أنماط العرض:</strong> عرض طلبات اليوم أو جميع الطلبات أو اختر يوم معين
+                <strong>أنماط العرض:</strong> عرض طلبات اليوم أو جميع الطلبات أو
+                اختر يوم معين
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>طلبات المرتجعات:</strong> الطلبات البرتقالية هي طلبات مرتجعة من العملاء
+                <strong>طلبات المرتجعات:</strong> الطلبات البرتقالية هي طلبات
+                مرتجعة من العملاء
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الإحصائيات:</strong> اتبع إجمالي الطلبات والمبيعات الصافية والنقدية
+                <strong>الإحصائيات:</strong> اتبع إجمالي الطلبات والمبيعات
+                الصافية والنقدية
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>البحث:</strong> ابحث بسرعة باستخدام رقم الطلب أو اسم العميل
+                <strong>البحث:</strong> ابحث بسرعة باستخدام رقم الطلب أو اسم
+                العميل
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التفاصيل:</strong> اضغط على أي طلب لرؤية البنود والمدفوعات
+                <strong>التفاصيل:</strong> اضغط على أي طلب لرؤية البنود
+                والمدفوعات
               </span>
             </li>
           </ul>

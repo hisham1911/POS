@@ -345,31 +345,36 @@ export function CashRegisterTransactionsPage() {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>البحث والفلترة:</strong> يمكنك البحث حسب نوع المعاملة والتاريخ ورقم الوردية
+                <strong>البحث والفلترة:</strong> يمكنك البحث حسب نوع المعاملة
+                والتاريخ ورقم الوردية
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الرصيد:</strong> الرصيد قبل وبعد يوضح تأثير كل معاملة على الرصيد
+                <strong>الرصيد:</strong> الرصيد قبل وبعد يوضح تأثير كل معاملة
+                على الرصيد
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الدخول والخروج:</strong> له ألوان مختلفة (أخضر للدخول، أحمر للخروج)
+                <strong>الدخول والخروج:</strong> له ألوان مختلفة (أخضر للدخول،
+                أحمر للخروج)
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التدقيق:</strong> جميع المعاملات موثقة باسم المستخدم والتاريخ والوقت الدقيق
+                <strong>التدقيق:</strong> جميع المعاملات موثقة باسم المستخدم
+                والتاريخ والوقت الدقيق
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التصدير:</strong> يمكن استخدام الفلاتر لتحديد فترة معينة ثم حفظ التقرير
+                <strong>التصدير:</strong> يمكن استخدام الفلاتر لتحديد فترة معينة
+                ثم حفظ التقرير
               </span>
             </li>
           </ul>

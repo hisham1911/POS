@@ -99,11 +99,11 @@ export const CustomersPage = () => {
             <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center">
               <Users className="w-5 h-5 text-cyan-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              إدارة العملاء
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">إدارة العملاء</h1>
           </div>
-          <p className="text-gray-600">إدارة قاعدة بيانات العملاء والمبيعات والديون</p>
+          <p className="text-gray-600">
+            إدارة قاعدة بيانات العملاء والمبيعات والديون
+          </p>
         </div>
 
         <div className="flex justify-end">
@@ -402,19 +402,22 @@ export const CustomersPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>بيانات العميل:</strong> أضف كل بيانات العميل بشكل صحيح للرجوع إليها لاحقاً
+                <strong>بيانات العميل:</strong> أضف كل بيانات العميل بشكل صحيح
+                للرجوع إليها لاحقاً
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>نقاط الولاء:</strong> تراكم نقاط مع كل عملية شراء يمكن استبدالها بخصومات
+                <strong>نقاط الولاء:</strong> تراكم نقاط مع كل عملية شراء يمكن
+                استبدالها بخصومات
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الديون:</strong> تتبع ما على كل عميل من مبالغ مستحقة الدفع
+                <strong>الديون:</strong> تتبع ما على كل عميل من مبالغ مستحقة
+                الدفع
               </span>
             </li>
             <li className="flex items-start gap-2">

@@ -89,11 +89,11 @@ export function PurchaseInvoicesPage() {
             <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
               <ClipboardList className="w-5 h-5 text-violet-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              فواتير الشراء
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">فواتير الشراء</h1>
           </div>
-          <p className="text-gray-600">إدارة فواتير الشراء من الموردين والمستودع</p>
+          <p className="text-gray-600">
+            إدارة فواتير الشراء من الموردين والمستودع
+          </p>
         </div>
 
         <div className="flex justify-end">
@@ -338,31 +338,36 @@ export function PurchaseInvoicesPage() {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>فاتورة جديدة:</strong> أضف فاتورة شراء من الموردين مع تفاصيل البنود والأسعار
+                <strong>فاتورة جديدة:</strong> أضف فاتورة شراء من الموردين مع
+                تفاصيل البنود والأسعار
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الحالات:</strong> تتبع حالة كل فاتورة من المسودة إلى الدفع الكامل
+                <strong>الحالات:</strong> تتبع حالة كل فاتورة من المسودة إلى
+                الدفع الكامل
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التصفية:</strong> استخدم الفلاتر للبحث حسب المورد والحالة والتاريخ
+                <strong>التصفية:</strong> استخدم الفلاتر للبحث حسب المورد
+                والحالة والتاريخ
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الحسابات:</strong> راقب إجمالي الشراء والفواتير المدفوعة والمعلقة
+                <strong>الحسابات:</strong> راقب إجمالي الشراء والفواتير المدفوعة
+                والمعلقة
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التدقيق:</strong> جميع الفواتير موثقة ويمكن تحديثها وحذفها عند الحاجة
+                <strong>التدقيق:</strong> جميع الفواتير موثقة ويمكن تحديثها
+                وحذفها عند الحاجة
               </span>
             </li>
           </ul>

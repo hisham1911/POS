@@ -67,7 +67,9 @@ export const BranchesPage = () => {
             </div>
             <h1 className="text-3xl font-bold text-gray-900">إدارة الفروع</h1>
           </div>
-          <p className="text-gray-600">إدارة جميع فروع المؤسسة والتحكم في بيانات كل فرع</p>
+          <p className="text-gray-600">
+            إدارة جميع فروع المؤسسة والتحكم في بيانات كل فرع
+          </p>
         </div>
 
         <div className="flex justify-end">
@@ -225,7 +227,8 @@ export const BranchesPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الفرع:</strong> كل فرع يمثل موقع عمل منفصل بإدارة خزينة وعمليات خاصة بها
+                <strong>الفرع:</strong> كل فرع يمثل موقع عمل منفصل بإدارة خزينة
+                وعمليات خاصة بها
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -237,7 +240,8 @@ export const BranchesPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>البيانات:</strong> احرص على إدخال بيانات صحيحة وكاملة (عنوان وهاتف)
+                <strong>البيانات:</strong> احرص على إدخال بيانات صحيحة وكاملة
+                (عنوان وهاتف)
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -249,7 +253,8 @@ export const BranchesPage = () => {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التحديث:</strong> جميع البيانات المحفوظة يمكن تعديلها لاحقاً
+                <strong>التحديث:</strong> جميع البيانات المحفوظة يمكن تعديلها
+                لاحقاً
               </span>
             </li>
           </ul>

@@ -1,11 +1,11 @@
-import { baseApi } from './baseApi';
+import { baseApi } from "./baseApi";
 import type {
   CreateTenantRequest,
   CreateTenantResponse,
   SetTenantStatusRequest,
   SystemTenantSummary,
-} from '../types/system';
-import type { ApiResponse } from '../types/api.types';
+} from "../types/system";
+import type { ApiResponse } from "../types/api.types";
 
 export const systemApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -14,8 +14,8 @@ export const systemApi = baseApi.injectEndpoints({
       void
     >({
       query: () => ({
-        url: '/system/tenants',
-        method: 'GET',
+        url: "/system/tenants",
+        method: "GET",
       }),
     }),
     createTenant: builder.mutation<
@@ -23,8 +23,8 @@ export const systemApi = baseApi.injectEndpoints({
       CreateTenantRequest
     >({
       query: (data) => ({
-        url: '/system/tenants',
-        method: 'POST',
+        url: "/system/tenants",
+        method: "POST",
         body: data,
       }),
     }),
@@ -34,20 +34,23 @@ export const systemApi = baseApi.injectEndpoints({
     >({
       query: ({ tenantId, body }) => ({
         url: `/system/tenants/${tenantId}/status`,
-        method: 'PATCH',
+        method: "PATCH",
         body,
       }),
     }),
     // Inventory Migration
-    migrateInventory: builder.mutation<ApiResponse<{
-      productsMigrated: number;
-      inventoriesCreated: number;
-      productsWithStock: number;
-      totalStockBefore: number;
-      totalStockAfter: number;
-      durationMs: number;
-      alreadyMigrated: boolean;
-    }>, void>({
+    migrateInventory: builder.mutation<
+      ApiResponse<{
+        productsMigrated: number;
+        inventoriesCreated: number;
+        productsWithStock: number;
+        totalStockBefore: number;
+        totalStockAfter: number;
+        durationMs: number;
+        alreadyMigrated: boolean;
+      }>,
+      void
+    >({
       query: () => ({
         url: "/system/migrate-inventory",
         method: "POST",
@@ -56,9 +59,9 @@ export const systemApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { 
-  useGetTenantsQuery, 
-  useCreateTenantMutation, 
+export const {
+  useGetTenantsQuery,
+  useCreateTenantMutation,
   useSetTenantStatusMutation,
-  useMigrateInventoryMutation 
+  useMigrateInventoryMutation,
 } = systemApi;

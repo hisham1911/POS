@@ -96,7 +96,9 @@ export function ExpensesPage() {
             <Wallet className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-900">المصروفات</h1>
           </div>
-          <p className="text-gray-600">إدارة مصروفات الشركة ومراجعة حالتها والموافقة على الدفع</p>
+          <p className="text-gray-600">
+            إدارة مصروفات الشركة ومراجعة حالتها والموافقة على الدفع
+          </p>
         </div>
 
         <div className="flex justify-end">
@@ -365,31 +367,36 @@ export function ExpensesPage() {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>المصروف الجديد:</strong> أضف مصروف جديد وحدد الفئة والمبلغ والوصف
+                <strong>المصروف الجديد:</strong> أضف مصروف جديد وحدد الفئة
+                والمبلغ والوصف
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الحالات:</strong> جميع المصروفات تبدأ كمسودة ثم تحتاج موافقة قبل الدفع
+                <strong>الحالات:</strong> جميع المصروفات تبدأ كمسودة ثم تحتاج
+                موافقة قبل الدفع
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التصفية:</strong> استخدم الفلاتر للبحث حسب الفئة والحالة والتاريخ
+                <strong>التصفية:</strong> استخدم الفلاتر للبحث حسب الفئة والحالة
+                والتاريخ
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التتبع:</strong> راقب إجمالي المصروفات والمبالغ المدفوعة والمعلقة
+                <strong>التتبع:</strong> راقب إجمالي المصروفات والمبالغ المدفوعة
+                والمعلقة
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>التدقيق:</strong> جميع المصروفات موثقة بالتاريخ والمستخدم والتغييرات
+                <strong>التدقيق:</strong> جميع المصروفات موثقة بالتاريخ
+                والمستخدم والتغييرات
               </span>
             </li>
           </ul>

@@ -171,7 +171,6 @@ export function CashRegisterDashboard() {
             </div>
           )}
         </div>
-
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div></div>
           <div className="flex flex-wrap gap-2">
@@ -189,7 +188,6 @@ export function CashRegisterDashboard() {
             </Button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-blue-100">
             <div className="flex items-start justify-between">
@@ -231,7 +229,6 @@ export function CashRegisterDashboard() {
             </div>
           </Card>
         </div>
-
         <Card padding="none">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div>
@@ -320,7 +317,6 @@ export function CashRegisterDashboard() {
             )}
           </div>
         </Card>
-
         <Modal
           isOpen={showDepositModal}
           onClose={() => setShowDepositModal(false)}
@@ -372,7 +368,6 @@ export function CashRegisterDashboard() {
             </div>
           </div>
         </Modal>
-
         <Modal
           isOpen={showWithdrawModal}
           onClose={() => setShowWithdrawModal(false)}
@@ -439,35 +434,41 @@ export function CashRegisterDashboard() {
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الرصيد الحالي:</strong> يظهر إجمالي النقد المتوفر في الخزينة الآن
+                <strong>الرصيد الحالي:</strong> يظهر إجمالي النقد المتوفر في
+                الخزينة الآن
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>الإيداع:</strong> إضافة نقود جديدة إلى الخزينة (يتطلب وصف للعملية)
+                <strong>الإيداع:</strong> إضافة نقود جديدة إلى الخزينة (يتطلب
+                وصف للعملية)
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>السحب:</strong> إخراج نقود من الخزينة (صرف لموظفين، مصروفات، إلخ)
+                <strong>السحب:</strong> إخراج نقود من الخزينة (صرف لموظفين،
+                مصروفات، إلخ)
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>آخر المعاملات:</strong> تعرض آخر 10 عمليات تمت على الخزينة
+                <strong>آخر المعاملات:</strong> تعرض آخر 10 عمليات تمت على
+                الخزينة
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>مهم:</strong> جميع العمليات مسجلة وقابلة للمراجعة والتدقيق
+                <strong>مهم:</strong> جميع العمليات مسجلة وقابلة للمراجعة
+                والتدقيق
               </span>
             </li>
           </ul>
-        </div>      </div>
+        </div>{" "}
+      </div>
     </div>
   );
 }
