@@ -1,65 +1,95 @@
-import { useState } from 'react';
-import { useCreateTenantMutation, useGetTenantsQuery, useSetTenantStatusMutation } from '../../api/systemApi';
-import { Building2, Mail, Lock, MapPin, CheckCircle2, AlertCircle, RefreshCw, Power } from 'lucide-react';
+import { useState } from "react";
+import {
+  useCreateTenantMutation,
+  useGetTenantsQuery,
+  useSetTenantStatusMutation,
+} from "../../api/systemApi";
+import {
+  Building2,
+  Mail,
+  Lock,
+  MapPin,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Power,
+} from "lucide-react";
 
-const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,100}$/;
+const strongPasswordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,100}$/;
 
 export default function TenantCreationPage() {
   const [createTenant, { isLoading }] = useCreateTenantMutation();
-  const [setTenantStatus, { isLoading: isUpdatingStatus }] = useSetTenantStatusMutation();
-  const { data: tenantsResponse, isLoading: isLoadingTenants, refetch } = useGetTenantsQuery();
-  
+  const [setTenantStatus, { isLoading: isUpdatingStatus }] =
+    useSetTenantStatusMutation();
+  const {
+    data: tenantsResponse,
+    isLoading: isLoadingTenants,
+    refetch,
+  } = useGetTenantsQuery();
+
   const [formData, setFormData] = useState({
-    tenantName: '',
-    adminEmail: '',
-    adminPassword: '',
-    branchName: '',
+    tenantName: "",
+    adminEmail: "",
+    adminPassword: "",
+    branchName: "",
   });
 
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
 
   const tenants = tenantsResponse?.data ?? [];
   const activeCount = tenants.filter((tenant) => tenant.isActive).length;
   const inactiveCount = tenants.length - activeCount;
-  const totalUsers = tenants.reduce((sum, tenant) => sum + tenant.usersCount, 0);
-  const totalActiveUsers = tenants.reduce((sum, tenant) => sum + tenant.activeUsersCount, 0);
-  const totalActiveBranches = tenants.reduce((sum, tenant) => sum + tenant.activeBranchesCount, 0);
+  const totalUsers = tenants.reduce(
+    (sum, tenant) => sum + tenant.usersCount,
+    0,
+  );
+  const totalActiveUsers = tenants.reduce(
+    (sum, tenant) => sum + tenant.activeUsersCount,
+    0,
+  );
+  const totalActiveBranches = tenants.reduce(
+    (sum, tenant) => sum + tenant.activeBranchesCount,
+    0,
+  );
   const filteredTenants = tenants.filter((tenant) => {
     const matchesSearch =
       tenant.name.toLowerCase().includes(search.toLowerCase()) ||
       tenant.slug.toLowerCase().includes(search.toLowerCase());
 
     const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'active' && tenant.isActive) ||
-      (statusFilter === 'inactive' && !tenant.isActive);
+      statusFilter === "all" ||
+      (statusFilter === "active" && tenant.isActive) ||
+      (statusFilter === "inactive" && !tenant.isActive);
 
     return matchesSearch && matchesStatus;
   });
 
   const validateForm = () => {
     if (formData.tenantName.trim().length < 2) {
-      return 'اسم الشركة يجب أن يكون على الأقل حرفين';
+      return "اسم الشركة يجب أن يكون على الأقل حرفين";
     }
 
     if (formData.branchName.trim().length < 2) {
-      return 'اسم الفرع يجب أن يكون على الأقل حرفين';
+      return "اسم الفرع يجب أن يكون على الأقل حرفين";
     }
 
     if (!strongPasswordRegex.test(formData.adminPassword)) {
-      return 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل وتتضمن حرف كبير وحرف صغير ورقم ورمز خاص';
+      return "كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل وتتضمن حرف كبير وحرف صغير ورقم ورمز خاص";
     }
 
-    return '';
+    return "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     const validationError = validateForm();
     if (validationError) {
@@ -67,7 +97,9 @@ export default function TenantCreationPage() {
       return;
     }
 
-    const confirmed = window.confirm('هل أنت متأكد من إنشاء شركة جديدة؟ لا يمكن التراجع عن هذه العملية بسهولة.');
+    const confirmed = window.confirm(
+      "هل أنت متأكد من إنشاء شركة جديدة؟ لا يمكن التراجع عن هذه العملية بسهولة.",
+    );
     if (!confirmed) {
       return;
     }
@@ -81,25 +113,28 @@ export default function TenantCreationPage() {
       };
 
       const result = await createTenant(payload).unwrap();
-      setSuccess(result.message || 'تم إنشاء الشركة بنجاح');
+      setSuccess(result.message || "تم إنشاء الشركة بنجاح");
       await refetch();
       setFormData({
-        tenantName: '',
-        adminEmail: '',
-        adminPassword: '',
-        branchName: '',
+        tenantName: "",
+        adminEmail: "",
+        adminPassword: "",
+        branchName: "",
       });
     } catch (err: any) {
-      console.error('Create tenant error:', err);
-      setError(err?.data?.message || err?.message || 'فشل في إنشاء الشركة');
+      console.error("Create tenant error:", err);
+      setError(err?.data?.message || err?.message || "فشل في إنشاء الشركة");
     }
   };
 
-  const handleToggleTenantStatus = async (tenantId: number, currentStatus: boolean) => {
+  const handleToggleTenantStatus = async (
+    tenantId: number,
+    currentStatus: boolean,
+  ) => {
     const confirmed = window.confirm(
       currentStatus
-        ? 'هل أنت متأكد من تعطيل هذه الشركة؟'
-        : 'هل أنت متأكد من تفعيل هذه الشركة؟'
+        ? "هل أنت متأكد من تعطيل هذه الشركة؟"
+        : "هل أنت متأكد من تفعيل هذه الشركة؟",
     );
 
     if (!confirmed) return;
@@ -110,12 +145,14 @@ export default function TenantCreationPage() {
         body: { isActive: !currentStatus },
       }).unwrap();
 
-      setSuccess(result.message || 'تم تحديث حالة الشركة');
-      setError('');
+      setSuccess(result.message || "تم تحديث حالة الشركة");
+      setError("");
       await refetch();
     } catch (err: any) {
-      setError(err?.data?.message || err?.message || 'فشل في تحديث حالة الشركة');
-      setSuccess('');
+      setError(
+        err?.data?.message || err?.message || "فشل في تحديث حالة الشركة",
+      );
+      setSuccess("");
     }
   };
 
@@ -127,7 +164,9 @@ export default function TenantCreationPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">إنشاء شركة جديدة</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            إنشاء شركة جديدة
+          </h1>
           <p className="text-gray-600">لوحة إدارة الشركات (System Owner)</p>
         </div>
 
@@ -135,27 +174,39 @@ export default function TenantCreationPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <p className="text-sm text-gray-500">إجمالي الشركات</p>
-            <p className="text-3xl font-bold text-gray-900 mt-2">{tenants.length}</p>
+            <p className="text-3xl font-bold text-gray-900 mt-2">
+              {tenants.length}
+            </p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <p className="text-sm text-gray-500">الشركات المفعلة</p>
-            <p className="text-3xl font-bold text-green-600 mt-2">{activeCount}</p>
+            <p className="text-3xl font-bold text-green-600 mt-2">
+              {activeCount}
+            </p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <p className="text-sm text-gray-500">الشركات المعطلة</p>
-            <p className="text-3xl font-bold text-red-600 mt-2">{inactiveCount}</p>
+            <p className="text-3xl font-bold text-red-600 mt-2">
+              {inactiveCount}
+            </p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <p className="text-sm text-gray-500">إجمالي المستخدمين</p>
-            <p className="text-3xl font-bold text-gray-900 mt-2">{totalUsers}</p>
+            <p className="text-3xl font-bold text-gray-900 mt-2">
+              {totalUsers}
+            </p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <p className="text-sm text-gray-500">المستخدمون النشطون</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{totalActiveUsers}</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">
+              {totalActiveUsers}
+            </p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <p className="text-sm text-gray-500">الفروع النشطة</p>
-            <p className="text-3xl font-bold text-purple-600 mt-2">{totalActiveBranches}</p>
+            <p className="text-3xl font-bold text-purple-600 mt-2">
+              {totalActiveBranches}
+            </p>
           </div>
         </div>
 
@@ -229,7 +280,9 @@ export default function TenantCreationPage() {
 
             {/* Divider */}
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">بيانات المدير</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                بيانات المدير
+              </h3>
             </div>
 
             {/* Admin Email */}
@@ -283,13 +336,25 @@ export default function TenantCreationPage() {
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
                   </svg>
                   جاري الإنشاء...
                 </span>
               ) : (
-                'إنشاء الشركة'
+                "إنشاء الشركة"
               )}
             </button>
           </form>
@@ -298,7 +363,9 @@ export default function TenantCreationPage() {
         {/* Tenants Table */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">الشركات الحالية</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              الشركات الحالية
+            </h2>
             <button
               onClick={() => refetch()}
               className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -319,7 +386,9 @@ export default function TenantCreationPage() {
             />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as "all" | "active" | "inactive")
+              }
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
               <option value="all">كل الحالات</option>
@@ -337,62 +406,105 @@ export default function TenantCreationPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">الشركة</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Slug</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">الفروع (النشطة)</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">المستخدمون</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Admins / Cashiers</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">تفاصيل الشركة</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">تاريخ الإنشاء</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">الحالة</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">الإجراء</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      الشركة
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      Slug
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      الفروع (النشطة)
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      المستخدمون
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      Admins / Cashiers
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      تفاصيل الشركة
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      تاريخ الإنشاء
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      الحالة
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+                      الإجراء
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {filteredTenants.map((tenant) => (
                     <tr key={tenant.id}>
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{tenant.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tenant.slug}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tenant.branchesCount} ({tenant.activeBranchesCount})</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                        {tenant.name}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {tenant.slug}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {tenant.branchesCount} ({tenant.activeBranchesCount})
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {tenant.activeUsersCount} / {tenant.usersCount}
-                        <div className="text-xs text-gray-500 mt-1">غير نشط: {tenant.inactiveUsersCount}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          غير نشط: {tenant.inactiveUsersCount}
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tenant.adminsCount} / {tenant.cashiersCount}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {tenant.adminsCount} / {tenant.cashiersCount}
+                      </td>
                       <td className="px-4 py-3 text-xs text-gray-600 leading-5">
                         <div>العملة: {tenant.currency}</div>
                         <div>المنطقة الزمنية: {tenant.timezone}</div>
-                        <div>الضريبة: {tenant.isTaxEnabled ? `${tenant.taxRate}%` : 'معطلة'}</div>
-                        <div>مخزون سالب: {tenant.allowNegativeStock ? 'مسموح' : 'غير مسموح'}</div>
-                        <div>آخر تحديث: {tenant.updatedAt ? new Date(tenant.updatedAt).toLocaleDateString('ar-EG') : '-'}</div>
+                        <div>
+                          الضريبة:{" "}
+                          {tenant.isTaxEnabled ? `${tenant.taxRate}%` : "معطلة"}
+                        </div>
+                        <div>
+                          مخزون سالب:{" "}
+                          {tenant.allowNegativeStock ? "مسموح" : "غير مسموح"}
+                        </div>
+                        <div>
+                          آخر تحديث:{" "}
+                          {tenant.updatedAt
+                            ? new Date(tenant.updatedAt).toLocaleDateString(
+                                "ar-EG",
+                              )
+                            : "-"}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(tenant.createdAt).toLocaleDateString('ar-EG')}
+                        {new Date(tenant.createdAt).toLocaleDateString("ar-EG")}
                       </td>
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                             tenant.isActive
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
                           }`}
                         >
-                          {tenant.isActive ? 'مفعلة' : 'معطلة'}
+                          {tenant.isActive ? "مفعلة" : "معطلة"}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <button
                           type="button"
-                          onClick={() => handleToggleTenantStatus(tenant.id, tenant.isActive)}
+                          onClick={() =>
+                            handleToggleTenantStatus(tenant.id, tenant.isActive)
+                          }
                           disabled={isUpdatingStatus}
                           className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${
                             tenant.isActive
-                              ? 'bg-red-50 text-red-700 hover:bg-red-100'
-                              : 'bg-green-50 text-green-700 hover:bg-green-100'
+                              ? "bg-red-50 text-red-700 hover:bg-red-100"
+                              : "bg-green-50 text-green-700 hover:bg-green-100"
                           } disabled:opacity-50`}
                         >
                           <Power className="w-3 h-3" />
-                          {tenant.isActive ? 'تعطيل' : 'تفعيل'}
+                          {tenant.isActive ? "تعطيل" : "تفعيل"}
                         </button>
                       </td>
                     </tr>

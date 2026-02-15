@@ -29,7 +29,12 @@ const navItems = [
   { path: "/pos", label: "نقطة البيع", icon: ShoppingCart },
   { path: "/orders", label: "الطلبات", icon: ClipboardList },
   { path: "/shift", label: "الوردية", icon: Timer },
-  { path: "/shifts-management", label: "إدارة الورديات", icon: Clock, adminOnly: true },
+  {
+    path: "/shifts-management",
+    label: "إدارة الورديات",
+    icon: Clock,
+    adminOnly: true,
+  },
   { path: "/customers", label: "العملاء", icon: Users, adminOnly: true },
   { path: "/products", label: "المنتجات", icon: Package, adminOnly: true },
   {
@@ -39,7 +44,12 @@ const navItems = [
     adminOnly: true,
   },
   { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
-  { path: "/purchase-invoices", label: "فواتير الشراء", icon: FileText, adminOnly: true },
+  {
+    path: "/purchase-invoices",
+    label: "فواتير الشراء",
+    icon: FileText,
+    adminOnly: true,
+  },
   { path: "/inventory", label: "المخزون", icon: Boxes, adminOnly: true },
   { path: "/expenses", label: "المصروفات", icon: Receipt, adminOnly: true },
   { path: "/cash-register", label: "الخزينة", icon: Wallet, adminOnly: true },
@@ -47,7 +57,12 @@ const navItems = [
   { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
   { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
   { path: "/settings", label: "الإعدادات", icon: Settings, adminOnly: true },
-  { path: "/owner/tenants", label: "إدارة الشركات", icon: Building2, systemOwnerOnly: true },
+  {
+    path: "/owner/tenants",
+    label: "إدارة الشركات",
+    icon: Building2,
+    systemOwnerOnly: true,
+  },
 ];
 
 export const MainLayout = () => {
@@ -59,14 +74,12 @@ export const MainLayout = () => {
     minute: "2-digit",
   });
 
-  const filteredNavItems = navItems.filter(
-    (item) => {
-      if (isSystemOwner) return !!item.systemOwnerOnly;
-      if (item.systemOwnerOnly) return isSystemOwner;
-      if (item.adminOnly) return isAdmin;
-      return true;
-    }
-  );
+  const filteredNavItems = navItems.filter((item) => {
+    if (isSystemOwner) return !!item.systemOwnerOnly;
+    if (item.systemOwnerOnly) return isSystemOwner;
+    if (item.adminOnly) return isAdmin;
+    return true;
+  });
 
   return (
     <div className="h-screen flex w-full overflow-hidden">
@@ -96,7 +109,7 @@ export const MainLayout = () => {
                   "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
                   isActive
                     ? "bg-primary-600 text-white"
-                    : "text-gray-300 hover:bg-gray-800"
+                    : "text-gray-300 hover:bg-gray-800",
                 )
               }
             >
@@ -115,7 +128,11 @@ export const MainLayout = () => {
             <div>
               <p className="font-medium">{user?.name}</p>
               <p className="text-xs text-gray-400">
-                {user?.role === "SystemOwner" ? "مالك النظام" : user?.role === "Admin" ? "مدير" : "كاشير"}
+                {user?.role === "SystemOwner"
+                  ? "مالك النظام"
+                  : user?.role === "Admin"
+                    ? "مدير"
+                    : "كاشير"}
               </p>
             </div>
           </div>
@@ -165,7 +182,7 @@ export const MainLayout = () => {
                       "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
                       isActive
                         ? "bg-primary-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        : "text-gray-300 hover:bg-gray-800",
                     )
                   }
                 >

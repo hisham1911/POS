@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { useCreateTransferMutation } from "../../api/inventoryApi";
 import { useGetProductsQuery } from "../../api/productsApi";
 import { useAppSelector } from "../../store/hooks";
-import { selectBranches, selectCurrentBranch } from "../../store/slices/branchSlice";
+import {
+  selectBranches,
+  selectCurrentBranch,
+} from "../../store/slices/branchSlice";
 import { selectIsAdmin } from "../../store/slices/authSlice";
 import { ArrowRight, Package, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +46,7 @@ export default function InventoryTransferForm({
 
   // Get available branches (exclude source branch)
   const availableToBranches = branches.filter(
-    (b) => b.id !== formData.fromBranchId
+    (b) => b.id !== formData.fromBranchId,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +77,7 @@ export default function InventoryTransferForm({
     try {
       await createTransfer(formData).unwrap();
       toast.success("تم إنشاء طلب النقل بنجاح");
-      
+
       // Reset form
       setFormData({
         fromBranchId: currentBranch?.id || 0,
@@ -112,7 +115,9 @@ export default function InventoryTransferForm({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">نقل مخزون بين الفروع</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          نقل مخزون بين الفروع
+        </h2>
         {onCancel && (
           <button
             onClick={onCancel}
@@ -134,7 +139,10 @@ export default function InventoryTransferForm({
             <select
               value={formData.fromBranchId}
               onChange={(e) =>
-                setFormData({ ...formData, fromBranchId: Number(e.target.value) })
+                setFormData({
+                  ...formData,
+                  fromBranchId: Number(e.target.value),
+                })
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required

@@ -1,5 +1,5 @@
 // Expense Status Enum
-export type ExpenseStatus = 'Draft' | 'Approved' | 'Paid' | 'Rejected';
+export type ExpenseStatus = "Draft" | "Approved" | "Paid" | "Rejected";
 
 // Expense Category Interface
 export interface ExpenseCategory {

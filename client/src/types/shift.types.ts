@@ -14,17 +14,17 @@ export interface Shift {
   totalOrders: number;
   userName?: string;
   orders?: ShiftOrder[];
-  
+
   // Activity tracking
   lastActivityAt: string;
   inactiveHours: number;
-  
+
   // Force close
   isForceClosed: boolean;
   forceClosedByUserName?: string;
   forceClosedAt?: string;
   forceCloseReason?: string;
-  
+
   // Handover
   isHandedOver: boolean;
   handedOverFromUserName?: string;
@@ -32,7 +32,7 @@ export interface Shift {
   handedOverAt?: string;
   handoverBalance: number;
   handoverNotes?: string;
-  
+
   // Calculated fields
   durationHours: number;
   durationMinutes: number;

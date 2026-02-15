@@ -78,12 +78,12 @@ export const OrderDetailsModal = ({
                 order.status === "Completed"
                   ? "bg-success-50 text-success-500"
                   : order.status === "Pending"
-                  ? "bg-warning-50 text-warning-500"
-                  : order.status === "PartiallyRefunded"
-                  ? "bg-amber-50 text-amber-600"
-                  : order.status === "Refunded"
-                  ? "bg-danger-50 text-danger-500"
-                  : "bg-gray-50 text-gray-500"
+                    ? "bg-warning-50 text-warning-500"
+                    : order.status === "PartiallyRefunded"
+                      ? "bg-amber-50 text-amber-600"
+                      : order.status === "Refunded"
+                        ? "bg-danger-50 text-danger-500"
+                        : "bg-gray-50 text-gray-500",
               )}
             >
               {ORDER_STATUS[order.status]?.label}
@@ -236,13 +236,13 @@ export const OrderDetailsModal = ({
                 "border rounded-lg p-4",
                 isFullyRefunded
                   ? "bg-danger-50 border-danger-200"
-                  : "bg-amber-50 border-amber-200"
+                  : "bg-amber-50 border-amber-200",
               )}
             >
               <h3
                 className={clsx(
                   "font-semibold mb-2",
-                  isFullyRefunded ? "text-danger-700" : "text-amber-700"
+                  isFullyRefunded ? "text-danger-700" : "text-amber-700",
                 )}
               >
                 {isFullyRefunded
@@ -252,7 +252,7 @@ export const OrderDetailsModal = ({
               <div
                 className={clsx(
                   "text-sm space-y-1",
-                  isFullyRefunded ? "text-danger-600" : "text-amber-700"
+                  isFullyRefunded ? "text-danger-600" : "text-amber-700",
                 )}
               >
                 <p>

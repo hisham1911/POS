@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useCreateProductMutation } from '../../api/productsApi';
-import { useGetCategoriesQuery } from '../../api/categoriesApi';
-import { Modal } from '../common/Modal';
-import { Button } from '../common/Button';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useCreateProductMutation } from "../../api/productsApi";
+import { useGetCategoriesQuery } from "../../api/categoriesApi";
+import { Modal } from "../common/Modal";
+import { Button } from "../common/Button";
+import { toast } from "sonner";
 
 interface QuickAddProductModalProps {
   isOpen: boolean;
@@ -16,9 +16,9 @@ export function QuickAddProductModal({
   onClose,
   onProductCreated,
 }: QuickAddProductModalProps) {
-  const [name, setName] = useState('');
-  const [sku, setSku] = useState('');
-  const [barcode, setBarcode] = useState('');
+  const [name, setName] = useState("");
+  const [sku, setSku] = useState("");
+  const [barcode, setBarcode] = useState("");
   const [categoryId, setCategoryId] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
 
@@ -31,17 +31,17 @@ export function QuickAddProductModal({
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error('يرجى إدخال اسم المنتج');
+      toast.error("يرجى إدخال اسم المنتج");
       return;
     }
 
     if (!categoryId) {
-      toast.error('يرجى اختيار الفئة');
+      toast.error("يرجى اختيار الفئة");
       return;
     }
 
     if (price <= 0) {
-      toast.error('يرجى إدخال سعر البيع');
+      toast.error("يرجى إدخال سعر البيع");
       return;
     }
 
@@ -59,20 +59,20 @@ export function QuickAddProductModal({
       }).unwrap();
 
       if (result.success && result.data) {
-        toast.success('تم إضافة المنتج بنجاح');
+        toast.success("تم إضافة المنتج بنجاح");
         onProductCreated(result.data.id);
         handleClose();
       }
     } catch (error) {
-      console.error('Error creating product:', error);
-      toast.error('فشل إضافة المنتج');
+      console.error("Error creating product:", error);
+      toast.error("فشل إضافة المنتج");
     }
   };
 
   const handleClose = () => {
-    setName('');
-    setSku('');
-    setBarcode('');
+    setName("");
+    setSku("");
+    setBarcode("");
     setCategoryId(0);
     setPrice(0);
     onClose();
@@ -97,7 +97,9 @@ export function QuickAddProductModal({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">رمز المنتج (SKU)</label>
+            <label className="block text-sm font-medium mb-1">
+              رمز المنتج (SKU)
+            </label>
             <input
               type="text"
               value={sku}
@@ -162,7 +164,7 @@ export function QuickAddProductModal({
             إلغاء
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'جاري الإضافة...' : 'إضافة المنتج'}
+            {isLoading ? "جاري الإضافة..." : "إضافة المنتج"}
           </Button>
         </div>
       </form>

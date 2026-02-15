@@ -6,7 +6,10 @@ import {
 } from "../../api/inventoryApi";
 import { useGetProductsQuery } from "../../api/productsApi";
 import { useAppSelector } from "../../store/hooks";
-import { selectCurrentBranch, selectBranches } from "../../store/slices/branchSlice";
+import {
+  selectCurrentBranch,
+  selectBranches,
+} from "../../store/slices/branchSlice";
 import { selectIsAdmin } from "../../store/slices/authSlice";
 import { DollarSign, Edit, Trash2, Plus, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
@@ -16,7 +19,9 @@ export default function BranchPricingEditor() {
   const currentBranch = useAppSelector(selectCurrentBranch);
   const branches = useAppSelector(selectBranches);
 
-  const [selectedBranchId, setSelectedBranchId] = useState(currentBranch?.id || 0);
+  const [selectedBranchId, setSelectedBranchId] = useState(
+    currentBranch?.id || 0,
+  );
   const [isAddingPrice, setIsAddingPrice] = useState(false);
   const [editingPriceId, setEditingPriceId] = useState<number | null>(null);
 
@@ -26,9 +31,12 @@ export default function BranchPricingEditor() {
     effectiveFrom: new Date().toISOString().split("T")[0],
   });
 
-  const { data: branchPrices, isLoading } = useGetBranchPricesQuery(selectedBranchId, {
-    skip: !selectedBranchId,
-  });
+  const { data: branchPrices, isLoading } = useGetBranchPricesQuery(
+    selectedBranchId,
+    {
+      skip: !selectedBranchId,
+    },
+  );
   const { data: productsResponse } = useGetProductsQuery({});
   const products = productsResponse?.data ?? [];
 
@@ -69,7 +77,8 @@ export default function BranchPricingEditor() {
   };
 
   const handleRemove = async (productId: number) => {
-    if (!confirm("هل تريد حذف السعر المخصص؟ سيتم استخدام السعر الافتراضي")) return;
+    if (!confirm("هل تريد حذف السعر المخصص؟ سيتم استخدام السعر الافتراضي"))
+      return;
 
     try {
       await removeBranchPrice({
@@ -188,7 +197,10 @@ export default function BranchPricingEditor() {
               <select
                 value={formData.productId}
                 onChange={(e) =>
-                  setFormData({ ...formData, productId: Number(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    productId: Number(e.target.value),
+                  })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
@@ -292,8 +304,10 @@ export default function BranchPricingEditor() {
                 {branchPrices && branchPrices.length > 0 ? (
                   branchPrices.map((price) => {
                     const difference = price.price - price.defaultPrice;
-                    const percentDiff =
-                      ((difference / price.defaultPrice) * 100).toFixed(1);
+                    const percentDiff = (
+                      (difference / price.defaultPrice) *
+                      100
+                    ).toFixed(1);
 
                     return (
                       <tr key={price.id} className="hover:bg-gray-50">
@@ -318,8 +332,8 @@ export default function BranchPricingEditor() {
                               difference > 0
                                 ? "text-green-600"
                                 : difference < 0
-                                ? "text-red-600"
-                                : "text-gray-600"
+                                  ? "text-red-600"
+                                  : "text-gray-600"
                             }`}
                           >
                             {difference > 0 ? "+" : ""}
@@ -329,7 +343,7 @@ export default function BranchPricingEditor() {
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
                             {new Date(price.effectiveFrom).toLocaleDateString(
-                              "ar-EG"
+                              "ar-EG",
                             )}
                           </div>
                         </td>

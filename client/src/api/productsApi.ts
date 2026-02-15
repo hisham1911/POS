@@ -10,21 +10,34 @@ import { ApiResponse } from "../types/api.types";
 export const productsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // جلب كل المنتجات مع الفلاتر
-    getProducts: builder.query<ApiResponse<Product[]>, ProductsQueryParams | void>({
+    getProducts: builder.query<
+      ApiResponse<Product[]>,
+      ProductsQueryParams | void
+    >({
       query: (params) => {
-        const safeParams: ProductsQueryParams = (params ?? {}) as ProductsQueryParams;
+        const safeParams: ProductsQueryParams = (params ??
+          {}) as ProductsQueryParams;
         const queryParams = new URLSearchParams();
-        if (safeParams.categoryId !== undefined && safeParams.categoryId !== null) {
-          queryParams.append('categoryId', safeParams.categoryId.toString());
+        if (
+          safeParams.categoryId !== undefined &&
+          safeParams.categoryId !== null
+        ) {
+          queryParams.append("categoryId", safeParams.categoryId.toString());
         }
-        if (safeParams.search !== undefined && safeParams.search !== null && safeParams.search.trim() !== '') {
-          queryParams.append('search', safeParams.search.trim());
+        if (
+          safeParams.search !== undefined &&
+          safeParams.search !== null &&
+          safeParams.search.trim() !== ""
+        ) {
+          queryParams.append("search", safeParams.search.trim());
         }
-        if (safeParams.isActive !== undefined) queryParams.append('isActive', safeParams.isActive.toString());
-        if (safeParams.lowStock !== undefined) queryParams.append('lowStock', safeParams.lowStock.toString());
-        
+        if (safeParams.isActive !== undefined)
+          queryParams.append("isActive", safeParams.isActive.toString());
+        if (safeParams.lowStock !== undefined)
+          queryParams.append("lowStock", safeParams.lowStock.toString());
+
         const queryString = queryParams.toString();
-        return `/products${queryString ? `?${queryString}` : ''}`;
+        return `/products${queryString ? `?${queryString}` : ""}`;
       },
       providesTags: (result) =>
         result?.data
@@ -45,14 +58,16 @@ export const productsApi = baseApi.injectEndpoints({
     }),
 
     // إضافة منتج
-    createProduct: builder.mutation<ApiResponse<Product>, CreateProductRequest>({
-      query: (product) => ({
-        url: "/products",
-        method: "POST",
-        body: product,
-      }),
-      invalidatesTags: [{ type: "Products", id: "LIST" }],
-    }),
+    createProduct: builder.mutation<ApiResponse<Product>, CreateProductRequest>(
+      {
+        query: (product) => ({
+          url: "/products",
+          method: "POST",
+          body: product,
+        }),
+        invalidatesTags: [{ type: "Products", id: "LIST" }],
+      },
+    ),
 
     // تحديث منتج
     updateProduct: builder.mutation<

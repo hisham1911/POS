@@ -30,12 +30,16 @@ export const useAuth = () => {
       const result = await loginMutation(credentials).unwrap();
 
       if (result.success && result.data) {
-        dispatch(setCredentials({
-          user: result.data.user,
-          token: result.data.accessToken,
-        }));
+        dispatch(
+          setCredentials({
+            user: result.data.user,
+            token: result.data.accessToken,
+          }),
+        );
         toast.success("تم تسجيل الدخول بنجاح");
-        navigate(result.data.user.role === "SystemOwner" ? "/owner/tenants" : "/pos");
+        navigate(
+          result.data.user.role === "SystemOwner" ? "/owner/tenants" : "/pos",
+        );
       } else {
         toast.error(result.message || "فشل تسجيل الدخول");
       }
