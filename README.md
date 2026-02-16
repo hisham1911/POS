@@ -21,18 +21,18 @@ A full-featured, production-ready Point of Sale system built with Clean Architec
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🛒 **POS Interface** | Fast, intuitive sales interface with real-time cart |
-| 📦 **Product Management** | Full CRUD for products and categories |
-| 📋 **Order Management** | Track and manage all orders with status workflow |
-| ⏰ **Shift Management** | Open/close shifts with cash tracking |
-| 📊 **Daily Reports** | Sales reports with payment breakdown |
-| 💰 **Tax Management** | Configurable tax rates (Tax Exclusive model) |
-| 🌐 **RTL Support** | Full Arabic language support |
-| 📱 **Responsive** | Works on desktop, tablet, and mobile |
-| 🔐 **Authentication** | JWT-based auth with role management (Admin/Cashier) |
-| 🏢 **Multi-Tenant** | Built-in multi-tenancy support |
+| Feature                   | Description                                         |
+| ------------------------- | --------------------------------------------------- |
+| 🛒 **POS Interface**      | Fast, intuitive sales interface with real-time cart |
+| 📦 **Product Management** | Full CRUD for products and categories               |
+| 📋 **Order Management**   | Track and manage all orders with status workflow    |
+| ⏰ **Shift Management**   | Open/close shifts with cash tracking                |
+| 📊 **Daily Reports**      | Sales reports with payment breakdown                |
+| 💰 **Tax Management**     | Configurable tax rates (Tax Exclusive model)        |
+| 🌐 **RTL Support**        | Full Arabic language support                        |
+| 📱 **Responsive**         | Works on desktop, tablet, and mobile                |
+| 🔐 **Authentication**     | JWT-based auth with role management (Admin/Cashier) |
+| 🏢 **Multi-Tenant**       | Built-in multi-tenancy support                      |
 
 ## 🏗️ Architecture
 
@@ -140,18 +140,18 @@ npm run dev
 
 ### Access
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:5243/api |
+| Service      | URL                           |
+| ------------ | ----------------------------- |
+| Frontend     | http://localhost:3000         |
+| Backend API  | http://localhost:5243/api     |
 | Swagger Docs | http://localhost:5243/swagger |
 
 ### Demo Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@kasserpro.com | Admin@123 |
-| Cashier | ahmed@kasserpro.com | 123456 |
+| Role    | Email               | Password  |
+| ------- | ------------------- | --------- |
+| Admin   | admin@kasserpro.com | Admin@123 |
+| Cashier | ahmed@kasserpro.com | 123456    |
 
 ## 🧪 Testing
 
@@ -179,36 +179,36 @@ dotnet test
 
 ### Test Scenarios
 
-| Scene | Description |
-|-------|-------------|
-| Scene 1 | Admin Setup - Tax configuration |
+| Scene   | Description                       |
+| ------- | --------------------------------- |
+| Scene 1 | Admin Setup - Tax configuration   |
 | Scene 2 | Cashier Workday - Full order flow |
 | Scene 3 | Security Guard - Negative testing |
-| Scene 4 | Report Verification |
+| Scene 4 | Report Verification               |
 
 ## 📖 Documentation
 
 ### 📚 Main Documentation Folders
 
-| Folder | Description |
-|--------|-------------|
-| [**project-resources/docs/**](project-resources/docs/) | Complete documentation hub |
-| [**project-resources/docs/deployment/**](project-resources/docs/deployment/) | Deployment guides & production readiness |
-| [**project-resources/docs/features/**](project-resources/docs/features/) | Feature documentation & user guides |
-| [**project-resources/docs/guides/**](project-resources/docs/guides/) | Quick start & how-to guides (AR/EN) |
-| [**project-resources/docs/reports/**](project-resources/docs/reports/) | Technical reports & audits |
-| [**project-resources/scripts/**](project-resources/scripts/) | Automation scripts (database, testing, deployment) |
+| Folder                                                                       | Description                                        |
+| ---------------------------------------------------------------------------- | -------------------------------------------------- |
+| [**project-resources/docs/**](project-resources/docs/)                       | Complete documentation hub                         |
+| [**project-resources/docs/deployment/**](project-resources/docs/deployment/) | Deployment guides & production readiness           |
+| [**project-resources/docs/features/**](project-resources/docs/features/)     | Feature documentation & user guides                |
+| [**project-resources/docs/guides/**](project-resources/docs/guides/)         | Quick start & how-to guides (AR/EN)                |
+| [**project-resources/docs/reports/**](project-resources/docs/reports/)       | Technical reports & audits                         |
+| [**project-resources/scripts/**](project-resources/scripts/)                 | Automation scripts (database, testing, deployment) |
 
 ### 📄 Key Documents
 
-| Document | Description |
-|----------|-------------|
-| [Architecture Manifest](project-resources/docs/KASSERPRO_ARCHITECTURE_MANIFEST.md) | **المرجع الأساسي** - القواعد والمعايير |
-| [Deployment Guide](project-resources/docs/deployment/DEPLOYMENT_GUIDE_COMPLETE.md) | Complete production deployment guide |
-| [Production Readiness Audit](project-resources/docs/deployment/PRODUCTION_READINESS_AUDIT_REPORT.md) | Production readiness assessment |
-| [API Reference](project-resources/docs/api/API_DOCUMENTATION.md) | Complete API documentation |
-| [System Health Report](project-resources/docs/SYSTEM_HEALTH_REPORT.md) | Audit findings and fixes |
-| [Design System](project-resources/docs/design/DESIGN_SYSTEM.md) | UI/UX design guidelines |
+| Document                                                                                             | Description                            |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| [Architecture Manifest](project-resources/docs/KASSERPRO_ARCHITECTURE_MANIFEST.md)                   | **المرجع الأساسي** - القواعد والمعايير |
+| [Deployment Guide](project-resources/docs/deployment/DEPLOYMENT_GUIDE_COMPLETE.md)                   | Complete production deployment guide   |
+| [Production Readiness Audit](project-resources/docs/deployment/PRODUCTION_READINESS_AUDIT_REPORT.md) | Production readiness assessment        |
+| [API Reference](project-resources/docs/api/API_DOCUMENTATION.md)                                     | Complete API documentation             |
+| [System Health Report](project-resources/docs/SYSTEM_HEALTH_REPORT.md)                               | Audit findings and fixes               |
+| [Design System](project-resources/docs/design/DESIGN_SYSTEM.md)                                      | UI/UX design guidelines                |
 
 ### 🚀 Quick Access
 
@@ -220,6 +220,7 @@ dotnet test
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **.NET 9** - Web API Framework
 - **Entity Framework Core 9** - ORM
 - **SQLite** - Database
@@ -227,6 +228,7 @@ dotnet test
 - **Clean Architecture** - Design Pattern
 
 ### Frontend
+
 - **React 18** - UI Library
 - **TypeScript 5.7** - Type Safety
 - **Redux Toolkit** - State Management
