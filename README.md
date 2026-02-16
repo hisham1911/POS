@@ -62,29 +62,54 @@ A full-featured, production-ready Point of Sale system built with Clean Architec
 
 ```
 KasserPro/
-├── src/                              # Backend Source
-│   ├── KasserPro.API/               # REST API & Controllers
-│   ├── KasserPro.Application/       # Business Logic & DTOs
-│   ├── KasserPro.Domain/            # Entities & Interfaces
-│   ├── KasserPro.Infrastructure/    # Data Access & Services
-│   └── KasserPro.Tests/             # Unit & Integration Tests
+├── 📦 backend/                      # Backend Source Code
+│   ├── KasserPro.API/              # REST API & Controllers
+│   ├── KasserPro.Application/      # Business Logic & DTOs
+│   ├── KasserPro.Domain/           # Entities & Interfaces
+│   ├── KasserPro.Infrastructure/   # Data Access & Services
+│   ├── KasserPro.BridgeApp/        # Desktop Bridge (WPF)
+│   └── KasserPro.Tests/            # Unit & Integration Tests
 │
-├── client/                           # Frontend Source
+├── 🌐 frontend/                     # Frontend Source Code
 │   ├── src/
-│   │   ├── api/                     # RTK Query APIs
-│   │   ├── components/              # Reusable Components
-│   │   ├── hooks/                   # Custom React Hooks
-│   │   ├── pages/                   # Page Components
-│   │   ├── store/                   # Redux Store & Slices
-│   │   ├── types/                   # TypeScript Definitions
-│   │   └── utils/                   # Helper Functions
-│   └── e2e/                         # Playwright E2E Tests
-│       └── pages/                   # Page Objects
+│   │   ├── api/                    # RTK Query APIs
+│   │   ├── components/             # Reusable Components
+│   │   ├── hooks/                  # Custom React Hooks
+│   │   ├── pages/                  # Page Components
+│   │   ├── store/                  # Redux Store & Slices
+│   │   ├── types/                  # TypeScript Definitions
+│   │   └── utils/                  # Helper Functions
+│   └── e2e/                        # Playwright E2E Tests
 │
-└── docs/                             # Documentation
-    ├── api/                         # API Documentation
-    ├── guides/                      # Development Guides
-    └── design/                      # Design System
+├── 📚 project-resources/            # Documentation & Tools
+│   ├── docs/                       # All Documentation
+│   │   ├── deployment/             # Deployment Guides
+│   │   ├── features/               # Feature Documentation
+│   │   ├── fixes/                  # Bug Fix Reports
+│   │   ├── guides/                 # User Guides (AR/EN)
+│   │   ├── reports/                # Technical Reports
+│   │   └── archive/                # Archived Documents
+│   ├── scripts/                    # Automation Scripts
+│   │   ├── deployment/             # Build & Deploy
+│   │   ├── database/               # SQL Scripts
+│   │   ├── testing/                # Test Scripts
+│   │   └── maintenance/            # Maintenance
+│   ├── tools/                      # Additional Tools
+│   │   ├── migration-helpers/      # Migration Utilities
+│   │   └── KasserPro.Installer/    # Installer Project
+│   └── output/                     # Build Outputs (gitignored)
+│       ├── packages/               # Deployment Packages
+│       └── installers/             # Installer Files
+│
+├── 🏗️ .github/                     # GitHub Workflows
+├── 🔧 .kiro/                       # Kiro Specs
+├── 🎯 .vscode/                     # VS Code Settings
+│
+├── 📄 README.md                    # Main Documentation
+├── 📄 LICENSE                      # MIT License
+├── 📄 KasserPro.sln                # Visual Studio Solution
+├── 📄 .gitignore                   # Git Ignore Rules
+└── 📄 .editorconfig                # Editor Configuration
 ```
 
 ## 🚀 Quick Start
@@ -103,12 +128,12 @@ git clone https://github.com/yourusername/KasserPro.git
 cd KasserPro
 
 # Start Backend
-cd src/KasserPro.API
+cd backend/KasserPro.API
 dotnet restore
 dotnet run
 
 # Start Frontend (new terminal)
-cd client
+cd frontend
 npm install
 npm run dev
 ```
@@ -163,12 +188,34 @@ dotnet test
 
 ## 📖 Documentation
 
+### 📚 Main Documentation Folders
+
+| Folder | Description |
+|--------|-------------|
+| [**project-resources/docs/**](project-resources/docs/) | Complete documentation hub |
+| [**project-resources/docs/deployment/**](project-resources/docs/deployment/) | Deployment guides & production readiness |
+| [**project-resources/docs/features/**](project-resources/docs/features/) | Feature documentation & user guides |
+| [**project-resources/docs/guides/**](project-resources/docs/guides/) | Quick start & how-to guides (AR/EN) |
+| [**project-resources/docs/reports/**](project-resources/docs/reports/) | Technical reports & audits |
+| [**project-resources/scripts/**](project-resources/scripts/) | Automation scripts (database, testing, deployment) |
+
+### 📄 Key Documents
+
 | Document | Description |
 |----------|-------------|
-| [Architecture Manifest](docs/KASSERPRO_ARCHITECTURE_MANIFEST.md) | **المرجع الأساسي** - القواعد والمعايير |
-| [API Reference](docs/api/API_DOCUMENTATION.md) | Complete API documentation |
-| [System Health Report](docs/SYSTEM_HEALTH_REPORT.md) | Audit findings and fixes |
-| [Design System](docs/design/DESIGN_SYSTEM.md) | UI/UX design guidelines |
+| [Architecture Manifest](project-resources/docs/KASSERPRO_ARCHITECTURE_MANIFEST.md) | **المرجع الأساسي** - القواعد والمعايير |
+| [Deployment Guide](project-resources/docs/deployment/DEPLOYMENT_GUIDE_COMPLETE.md) | Complete production deployment guide |
+| [Production Readiness Audit](project-resources/docs/deployment/PRODUCTION_READINESS_AUDIT_REPORT.md) | Production readiness assessment |
+| [API Reference](project-resources/docs/api/API_DOCUMENTATION.md) | Complete API documentation |
+| [System Health Report](project-resources/docs/SYSTEM_HEALTH_REPORT.md) | Audit findings and fixes |
+| [Design System](project-resources/docs/design/DESIGN_SYSTEM.md) | UI/UX design guidelines |
+
+### 🚀 Quick Access
+
+**Want to deploy?** → [project-resources/docs/deployment/DEPLOYMENT_GUIDE_COMPLETE.md](project-resources/docs/deployment/DEPLOYMENT_GUIDE_COMPLETE.md)  
+**Need help?** → [project-resources/docs/guides/](project-resources/docs/guides/)  
+**Found a bug?** → [project-resources/docs/fixes/](project-resources/docs/fixes/)  
+**Technical details?** → [project-resources/docs/reports/](project-resources/docs/reports/)
 
 ## 🛠️ Tech Stack
 

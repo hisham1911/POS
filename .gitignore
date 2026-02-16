@@ -90,3 +90,64 @@ TestResults/
 *.temp
 *.bak
 *.backup
+
+# =====================
+# KasserPro Specific
+# =====================
+
+# Database files (contains sensitive data)
+kasserpro.db
+kasserpro.db-shm
+kasserpro.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Backups (may contain sensitive data)
+backups/
+*.backup
+
+# Build outputs and packages
+output/
+packages/
+*.zip
+*.tar.gz
+*.rar
+KasserPro-Package/
+project-resources/output/
+
+# Logs (may contain sensitive data)
+logs/
+project-resources/logs/
+backend/*/logs/
+frontend/logs/
+*.log
+
+# App settings with secrets
+appsettings.json
+!appsettings.example.json
+appsettings.Development.json
+appsettings.Production.json
+
+# User uploaded files
+wwwroot/uploads/
+uploads/
+
+# Playwright artifacts
+playwright-report/
+test-results/
+frontend/playwright-report/
+frontend/test-results/
+
+# Local configuration
+.env.local
+.env.*.local
+
+# Generated migration scripts
+tools/migration-helpers/*.cs
+tools/migration-helpers/*.csx
+
+# Old cleanup files
+*.OLD.md
+CLEANUP_*.md
+PROJECT_CLEANUP_*.md
