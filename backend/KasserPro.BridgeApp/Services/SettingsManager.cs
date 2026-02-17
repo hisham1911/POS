@@ -85,8 +85,8 @@ public class SettingsManager : ISettingsManager
         var settings = new AppSettings
         {
             DeviceId = Guid.NewGuid().ToString(),
-            BackendUrl = "https://localhost:5243",
-            ApiKey = "",
+            BackendUrl = "http://localhost:5243",
+            ApiKey = Guid.NewGuid().ToString(), // Generate a unique API key for this device
             DefaultPrinterName = ""
         };
 

@@ -21,6 +21,11 @@ public class AppSettings
     public string ApiKey { get; set; } = string.Empty;
 
     /// <summary>
+    /// Branch ID for targeted receipt delivery (matches branch in POS system)
+    /// </summary>
+    public string? BranchId { get; set; } = "default";
+
+    /// <summary>
     /// Name of the default thermal printer
     /// </summary>
     public string DefaultPrinterName { get; set; } = string.Empty;

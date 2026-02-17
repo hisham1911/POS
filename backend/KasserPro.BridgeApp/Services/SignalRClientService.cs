@@ -50,6 +50,7 @@ public class SignalRClientService : ISignalRClientService
                 {
                     options.Headers.Add("X-API-Key", settings.ApiKey);
                     options.Headers.Add("X-Device-Id", settings.DeviceId);
+                    options.Headers.Add("X-Branch-Id", settings.BranchId ?? "default");
                 })
                 .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
                 .Build();
@@ -150,7 +151,7 @@ public class SignalRClientService : ISignalRClientService
             };
 
             await _hubConnection.InvokeAsync("PrintCompleted", eventDto);
-            Log.Information("Print completion sent for command {CommandId}: Success={Success}", 
+            Log.Information("Print completion sent for command {CommandId}: Success={Success}",
                 commandId, success);
         }
         catch (Exception ex)

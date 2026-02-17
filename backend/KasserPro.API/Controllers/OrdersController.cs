@@ -149,10 +149,21 @@ public class OrdersController : ControllerBase
                     } : (object?)null
                 };
 
-                // P0-5: Send receipt only to devices in this branch's group
+                // Send receipt to branch group AND default group to ensure delivery
                 var branchId = User.FindFirst("branchId")?.Value ?? "default";
-                await _hubContext.Clients.Group($"branch-{branchId}")
+                var branchGroup = $"branch-{branchId}";
+
+                // Send to specific branch group
+                await _hubContext.Clients.Group(branchGroup)
                     .SendAsync("PrintReceipt", printCommand);
+
+                // Also send to default group as fallback (for devices without branch config)
+                if (branchGroup != "branch-default")
+                {
+                    await _hubContext.Clients.Group("branch-default")
+                        .SendAsync("PrintReceipt", printCommand);
+                }
+
                 _logger.LogInformation("Print command sent for order {OrderId} to branch group {BranchId}", order.Id, branchId);
             }
             catch (Exception ex)

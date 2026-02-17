@@ -51,7 +51,7 @@ const baseQueryWithReauth = retry(
         "method" in args &&
         typeof (args as Record<string, unknown>).method === "string" &&
         ["POST", "PUT", "DELETE"].includes(
-          ((args as Record<string, unknown>).method as string).toUpperCase()
+          ((args as Record<string, unknown>).method as string).toUpperCase(),
         );
 
       if (isMutation) {
@@ -59,7 +59,9 @@ const baseQueryWithReauth = retry(
         if (error.status === "FETCH_ERROR") {
           toast.error("فشل الاتصال. تحقق من الشبكة وحاول يدوياً.");
         } else if (error.status === 500) {
-          toast.error("حدث خطأ في الخادم. لا تكرر العملية — تحقق من البيانات أولاً.");
+          toast.error(
+            "حدث خطأ في الخادم. لا تكرر العملية — تحقق من البيانات أولاً.",
+          );
         }
         retry.fail(error);
         return result;
@@ -83,6 +85,14 @@ const baseQueryWithReauth = retry(
 
       // 401 Unauthorized - Token expired (don't retry)
       if (error.status === 401) {
+        // IMPORTANT: Clear localStorage BEFORE dispatching logout and redirecting
+        // This prevents the redirect loop where redux-persist rehydrates stale auth state
+        // before the logout action is flushed to localStorage
+        try {
+          localStorage.removeItem("persist:auth");
+        } catch (e) {
+          // ignore
+        }
         api.dispatch({ type: "auth/logout" });
         window.location.href = "/login";
         retry.fail(error); // Don't retry auth errors
@@ -90,7 +100,11 @@ const baseQueryWithReauth = retry(
       }
 
       // 403 Forbidden / 400 Bad Request / 409 Conflict - Show backend message (don't retry)
-      if (error.status === 403 || error.status === 400 || error.status === 409) {
+      if (
+        error.status === 403 ||
+        error.status === 400 ||
+        error.status === 409
+      ) {
         const errorData = error.data as ApiErrorResponse | undefined;
         const message = errorData?.message || "حدث خطأ في الطلب";
 
@@ -126,7 +140,7 @@ const baseQueryWithReauth = retry(
   },
   {
     maxRetries: 3, // Retry up to 3 times
-  }
+  },
 );
 
 // Create the base API

@@ -120,7 +120,8 @@ builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<IRestoreService, RestoreService>();
 
 // Background Services
-builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
+// AutoCloseShiftBackgroundService disabled - shifts are managed manually by users
+// builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
 builder.Services.AddHostedService<KasserPro.Infrastructure.Services.DailyBackupBackgroundService>();
 
 // SignalR
@@ -216,7 +217,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     // Production CORS - only allow specific origins
-    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
         ?? new[] { "http://localhost:3000" };
 
     options.AddPolicy("AllowFrontend", policy =>
@@ -260,19 +261,16 @@ if (!app.Environment.IsEnvironment("Testing"))
                 throw new InvalidOperationException($"Pre-migration backup failed: {backupResult.ErrorMessage}");
             }
 
-            Log.Information("Pre-migration backup created: {BackupPath} ({SizeMB:F2} MB)", 
-                backupResult.BackupPath, 
+            Log.Information("Pre-migration backup created: {BackupPath} ({SizeMB:F2} MB)",
+                backupResult.BackupPath,
                 backupResult.BackupSizeBytes / 1024.0 / 1024.0);
         }
 
         // Apply migrations
         await context.Database.MigrateAsync();
 
-        // P0-2: Only seed demo data in Development environment
-        if (app.Environment.IsDevelopment())
-        {
-            await ButcherDataSeeder.SeedAsync(context);
-        }
+        // Seed initial data (first run only - seeder checks if data exists)
+        await ButcherDataSeeder.SeedAsync(context);
     }
 }
 
@@ -291,7 +289,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles(); // Serve uploaded logos from wwwroot
+// Serve Frontend static files (index.html + assets)
+app.UseDefaultFiles(); // Serve index.html as default file
+app.UseStaticFiles(); // Serve uploaded logos + Frontend static files from wwwroot
 app.UseCors("AllowFrontend");
 app.UseRateLimiter();
 app.UseAuthentication();
@@ -304,6 +304,9 @@ app.MapControllers();
 
 // Map SignalR Hub
 app.MapHub<KasserPro.API.Hubs.DeviceHub>("/hubs/devices");
+
+// Fallback to index.html for SPA routing (React Router)
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

@@ -13,10 +13,15 @@ public static class ButcherDataSeeder
 
     public static async Task SeedAsync(AppDbContext context)
     {
-        Console.WriteLine("🔄 بدء تحميل بيانات المجزر...");
+        // Check if data already exists - skip seeding if so
+        if (await context.Tenants.AnyAsync())
+        {
+            Console.WriteLine("✅ البيانات موجودة مسبقاً - تخطي التحميل");
+            return;
+        }
 
-        await ClearBusinessDataAsync(context);
-        
+        Console.WriteLine("🔄 بدء تحميل بيانات المجزر (أول تشغيل)...");
+
         var tenant = await SeedTenantAsync(context);
         var branch = await SeedBranchAsync(context, tenant);
         var users = await SeedUsersAsync(context, tenant, branch);
@@ -35,7 +40,7 @@ public static class ButcherDataSeeder
     private static async Task ClearBusinessDataAsync(AppDbContext context)
     {
         Console.WriteLine("🗑️  مسح البيانات القديمة...");
-        
+
         context.Payments.RemoveRange(context.Payments);
         context.OrderItems.RemoveRange(context.OrderItems);
         context.Orders.RemoveRange(context.Orders);
@@ -54,7 +59,7 @@ public static class ButcherDataSeeder
         context.Customers.RemoveRange(context.Customers);
         context.Shifts.RemoveRange(context.Shifts);
         context.AuditLogs.RemoveRange(context.AuditLogs);
-        
+
         await context.SaveChangesAsync();
         Console.WriteLine("   ✓ تم مسح البيانات القديمة");
     }
@@ -70,7 +75,7 @@ public static class ButcherDataSeeder
             await context.SaveChangesAsync();
             return existing;
         }
-        
+
         var tenant = new Tenant
         {
             Name = "مجزر الأمانة",
@@ -88,7 +93,7 @@ public static class ButcherDataSeeder
             ReceiptPaperSize = "80mm",
             ReceiptPhoneNumber = "0233445566"
         };
-        
+
         context.Tenants.Add(tenant);
         await context.SaveChangesAsync();
         Console.WriteLine("   ✓ المتجر: مجزر الأمانة");
@@ -99,7 +104,7 @@ public static class ButcherDataSeeder
     {
         var existing = await context.Branches.FirstOrDefaultAsync();
         if (existing != null) return existing;
-        
+
         var branch = new Branch
         {
             TenantId = tenant.Id,
@@ -112,7 +117,7 @@ public static class ButcherDataSeeder
             CurrencyCode = "EGP",
             IsActive = true
         };
-        
+
         context.Branches.Add(branch);
         await context.SaveChangesAsync();
         Console.WriteLine("   ✓ الفرع: الفرع الرئيسي");
@@ -121,9 +126,9 @@ public static class ButcherDataSeeder
 
     private static async Task<List<User>> SeedUsersAsync(AppDbContext context, Tenant tenant, Branch branch)
     {
-        if (await context.Users.AnyAsync()) 
+        if (await context.Users.AnyAsync())
             return await context.Users.ToListAsync();
-        
+
         var users = new List<User>
         {
             new()
@@ -157,7 +162,7 @@ public static class ButcherDataSeeder
                 IsActive = true
             }
         };
-        
+
         context.Users.AddRange(users);
         await context.SaveChangesAsync();
         Console.WriteLine($"   ✓ المستخدمين: {users.Count} (1 مدير + 2 كاشير)");
@@ -222,11 +227,11 @@ public static class ButcherDataSeeder
         context.Products.AddRange(products);
         await context.SaveChangesAsync();
         Console.WriteLine($"   ✓ المنتجات: {products.Count} منتج");
-        
+
         // Create BranchInventories for all products in all branches
         var branches = await context.Branches.Where(b => b.TenantId == tenant.Id).ToListAsync();
         var branchInventories = new List<BranchInventory>();
-        
+
         foreach (var product in products)
         {
             foreach (var branch in branches)
@@ -242,11 +247,11 @@ public static class ButcherDataSeeder
                 });
             }
         }
-        
+
         context.BranchInventories.AddRange(branchInventories);
         await context.SaveChangesAsync();
         Console.WriteLine($"   ✓ مخزون الفروع: {branchInventories.Count} سجل");
-        
+
         return products;
     }
 
@@ -349,7 +354,7 @@ public static class ButcherDataSeeder
             for (int i = 0; i < orderCount; i++)
             {
                 var orderTime = shift.OpenedAt.AddMinutes(_random.Next(30, 700));
-                var status = day == 0 && i >= orderCount - 2 
+                var status = day == 0 && i >= orderCount - 2
                     ? (i == orderCount - 1 ? OrderStatus.Draft : OrderStatus.Pending)
                     : OrderStatus.Completed;
 
@@ -458,10 +463,10 @@ public static class ButcherDataSeeder
             {
                 product = products[_random.Next(products.Count)];
             } while (usedProducts.Contains(product.Id) && usedProducts.Count < products.Count);
-            
+
             usedProducts.Add(product.Id);
             var qty = _random.Next(1, 3); // Smaller quantities for meat
-            
+
             // Tax Exclusive calculation
             var netPrice = product.Price * qty;
             var itemTax = netPrice * (14m / 100m);
@@ -500,9 +505,9 @@ public static class ButcherDataSeeder
             order.AmountDue = 0;
             order.CompletedAt = orderTime.AddMinutes(_random.Next(5, 15));
             order.CompletedByUserId = userId;
-            
+
             var paymentMethod = _random.Next(10) < 7 ? PaymentMethod.Cash : PaymentMethod.Card;
-            
+
             order.Payments.Add(new Payment
             {
                 TenantId = tenantId,
@@ -532,7 +537,7 @@ public static class ButcherDataSeeder
         {
             var supplier = suppliers[_random.Next(suppliers.Count)];
             var invoiceDate = DateTime.UtcNow.AddDays(-_random.Next(1, 30));
-            
+
             var invoice = new PurchaseInvoice
             {
                 TenantId = tenant.Id,
@@ -562,7 +567,7 @@ public static class ButcherDataSeeder
                 var product = products[_random.Next(products.Count)];
                 var qty = _random.Next(10, 50); // Meat quantities in kg
                 var purchasePrice = product.Cost ?? (product.Price * 0.85m);
-                
+
                 var itemTotal = purchasePrice * qty;
 
                 var item = new PurchaseInvoiceItem
@@ -637,7 +642,7 @@ public static class ButcherDataSeeder
         {
             var category = categories[_random.Next(categories.Count)];
             var expenseDate = DateTime.UtcNow.AddDays(-_random.Next(1, 30));
-            
+
             var expense = new Expense
             {
                 TenantId = tenant.Id,
@@ -682,7 +687,7 @@ public static class ButcherDataSeeder
             var transDate = DateTime.UtcNow.AddDays(-_random.Next(1, 14));
             var isDeposit = _random.Next(2) == 0;
             var amount = _random.Next(500, 2000);
-            
+
             var transaction = new CashRegisterTransaction
             {
                 TenantId = tenant.Id,

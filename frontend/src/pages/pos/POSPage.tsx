@@ -6,12 +6,14 @@ import { Cart } from "@/components/pos/Cart";
 import { PaymentModal } from "@/components/pos/PaymentModal";
 import { LowStockAlert } from "@/components/pos/LowStockAlert";
 import { Loading } from "@/components/common/Loading";
-import { Menu, ScanBarcode, PackageCheck } from "lucide-react";
+import { Menu, ScanBarcode, PackageCheck, AlertCircle } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useShift } from "@/hooks/useShift";
 import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
 import { Customer } from "@/types/customer.types";
 import { toast } from "sonner";
 import clsx from "clsx";
+import { Link } from "react-router-dom";
 
 export const POSPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -28,6 +30,7 @@ export const POSPage = () => {
   const { products, isLoading } = useProducts();
   const { categories } = useCategories();
   const { addItem, itemsCount } = useCart();
+  const { hasActiveShift, isLoading: isLoadingShift } = useShift();
 
   // Shortcuts
   usePOSShortcuts({
@@ -107,10 +110,35 @@ export const POSPage = () => {
     });
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingShift) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-50">
         <Loading />
+      </div>
+    );
+  }
+
+  // Show warning if no active shift
+  if (!hasActiveShift) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-warning-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            لا توجد وردية مفتوحة
+          </h2>
+          <p className="text-gray-600 mb-6">
+            يجب فتح وردية قبل البدء في البيع. اذهب إلى صفحة الورديات لفتح وردية جديدة.
+          </p>
+          <Link
+            to="/shift"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium"
+          >
+            الذهاب إلى الورديات
+          </Link>
+        </div>
       </div>
     );
   }

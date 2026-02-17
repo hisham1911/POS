@@ -120,7 +120,8 @@ builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<IRestoreService, RestoreService>();
 
 // Background Services
-builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
+// AutoCloseShiftBackgroundService disabled - shifts are managed manually by users
+// builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
 builder.Services.AddHostedService<KasserPro.Infrastructure.Services.DailyBackupBackgroundService>();
 
 // SignalR

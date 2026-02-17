@@ -1,12 +1,14 @@
 import type React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useAppSelector } from "./store/hooks";
+import { useAppSelector, useAppDispatch } from "./store/hooks";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
   selectIsAdmin,
   selectIsSystemOwner,
+  selectToken,
+  logout as logoutAction,
 } from "./store/slices/authSlice";
 import { useGetCurrentShiftQuery } from "./api/shiftsApi";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -340,6 +342,8 @@ const AppRoutes = () => (
 
 const App = () => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const token = useAppSelector(selectToken);
+  const dispatch = useAppDispatch();
   const { data: currentShiftData, isLoading: isLoadingShift } =
     useGetCurrentShiftQuery(undefined, {
       skip: !isAuthenticated,
@@ -348,53 +352,65 @@ const App = () => {
   const [recoveredShift, setRecoveredShift] = useState<any>(null);
   const [savedAt, setSavedAt] = useState<string>("");
 
-  // Check for saved shift on app start
+  // Validate JWT token on app startup - prevents login/pos redirect loop
+  // If token is expired or invalid, clear auth state immediately before any API call
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !token) return;
 
-    // Wait for API to load before checking
-    if (isLoadingShift) return;
+    try {
+      // Decode JWT payload (base64 middle section)
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        // Invalid token format
+        console.warn("Invalid JWT format - logging out");
+        localStorage.removeItem("persist:auth");
+        dispatch(logoutAction());
+        return;
+      }
 
-    const saved = shiftPersistence.load();
-    const currentShift = currentShiftData?.data;
+      const payload = JSON.parse(atob(parts[1]));
+      const exp = payload.exp;
 
-    // Show recovery modal ONLY if:
-    // 1. There's a saved shift in localStorage
-    // 2. API has loaded (not loading)
-    // 3. There IS an active shift from API (shift exists and matches saved shift)
-    // 4. Saved shift is not closed
-    if (
-      saved &&
-      currentShift &&
-      !currentShift.isClosed &&
-      saved.shift.id === currentShift.id
-    ) {
-      setRecoveredShift(saved.shift);
-      setSavedAt(saved.savedAt);
-      setShowRecovery(true);
-    } else if (saved && !currentShift) {
-      // If there's a saved shift but no current shift, clear it
+      if (exp) {
+        const now = Math.floor(Date.now() / 1000);
+        if (now >= exp) {
+          // Token expired
+          console.warn("JWT expired - logging out");
+          localStorage.removeItem("persist:auth");
+          dispatch(logoutAction());
+          return;
+        }
+      }
+    } catch (e) {
+      // Token is malformed - clear it
+      console.warn("Failed to validate JWT - logging out", e);
+      localStorage.removeItem("persist:auth");
+      dispatch(logoutAction());
+    }
+  }, []); // Only run once on startup
+
+  // Shift recovery disabled - was causing annoying popups on every app load
+  // Clear any previously saved shift data on startup
+  useEffect(() => {
+    if (isAuthenticated) {
       shiftPersistence.clear();
     }
-  }, [isAuthenticated, currentShiftData, isLoadingShift]);
+  }, [isAuthenticated]);
 
-  // Start auto-save when shift is open
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const currentShift = currentShiftData?.data;
-    if (currentShift && !currentShift.isClosed) {
-      shiftPersistence.startAutoSave(() => currentShift);
-    } else {
-      shiftPersistence.stopAutoSave();
-      // Clear saved shift if current shift is closed
-      if (currentShift?.isClosed) {
-        shiftPersistence.clear();
-      }
-    }
-
-    return () => shiftPersistence.stopAutoSave();
-  }, [isAuthenticated, currentShiftData]);
+  // Shift auto-save disabled - was causing recovery modal popups
+  // useEffect(() => {
+  //   if (!isAuthenticated) return;
+  //   const currentShift = currentShiftData?.data;
+  //   if (currentShift && !currentShift.isClosed) {
+  //     shiftPersistence.startAutoSave(() => currentShift);
+  //   } else {
+  //     shiftPersistence.stopAutoSave();
+  //     if (currentShift?.isClosed) {
+  //       shiftPersistence.clear();
+  //     }
+  //   }
+  //   return () => shiftPersistence.stopAutoSave();
+  // }, [isAuthenticated, currentShiftData]);
 
   const handleRestore = () => {
     // The shift is already in the backend, just close the modal
@@ -413,17 +429,6 @@ const App = () => {
     <ErrorBoundary>
       <BrowserRouter>
         <AppRoutes />
-
-        {/* Shift Recovery Modal */}
-        {recoveredShift && (
-          <ShiftRecoveryModal
-            shift={recoveredShift}
-            savedAt={savedAt}
-            isOpen={showRecovery}
-            onRestore={handleRestore}
-            onDiscard={handleDiscard}
-          />
-        )}
       </BrowserRouter>
     </ErrorBoundary>
   );

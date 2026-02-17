@@ -45,8 +45,9 @@ public class ShiftService : IShiftService
                                    && s.BranchId == branchId 
                                    && !s.IsClosed);
 
+        // Return success with null data if no shift is open (not an error)
         if (shift == null)
-            return ApiResponse<ShiftDto>.Fail("لا توجد وردية مفتوحة");
+            return ApiResponse<ShiftDto>.Ok(null, "لا توجد وردية مفتوحة");
 
         return ApiResponse<ShiftDto>.Ok(MapToDto(shift));
     }

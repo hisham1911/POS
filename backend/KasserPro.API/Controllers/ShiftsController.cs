@@ -28,7 +28,8 @@ public class ShiftsController : ControllerBase
             return Unauthorized(new { success = false, message = "معرف المستخدم غير صالح في التوكن" });
         
         var result = await _shiftService.GetCurrentAsync(userId);
-        return result.Success ? Ok(result) : NotFound(result);
+        // Always return 200 OK, even if no shift is open (data will be null)
+        return Ok(result);
     }
 
     [HttpPost("open")]
