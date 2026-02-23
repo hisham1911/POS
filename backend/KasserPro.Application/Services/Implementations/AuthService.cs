@@ -19,17 +19,20 @@ public class AuthService : IAuthService
     private readonly IConfiguration _config;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<AuthService> _logger;
+    private readonly IPermissionService _permissionService;
 
     public AuthService(
         IUnitOfWork unitOfWork, 
         IConfiguration config,
         ICurrentUserService currentUserService,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IPermissionService permissionService)
     {
         _unitOfWork = unitOfWork;
         _config = config;
         _currentUserService = currentUserService;
         _logger = logger;
+        _permissionService = permissionService;
     }
 
     public async Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request)
@@ -50,8 +53,12 @@ public class AuthService : IAuthService
                 return ApiResponse<LoginResponse>.Fail("الشركة معطلة. تواصل مع مالك النظام");
         }
 
-        var token = GenerateToken(user);
+        var token = await GenerateTokenAsync(user);
         var expiresAt = DateTime.UtcNow.AddHours(int.Parse(_config["Jwt:ExpiryInHours"]!));
+
+        // Get permissions for the response
+        var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
+        var permissionStrings = permissions.Select(p => p.ToString()).ToList();
 
         return ApiResponse<LoginResponse>.Ok(new LoginResponse
         {
@@ -62,7 +69,8 @@ public class AuthService : IAuthService
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Role = user.Role.ToString()
+                Role = user.Role.ToString(),
+                Permissions = permissionStrings
             }
         });
     }
@@ -113,6 +121,13 @@ public class AuthService : IAuthService
         await _unitOfWork.Users.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
+        // Assign default permissions for new cashiers
+        if (user.Role == UserRole.Cashier)
+        {
+            var defaultPermissions = _permissionService.GetDefaultCashierPermissions();
+            await _permissionService.UpdateUserPermissionsAsync(user.Id, defaultPermissions);
+        }
+
         return ApiResponse<bool>.Ok(true, "تم إنشاء الحساب بنجاح");
     }
 
@@ -122,16 +137,20 @@ public class AuthService : IAuthService
         if (user == null)
             return ApiResponse<UserInfo>.Fail("المستخدم غير موجود");
 
+        var permissions = await _permissionService.GetUserPermissionsAsync(userId);
+        var permissionStrings = permissions.Select(p => p.ToString()).ToList();
+
         return ApiResponse<UserInfo>.Ok(new UserInfo
         {
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
-            Role = user.Role.ToString()
+            Role = user.Role.ToString(),
+            Permissions = permissionStrings
         });
     }
 
-    private string GenerateToken(User user)
+    private async Task<string> GenerateTokenAsync(User user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var claims = new List<Claim>
@@ -151,6 +170,13 @@ public class AuthService : IAuthService
         if (user.TenantId.HasValue)
         {
             claims.Add(new Claim("tenantId", user.TenantId.Value.ToString()));
+        }
+
+        // Add permissions as claims
+        var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
+        foreach (var permission in permissions)
+        {
+            claims.Add(new Claim("permission", permission.ToString()));
         }
 
         var token = new JwtSecurityToken(

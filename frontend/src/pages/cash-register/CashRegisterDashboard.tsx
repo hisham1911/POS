@@ -21,6 +21,7 @@ import { Modal } from "../../components/common/Modal";
 import type { CashRegisterTransactionType } from "../../types/cashRegister.types";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch } from "../../store/slices/branchSlice";
+import { formatDateTimeFull } from "../../utils/formatters";
 
 export function CashRegisterDashboard() {
   const currentBranch = useAppSelector(selectCurrentBranch);
@@ -238,9 +239,7 @@ export function CashRegisterDashboard() {
               {balance?.lastTransactionDate && (
                 <p className="text-sm text-gray-500 mt-1">
                   آخر معاملة:{" "}
-                  {new Date(balance.lastTransactionDate).toLocaleString(
-                    "ar-EG",
-                  )}
+                  {formatDateTimeFull(balance.lastTransactionDate)}
                 </p>
               )}
             </div>
@@ -290,9 +289,7 @@ export function CashRegisterDashboard() {
                           {transaction.description}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(transaction.createdAt).toLocaleString(
-                            "ar-EG",
-                          )}
+                          {formatDateTimeFull(transaction.createdAt)}
                         </p>
                       </div>
                     </div>

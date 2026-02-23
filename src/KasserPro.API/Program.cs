@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Caching.Memory;
 using KasserPro.Application.Common.Interfaces;
 using KasserPro.Application.Services.Implementations;
 using KasserPro.Application.Services.Interfaces;
@@ -156,6 +157,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 var tokenStamp = context.Principal?.FindFirst("security_stamp")?.Value;
 
+                // P1 PERFORMANCE: Use MemoryCache to avoid database queries on every request
+                var cache = context.HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                var cacheKey = $"user_validation_{userId}_{tokenStamp}";
+
+                // Try to get cached validation result
+                if (cache.TryGetValue(cacheKey, out bool isValid))
+                {
+                    if (!isValid)
+                    {
+                        context.Fail("User is inactive or token invalidated (cached)");
+                    }
+                    return;
+                }
+
                 var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
                 var user = await db.Users
                     .AsNoTracking()
@@ -163,6 +178,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 if (user == null || !user.IsActive)
                 {
+                    cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
                     context.Fail("User is inactive or not found");
                     return;
                 }
@@ -170,21 +186,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 // P0 SECURITY: Validate SecurityStamp
                 if (!string.IsNullOrEmpty(tokenStamp) && user.SecurityStamp != tokenStamp)
                 {
+                    cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
                     context.Fail("TOKEN_INVALIDATED");
                     return;
                 }
 
                 if (user.TenantId.HasValue)
                 {
-                    var tenant = await db.Tenants
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(t => t.Id == user.TenantId.Value);
-
-                    if (tenant == null || !tenant.IsActive)
+                    var tenantCacheKey = $"tenant_active_{user.TenantId.Value}";
+                    if (!cache.TryGetValue(tenantCacheKey, out bool tenantActive))
                     {
+                        var tenant = await db.Tenants
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(t => t.Id == user.TenantId.Value);
+
+                        tenantActive = tenant != null && tenant.IsActive;
+                        cache.Set(tenantCacheKey, tenantActive, TimeSpan.FromMinutes(5));
+                    }
+
+                    if (!tenantActive)
+                    {
+                        cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
                         context.Fail("Tenant is inactive");
+                        return;
                     }
                 }
+
+                // Cache successful validation for 30 seconds
+                cache.Set(cacheKey, true, TimeSpan.FromSeconds(30));
             }
         };
     });

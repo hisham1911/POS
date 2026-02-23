@@ -1,4 +1,5 @@
 import { Shift } from '../../types/shift.types';
+import { formatDateTimeFull } from '../../utils/formatters';
 
 interface InactivityAlertModalProps {
   shift: Shift;
@@ -32,7 +33,7 @@ export default function InactivityAlertModal({
             <strong>{shift.inactiveHours} ساعة</strong>.
           </p>
           <p className="text-gray-600 text-sm">
-            آخر نشاط: {new Date(shift.lastActivityAt).toLocaleString('ar-EG')}
+            آخر نشاط: {formatDateTimeFull(shift.lastActivityAt)}
           </p>
         </div>
 
@@ -41,7 +42,7 @@ export default function InactivityAlertModal({
           <div className="flex justify-between mb-2">
             <span className="text-gray-600">وقت الفتح:</span>
             <span className="font-medium">
-              {new Date(shift.openedAt).toLocaleString('ar-EG')}
+              {formatDateTimeFull(shift.openedAt)}
             </span>
           </div>
           <div className="flex justify-between mb-2">

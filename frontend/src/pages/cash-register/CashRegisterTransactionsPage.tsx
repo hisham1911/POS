@@ -17,6 +17,7 @@ import { Card } from "../../components/common/Card";
 import { Loading } from "../../components/common/Loading";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch } from "../../store/slices/branchSlice";
+import { formatDateTimeFull } from "../../utils/formatters";
 
 export function CashRegisterTransactionsPage() {
   const currentBranch = useAppSelector(selectCurrentBranch);
@@ -257,9 +258,7 @@ export function CashRegisterTransactionsPage() {
                   transactions.map((transaction) => (
                     <tr key={transaction.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(transaction.createdAt).toLocaleString(
-                          "ar-EG",
-                        )}
+                        {formatDateTimeFull(transaction.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

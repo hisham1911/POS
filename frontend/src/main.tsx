@@ -7,6 +7,13 @@ import { Toaster } from "sonner";
 import { store, persistor } from "./store";
 import App from "./App";
 import { TaxSettingsSync } from "./components/common/TaxSettingsSync";
+
+// Import Cairo font (offline support)
+import "@fontsource/cairo/400.css";
+import "@fontsource/cairo/500.css";
+import "@fontsource/cairo/600.css";
+import "@fontsource/cairo/700.css";
+
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

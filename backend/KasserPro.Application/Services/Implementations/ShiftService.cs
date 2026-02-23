@@ -47,7 +47,7 @@ public class ShiftService : IShiftService
 
         // Return success with null data if no shift is open (not an error)
         if (shift == null)
-            return ApiResponse<ShiftDto>.Ok(null, "لا توجد وردية مفتوحة");
+            return ApiResponse<ShiftDto>.Ok(null!, "لا توجد وردية مفتوحة");
 
         return ApiResponse<ShiftDto>.Ok(MapToDto(shift));
     }
@@ -459,6 +459,86 @@ public class ShiftService : IShiftService
             .ToListAsync();
 
         return ApiResponse<List<ShiftDto>>.Ok(shifts.Select(MapToDto).ToList());
+    }
+
+    /// <summary>
+    /// Get shift warnings for current user's shift
+    /// </summary>
+    public async Task<ApiResponse<ShiftWarningDto>> GetShiftWarningsAsync(int userId)
+    {
+        // Validate userId
+        if (userId <= 0)
+            return ApiResponse<ShiftWarningDto>.Fail(ErrorCodes.USER_NOT_FOUND, "معرف المستخدم غير صالح");
+
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+
+        // SECURITY: Validate tenant context
+        if (tenantId <= 0)
+            return ApiResponse<ShiftWarningDto>.Fail(ErrorCodes.TENANT_NOT_FOUND, "سياق المستأجر غير صالح");
+
+        // Get current open shift
+        var shift = await _unitOfWork.Shifts.Query()
+            .FirstOrDefaultAsync(s => s.UserId == userId 
+                                   && s.TenantId == tenantId 
+                                   && s.BranchId == branchId 
+                                   && !s.IsClosed);
+
+        // No open shift - no warnings
+        if (shift == null)
+        {
+            return ApiResponse<ShiftWarningDto>.Ok(new ShiftWarningDto
+            {
+                Level = "None",
+                Message = string.Empty,
+                HoursOpen = 0,
+                ShouldWarn = false,
+                IsCritical = false,
+                ShiftId = null
+            });
+        }
+
+        // Calculate hours open
+        var hoursOpen = (DateTime.UtcNow - shift.OpenedAt).TotalHours;
+
+        // Determine warning level
+        if (hoursOpen >= 24)
+        {
+            // Critical warning (24+ hours)
+            return ApiResponse<ShiftWarningDto>.Ok(new ShiftWarningDto
+            {
+                Level = "Critical",
+                Message = ErrorMessages.Get(ErrorCodes.SHIFT_CRITICAL_24_HOURS),
+                HoursOpen = hoursOpen,
+                ShouldWarn = true,
+                IsCritical = true,
+                ShiftId = shift.Id
+            });
+        }
+        else if (hoursOpen >= 12)
+        {
+            // Standard warning (12+ hours)
+            return ApiResponse<ShiftWarningDto>.Ok(new ShiftWarningDto
+            {
+                Level = "Warning",
+                Message = ErrorMessages.Get(ErrorCodes.SHIFT_WARNING_12_HOURS),
+                HoursOpen = hoursOpen,
+                ShouldWarn = true,
+                IsCritical = false,
+                ShiftId = shift.Id
+            });
+        }
+
+        // No warning needed
+        return ApiResponse<ShiftWarningDto>.Ok(new ShiftWarningDto
+        {
+            Level = "None",
+            Message = string.Empty,
+            HoursOpen = hoursOpen,
+            ShouldWarn = false,
+            IsCritical = false,
+            ShiftId = shift.Id
+        });
     }
 
     private static ShiftDto MapToDto(Shift shift)

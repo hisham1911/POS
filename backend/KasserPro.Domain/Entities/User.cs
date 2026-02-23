@@ -22,6 +22,7 @@ public class User : BaseEntity
     public Branch? Branch { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Shift> Shifts { get; set; } = new List<Shift>();
+    public ICollection<UserPermission> Permissions { get; set; } = new List<UserPermission>();
 
     /// <summary>
     /// Updates the security stamp to invalidate existing JWTs

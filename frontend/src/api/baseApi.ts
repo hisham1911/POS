@@ -167,6 +167,8 @@ export const baseApi = createApi({
     "ExpenseCategories",
     "CashRegisterBalance",
     "CashRegisterTransactions",
+    "Backup",
+    "Permissions",
   ],
   endpoints: () => ({}),
 });

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timezone Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .pass { background: #d4edda; }
+        .fail { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>اختبار التوقيت - Cairo Timezone</h1>
+    
+    <div id="results"></div>
+
+    <script>
+        const TIMEZONE = "Africa/Cairo";
+        
+        // Test date from API (UTC without Z)
+        const apiDate = "2026-02-21T05:39:24.6247865";
+        
+        // Parse function (same as formatters.ts)
+        const parseApiDate = (date) => {
+            const dateStr = date.toString();
+            if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+                return new Date(dateStr + 'Z');
+            }
+            return new Date(dateStr);
+        };
+        
+        // Format function
+        const formatDateTimeFull = (date) => {
+            const parsed = parseApiDate(date);
+            return parsed.toLocaleString("ar-EG", {
+                timeZone: TIMEZONE,
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            });
+        };
+        
+        // Run tests
+        const results = document.getElementById('results');
+        
+        // Test 1: Parse API date
+        const parsed = parseApiDate(apiDate);
+        results.innerHTML += `
+            <div class="test">
+                <h3>Test 1: Parse API Date</h3>
+                <p>Input: ${apiDate}</p>
+                <p>Parsed: ${parsed.toISOString()}</p>
+                <p>Expected: 2026-02-21T05:39:24.624Z</p>
+            </div>
+        `;
+        
+        // Test 2: Format with Cairo timezone
+        const formatted = formatDateTimeFull(apiDate);
+        results.innerHTML += `
+            <div class="test ${formatted.includes('07:39') ? 'pass' : 'fail'}">
+                <h3>Test 2: Format with Cairo Timezone</h3>
+                <p>Input: ${apiDate} (UTC)</p>
+                <p>Formatted: ${formatted}</p>
+                <p>Expected: Should show 07:39 (UTC+2)</p>
+                <p>Status: ${formatted.includes('07:39') ? '✅ PASS' : '❌ FAIL'}</p>
+            </div>
+        `;
+        
+        // Test 3: Current time
+        const now = new Date();
+        results.innerHTML += `
+            <div class="test">
+                <h3>Test 3: Current Time</h3>
+                <p>UTC: ${now.toISOString()}</p>
+                <p>Cairo: ${now.toLocaleString("ar-EG", { timeZone: TIMEZONE })}</p>
+            </div>
+        `;
+    </script>
+</body>
+</html>

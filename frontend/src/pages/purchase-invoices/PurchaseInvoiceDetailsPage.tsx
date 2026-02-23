@@ -8,7 +8,7 @@ import {
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Loading } from '../../components/common/Loading';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatCurrency, formatDateOnly } from '../../utils/formatters';
 import { toast } from 'sonner';
 import { AddPaymentModal } from '../../components/purchase-invoices/AddPaymentModal';
 import { CancelInvoiceModal } from '../../components/purchase-invoices/CancelInvoiceModal';
@@ -126,7 +126,7 @@ export function PurchaseInvoiceDetailsPage() {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">التاريخ:</span>
-              <span className="font-medium">{formatDate(invoice.invoiceDate)}</span>
+              <span className="font-medium">{formatDateOnly(invoice.invoiceDate)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">أنشئت بواسطة:</span>
@@ -238,7 +238,7 @@ export function PurchaseInvoiceDetailsPage() {
               <tbody className="divide-y divide-gray-200">
                 {invoice.payments.map((payment) => (
                   <tr key={payment.id}>
-                    <td className="px-4 py-3 text-sm">{formatDate(payment.paymentDate)}</td>
+                    <td className="px-4 py-3 text-sm">{formatDateOnly(payment.paymentDate)}</td>
                     <td className="px-4 py-3 text-sm font-medium">{formatCurrency(payment.amount)}</td>
                     <td className="px-4 py-3 text-sm">{payment.method}</td>
                     <td className="px-4 py-3 text-sm">{payment.referenceNumber || '-'}</td>

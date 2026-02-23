@@ -695,6 +695,47 @@ interface CloseShiftRequest {
 
 > **Concurrency:** Shifts use optimistic locking (RowVersion). If another user modifies the shift, you'll receive `SHIFT_CONCURRENCY_CONFLICT` error.
 
+#### GET /api/shifts/warnings
+
+Returns warnings for the current user's open shift based on how long it has been open.
+
+```typescript
+interface ShiftWarningDto {
+  level: "None" | "Warning" | "Critical";
+  message: string;
+  hoursOpen: number;
+  shouldWarn: boolean;
+  isCritical: boolean;
+  shiftId?: number;
+}
+```
+
+**Warning Levels:**
+
+- `None`: Shift has been open < 12 hours (no warning)
+- `Warning`: Shift has been open ≥ 12 hours (⚠️ warning)
+- `Critical`: Shift has been open ≥ 24 hours (🚨 critical warning)
+
+**Background Service:**
+
+- `ShiftWarningBackgroundService` runs every 30 minutes
+- Checks all open shifts and logs warnings to audit logs
+- After 12 hours: Standard warning logged
+- After 24 hours: Critical warning logged + Admin notification
+- Does NOT auto-close shifts (manual close required)
+
+**Configuration (appsettings.json):**
+
+```json
+{
+  "ShiftWarnings": {
+    "Enabled": true,
+    "WarningHours": 12,
+    "CriticalHours": 24
+  }
+}
+```
+
 ---
 
 ### 6. Reports
@@ -1055,17 +1096,20 @@ type WebhookEvent =
 
 ### Business Errors (3xxx)
 
-| Code | Constant                 | Message                        |
-| ---- | ------------------------ | ------------------------------ |
-| 3001 | `NO_OPEN_SHIFT`          | يجب فتح وردية أولاً            |
-| 3002 | `SHIFT_ALREADY_OPEN`     | يوجد وردية مفتوحة بالفعل       |
-| 3003 | `ORDER_EMPTY`            | لا يمكن إنشاء طلب فارغ         |
-| 3004 | `ORDER_NOT_EDITABLE`     | لا يمكن تعديل هذا الطلب        |
-| 3005 | `PRODUCT_INACTIVE`       | المنتج غير متاح                |
-| 3006 | `PRODUCT_INVALID_PRICE`  | سعر المنتج غير صالح            |
-| 3007 | `ORDER_INVALID_QUANTITY` | الكمية يجب أن تكون أكبر من صفر |
-| 3008 | `PAYMENT_INSUFFICIENT`   | المبلغ المدفوع أقل من الإجمالي |
-| 3009 | `CATEGORY_HAS_PRODUCTS`  | لا يمكن حذف تصنيف يحتوي منتجات |
+| Code | Constant                   | Message                                                                                |
+| ---- | -------------------------- | -------------------------------------------------------------------------------------- |
+| 3001 | `NO_OPEN_SHIFT`            | يجب فتح وردية أولاً                                                                    |
+| 3002 | `SHIFT_ALREADY_OPEN`       | يوجد وردية مفتوحة بالفعل                                                               |
+| 3003 | `ORDER_EMPTY`              | لا يمكن إنشاء طلب فارغ                                                                 |
+| 3004 | `ORDER_NOT_EDITABLE`       | لا يمكن تعديل هذا الطلب                                                                |
+| 3005 | `PRODUCT_INACTIVE`         | المنتج غير متاح                                                                        |
+| 3006 | `PRODUCT_INVALID_PRICE`    | سعر المنتج غير صالح                                                                    |
+| 3007 | `ORDER_INVALID_QUANTITY`   | الكمية يجب أن تكون أكبر من صفر                                                         |
+| 3008 | `PAYMENT_INSUFFICIENT`     | المبلغ المدفوع أقل من الإجمالي                                                         |
+| 3009 | `CATEGORY_HAS_PRODUCTS`    | لا يمكن حذف تصنيف يحتوي منتجات                                                         |
+| 3010 | `SHIFT_WARNING_12_HOURS`   | ⚠️ تحذير: الوردية مفتوحة منذ أكثر من 12 ساعة. يُنصح بإغلاقها وفتح وردية جديدة        |
+| 3011 | `SHIFT_CRITICAL_24_HOURS`  | 🚨 تحذير شديد: الوردية مفتوحة منذ أكثر من 24 ساعة! يجب إغلاقها فوراً                  |
+| 3012 | `SHIFT_CONCURRENCY_CONFLICT` | تم إغلاق الوردية بواسطة مستخدم آخر. يرجى تحديث الصفحة                                |
 
 ### Not Found Errors (4xxx)
 

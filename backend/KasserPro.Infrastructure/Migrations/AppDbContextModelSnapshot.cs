@@ -178,7 +178,8 @@ namespace KasserPro.Infrastructure.Migrations
 
                     b.HasIndex("BranchId", "ProductId")
                         .IsUnique()
-                        .HasDatabaseName("IX_BranchInventories_BranchId_ProductId");
+                        .HasDatabaseName("IX_BranchInventories_BranchId_ProductId")
+                        .HasFilter("IsDeleted = 0");
 
                     b.HasIndex("TenantId", "BranchId")
                         .HasDatabaseName("IX_BranchInventories_TenantId_BranchId");
@@ -330,6 +331,9 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("ReferenceType", "ReferenceId");
 
                     b.HasIndex("TenantId", "BranchId");
+
+                    b.HasIndex("ShiftId", "Type", "CreatedAt")
+                        .HasFilter("IsDeleted = 0");
 
                     b.ToTable("CashRegisterTransactions", (string)null);
                 });
@@ -583,6 +587,9 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("TenantId", "BranchId");
+
+                    b.HasIndex("CategoryId", "Status", "ExpenseDate")
+                        .HasFilter("IsDeleted = 0");
 
                     b.ToTable("Expenses", (string)null);
                 });
@@ -979,11 +986,12 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("OrderNumber")
                         .IsUnique();
 
-                    b.HasIndex("ShiftId");
-
                     b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("ShiftId", "CreatedAt")
+                        .HasFilter("IsDeleted = 0");
 
                     b.ToTable("Orders");
                 });
@@ -1201,7 +1209,8 @@ namespace KasserPro.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CategoryId", "IsActive")
+                        .HasFilter("IsDeleted = 0");
 
                     b.HasIndex("TenantId", "Barcode");
 
@@ -1324,7 +1333,8 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("SupplierId", "InvoiceDate")
+                        .HasFilter("IsDeleted = 0");
 
                     b.HasIndex("TenantId", "SupplierId");
 
@@ -1640,6 +1650,9 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("UserId1");
 
                     b.HasIndex("TenantId", "BranchId");
+
+                    b.HasIndex("UserId", "IsClosed", "OpenedAt")
+                        .HasFilter("IsDeleted = 0");
 
                     b.ToTable("Shifts", (string)null);
                 });
@@ -2019,6 +2032,35 @@ namespace KasserPro.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("KasserPro.Domain.Entities.UserPermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Permission")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Permission")
+                        .IsUnique();
+
+                    b.ToTable("UserPermissions");
                 });
 
             modelBuilder.Entity("KasserPro.Domain.Entities.AuditLog", b =>
@@ -2692,6 +2734,17 @@ namespace KasserPro.Infrastructure.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("KasserPro.Domain.Entities.UserPermission", b =>
+                {
+                    b.HasOne("KasserPro.Domain.Entities.User", "User")
+                        .WithMany("Permissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("KasserPro.Domain.Entities.Branch", b =>
                 {
                     b.Navigation("Inventories");
@@ -2792,6 +2845,8 @@ namespace KasserPro.Infrastructure.Migrations
             modelBuilder.Entity("KasserPro.Domain.Entities.User", b =>
                 {
                     b.Navigation("Orders");
+
+                    b.Navigation("Permissions");
 
                     b.Navigation("Shifts");
                 });

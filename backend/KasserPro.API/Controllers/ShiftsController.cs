@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KasserPro.Application.DTOs.Shifts;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.Domain.Enums;
+using KasserPro.API.Middleware;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -70,6 +72,7 @@ public class ShiftsController : ControllerBase
     /// </summary>
     [HttpPost("{id}/force-close")]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.ShiftsManage)]
     public async Task<IActionResult> ForceClose(int id, [FromBody] ForceCloseShiftRequest request)
     {
         var result = await _shiftService.ForceCloseAsync(id, request);
@@ -100,9 +103,24 @@ public class ShiftsController : ControllerBase
     /// Get all active shifts in the current branch
     /// </summary>
     [HttpGet("active")]
+    [HasPermission(Permission.ShiftsManage)]
     public async Task<IActionResult> GetActiveShifts()
     {
         var result = await _shiftService.GetActiveShiftsAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get shift warnings for current user's shift
+    /// </summary>
+    [HttpGet("warnings")]
+    public async Task<IActionResult> GetShiftWarnings()
+    {
+        var userId = GetUserId();
+        if (userId <= 0)
+            return Unauthorized(new { success = false, message = "معرف المستخدم غير صالح في التوكن" });
+        
+        var result = await _shiftService.GetShiftWarningsAsync(userId);
         return Ok(result);
     }
 }

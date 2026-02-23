@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KasserPro.Application.DTOs.Inventory;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.Domain.Enums;
+using KasserPro.API.Middleware;
 
 [Authorize]
 [ApiController]
@@ -21,6 +23,7 @@ public class InventoryController : ControllerBase
     /// Get inventory for a specific branch
     /// </summary>
     [HttpGet("branch/{branchId}")]
+    [HasPermission(Permission.InventoryView)]
     public async Task<IActionResult> GetBranchInventory(int branchId)
     {
         var result = await _inventoryService.GetBranchInventoryAsync(branchId);
@@ -31,6 +34,7 @@ public class InventoryController : ControllerBase
     /// Get inventory for a product across all branches
     /// </summary>
     [HttpGet("product/{productId}")]
+    [HasPermission(Permission.InventoryView)]
     public async Task<IActionResult> GetProductInventory(int productId)
     {
         var result = await _inventoryService.GetProductInventoryAcrossBranchesAsync(productId);
@@ -41,6 +45,7 @@ public class InventoryController : ControllerBase
     /// Get low stock items (optionally filtered by branch)
     /// </summary>
     [HttpGet("low-stock")]
+    [HasPermission(Permission.InventoryView)]
     public async Task<IActionResult> GetLowStockItems([FromQuery] int? branchId = null)
     {
         var result = await _inventoryService.GetLowStockItemsAsync(branchId);
@@ -73,6 +78,7 @@ public class InventoryController : ControllerBase
     /// Get all transfers with optional filters
     /// </summary>
     [HttpGet("transfer")]
+    [HasPermission(Permission.InventoryView)]
     public async Task<IActionResult> GetTransfers(
         [FromQuery] int? fromBranchId = null,
         [FromQuery] int? toBranchId = null,
@@ -88,6 +94,7 @@ public class InventoryController : ControllerBase
     /// Get transfer by ID
     /// </summary>
     [HttpGet("transfer/{id}")]
+    [HasPermission(Permission.InventoryView)]
     public async Task<IActionResult> GetTransferById(int id)
     {
         var result = await _inventoryService.GetTransferByIdAsync(id);
@@ -131,6 +138,7 @@ public class InventoryController : ControllerBase
     /// Get branch-specific prices
     /// </summary>
     [HttpGet("branch-prices/{branchId}")]
+    [HasPermission(Permission.InventoryView)]
     public async Task<IActionResult> GetBranchPrices(int branchId)
     {
         var result = await _inventoryService.GetBranchPricesAsync(branchId);

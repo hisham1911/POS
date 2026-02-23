@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   role: "Admin" | "Cashier" | "SystemOwner";
+  permissions: string[];
 }
 
 export interface LoginRequest {

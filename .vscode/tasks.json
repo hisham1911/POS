@@ -1,0 +1,479 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Backend",
+			"type": "shell",
+			"command": "dotnet build 'd:\\مسح\\POS\\KasserPro.sln' 2>&1 | Select-Object -Last 15",
+			"group": "build"
+		},
+		{
+			"label": "Build KasserPro v1.1",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Build KasserPro v1.1",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Delete old BUILD_ALL",
+			"type": "shell",
+			"command": "Remove-Item 'D:\\مسح\\POS\\Deployment\\Scripts\\BUILD_ALL.ps1' -Force; Write-Host 'DELETED'",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Solution Build",
+			"type": "shell",
+			"command": "dotnet build",
+			"group": "build"
+		},
+		{
+			"label": "Build KasserPro v1.1",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Build KasserPro v1.2",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Frontend Build",
+			"type": "shell",
+			"command": "npm run build",
+			"group": "build"
+		},
+		{
+			"label": "Frontend Build 2",
+			"type": "shell",
+			"command": "cd frontend; npm run build",
+			"group": "build"
+		},
+		{
+			"label": "Check build status",
+			"type": "shell",
+			"command": "Start-Sleep -Seconds 10; Get-Content 'D:\\مسح\\POS\\Deployment\\Scripts\\VERSION.txt'; Write-Host '---'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\' -ErrorAction SilentlyContinue | Select-Object Name,Length",
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Check build 2min",
+			"type": "shell",
+			"command": "Start-Sleep -Seconds 120; Write-Host 'VERSION:'; Get-Content 'D:\\مسح\\POS\\Deployment\\Scripts\\VERSION.txt'; Write-Host ''; Write-Host 'INSTALLERS:'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\' -ErrorAction SilentlyContinue | Format-Table Name,@{N='MB';E={[math]::Round($_.Length/1MB,1)}} -AutoSize",
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Check processes",
+			"type": "shell",
+			"command": "Get-Process -Name dotnet,node,npm,ISCC -ErrorAction SilentlyContinue | Select-Object Name,Id,CPU | Format-Table -AutoSize",
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Check build 3min",
+			"type": "shell",
+			"command": "Start-Sleep -Seconds 180; Write-Host '=== BUILD CHECK ==='; Write-Host 'VERSION:'; Get-Content 'D:\\مسح\\POS\\Deployment\\Scripts\\VERSION.txt'; Write-Host ''; Write-Host 'INSTALLERS:'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' -ErrorAction SilentlyContinue | ForEach-Object { $s = [math]::Round($_.Length/1MB,1); Write-Host \"$($_.Name) - $s MB\" }; Write-Host ''; Write-Host 'DOTNET PROCS:'; (Get-Process -Name dotnet -ErrorAction SilentlyContinue).Count",
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "wait3min",
+			"type": "shell",
+			"command": "Start-Sleep -Seconds 180; Write-Host 'CHECK'; Get-Content 'D:\\مسح\\POS\\Deployment\\Scripts\\VERSION.txt'",
+			"isBackground": false
+		},
+		{
+			"label": "quick check",
+			"type": "shell",
+			"command": "Write-Host 'VERSION:'; Get-Content 'D:\\مسح\\POS\\Deployment\\Scripts\\VERSION.txt'; Write-Host 'INSTALLERS:'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers' -ErrorAction SilentlyContinue; Write-Host 'PROCS:'; (Get-Process -Name dotnet -ErrorAction SilentlyContinue).Count",
+			"isBackground": false
+		},
+		{
+			"label": "check paths",
+			"type": "shell",
+			"command": "Test-Path 'C:\\temp\\net6src'; Test-Path 'C:\\temp\\kasserpro-src'; (Get-Process -Name dotnet -ErrorAction SilentlyContinue).Count",
+			"isBackground": false
+		},
+		{
+			"label": "kill and check",
+			"type": "shell",
+			"command": "Get-Process -Name dotnet -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Write-Host 'Killed all dotnet processes'; Write-Host 'net6src exists:'; Test-Path 'C:\\temp\\net6src'; Write-Host 'kasserpro-src exists:'; Test-Path 'C:\\temp\\kasserpro-src'",
+			"isBackground": false
+		},
+		{
+			"label": "dotnet-build-verify",
+			"type": "shell",
+			"command": "dotnet build KasserPro.sln 2>&1 | Tee-Object -FilePath 'build-result.txt'; Write-Host 'BUILD-DONE'",
+			"group": "build"
+		},
+		{
+			"label": "Kill dotnet processes",
+			"type": "shell",
+			"command": "taskkill /F /IM dotnet.exe 2>$null; Write-Host 'Done killing dotnet processes'"
+		},
+		{
+			"label": "Kill All Dotnet",
+			"type": "shell",
+			"command": "taskkill /F /IM dotnet.exe 2>$null; Start-Sleep 3; Write-Host '=== ALL DOTNET KILLED ==='; Get-Process dotnet -ErrorAction SilentlyContinue | Select-Object Id,ProcessName"
+		},
+		{
+			"label": "Build v1.1",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1",
+			"isBackground": false
+		},
+		{
+			"label": "dotnet-build-final",
+			"type": "shell",
+			"command": "dotnet build KasserPro.sln 2>&1 | Out-File -FilePath 'build-result2.txt' -Encoding utf8; Write-Host 'COMPLETE'",
+			"group": "build"
+		},
+		{
+			"label": "Check Processes",
+			"type": "shell",
+			"command": "Get-Process dotnet -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize; Write-Host '---'; Get-Process node -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize"
+		},
+		{
+			"label": "Frontend Build Test",
+			"type": "shell",
+			"command": "cd 'D:\\مسح\\POS\\frontend'; npm run build 2>&1 | Select-Object -Last 30"
+		},
+		{
+			"label": "FE Build 7788",
+			"type": "shell",
+			"command": "Write-Host 'MARKER_START_7788'; cd 'D:\\مسح\\POS\\frontend'; npm run build 2>&1 | Select-Object -Last 20; Write-Host 'MARKER_END_7788'"
+		},
+		{
+			"label": "Backend x64 pub",
+			"type": "shell",
+			"command": "Write-Host 'START_BACKEND'; $apiProject = 'D:\\مسح\\POS\\backend\\KasserPro.API\\KasserPro.API.csproj'; dotnet publish $apiProject -c Release -r win-x64 --self-contained -o C:\\temp\\kasserpro-src -p:PublishSingleFile=false -p:PublishReadyToRun=false 2>&1 | Select-Object -Last 15; Write-Host 'API_DONE'; $bridgeProject = 'D:\\مسح\\POS\\backend\\KasserPro.BridgeApp\\KasserPro.BridgeApp.csproj'; dotnet publish $bridgeProject -c Release -r win-x64 --self-contained -o C:\\temp\\kasserpro-src -p:PublishSingleFile=true -p:PublishReadyToRun=false 2>&1 | Select-Object -Last 15; Write-Host 'BRIDGE_DONE'"
+		},
+		{
+			"label": "Build v1.1 NoFE",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1 -SkipFrontend 2>&1 | Out-String"
+		},
+		{
+			"label": "Build To File",
+			"type": "shell",
+			"command": "Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_ALL.ps1 -SkipFrontend *> 'D:\\مسح\\POS\\build-log.txt'; Write-Host 'BUILD_SCRIPT_FINISHED'"
+		},
+		{
+			"label": "Check Build Status",
+			"type": "shell",
+			"command": "Get-Process dotnet -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count; Write-Host '---'; (Get-Item 'D:\\مسح\\POS\\build-log.txt').Length"
+		},
+		{
+			"label": "Check 9876",
+			"type": "shell",
+			"command": "Write-Host 'CHECK_9876'; $dotnet = Get-Process dotnet -ErrorAction SilentlyContinue; Write-Host ('Dotnet processes: ' + $dotnet.Count); $logSize = (Get-Item 'D:\\مسح\\POS\\build-log.txt' -ErrorAction SilentlyContinue).Length; Write-Host ('Log file size: ' + $logSize + ' bytes'); Write-Host 'CHECK_9876_END'"
+		},
+		{
+			"label": "Kill Procs 2",
+			"type": "shell",
+			"command": "taskkill /F /IM dotnet.exe 2>$null; Start-Sleep 2; Write-Host 'PROCESSES_KILLED'"
+		},
+		{
+			"label": "Quick Build v1.1",
+			"type": "shell",
+			"command": "taskkill /F /IM dotnet.exe 2>$null; Write-Host 'KILLED'; Start-Sleep 3; Set-Location 'D:\\مسح\\POS\\Deployment\\Scripts'; .\\BUILD_QUICK.ps1 2>&1 | Tee-Object -FilePath 'D:\\مسح\\POS\\build-quick-log.txt'"
+		},
+		{
+			"label": "Kill and Check",
+			"type": "shell",
+			"command": "taskkill /F /IM dotnet.exe 2>$null; taskkill /F /IM ISCC.exe 2>$null; Start-Sleep 3; Write-Host 'ALL_KILLED'; $x86 = Test-Path 'C:\\temp\\kasserpro-src-x86\\KasserPro.API.dll'; $x64 = Test-Path 'C:\\temp\\kasserpro-src\\KasserPro.API.dll'; Write-Host \"x64 publish exists: $x64\"; Write-Host \"x86 publish exists: $x86\""
+		},
+		{
+			"label": "Build x86 Installer",
+			"type": "shell",
+			"command": "$ISCC = 'C:\\Users\\mo\\AppData\\Local\\Programs\\Inno Setup 6\\ISCC.exe'; Write-Host 'Building x86 installer...'; & $ISCC 'D:\\مسح\\POS\\Deployment\\ISS\\KasserPro-Setup-x86.iss' 2>&1 | Select-Object -Last 10; Write-Host 'INSTALLER_DONE'; Set-Content 'D:\\مسح\\POS\\Deployment\\Scripts\\VERSION.txt' '1.1'; Write-Host 'VERSION_SAVED'"
+		},
+		{
+			"label": "x86 Installer",
+			"type": "shell",
+			"command": "$ISCC = 'C:\\Users\\mo\\AppData\\Local\\Programs\\Inno Setup 6\\ISCC.exe'; Write-Host 'Building x86 installer...'; & $ISCC 'D:\\مسح\\POS\\Deployment\\ISS\\KasserPro-Setup-x86.iss'; Write-Host 'X86_DONE'"
+		},
+		{
+			"label": "Cleanup and Summary",
+			"type": "shell",
+			"command": "Remove-Item 'D:\\مسح\\POS\\build-log.txt' -Force -ErrorAction SilentlyContinue; Remove-Item 'D:\\مسح\\POS\\build-quick-log.txt' -Force -ErrorAction SilentlyContinue; Remove-Item 'D:\\مسح\\POS\\Deployment\\Scripts\\BUILD_QUICK.ps1' -Force -ErrorAction SilentlyContinue; Write-Host 'Cleanup done'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers' | ForEach-Object { $s = [math]::Round($_.Length / 1MB, 1); Write-Host \"  $($_.Name) - $s MB\" }"
+		},
+		{
+			"label": "Check Publish Dirs",
+			"type": "shell",
+			"command": "Write-Host 'Checking x86 publish size...'; $items = Get-ChildItem 'C:\\temp\\kasserpro-src-x86' -Recurse; $totalMB = [math]::Round(($items | Measure-Object -Property Length -Sum).Sum / 1MB, 1); $count = $items.Count; Write-Host \"x86 publish: $count files, $totalMB MB total\"; Write-Host '---'; Write-Host 'Checking x64 publish size...'; $items2 = Get-ChildItem 'C:\\temp\\kasserpro-src' -Recurse; $totalMB2 = [math]::Round(($items2 | Measure-Object -Property Length -Sum).Sum / 1MB, 1); $count2 = $items2.Count; Write-Host \"x64 publish: $count2 files, $totalMB2 MB total\""
+		},
+		{
+			"label": "x86 check 2",
+			"type": "shell",
+			"command": "$items = Get-ChildItem 'C:\\temp\\kasserpro-src-x86' -Recurse; Write-Host ('x86 files: ' + $items.Count + '  Total: ' + [math]::Round(($items | Measure-Object Length -Sum).Sum/1MB,1) + ' MB')"
+		},
+		{
+			"label": "Rebuild x86 2",
+			"type": "shell",
+			"command": "Write-Host 'REBUILD_X86_START'; $ISCC = 'C:\\Users\\mo\\AppData\\Local\\Programs\\Inno Setup 6\\ISCC.exe'; & $ISCC 'D:\\مسح\\POS\\Deployment\\ISS\\KasserPro-Setup-x86.iss' 2>&1 | Out-String; Write-Host 'REBUILD_X86_DONE'; (Get-Item 'D:\\مسح\\POS\\Deployment\\Installers\\KasserPro-Setup-x86-v1.1.exe').Length / 1MB"
+		},
+		{
+			"label": "Check Sizes",
+			"type": "shell",
+			"command": "Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Final Size Check",
+			"type": "shell",
+			"command": "Start-Sleep 5; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Final Check 2",
+			"type": "shell",
+			"command": "Start-Sleep 10; Write-Host 'FINAL_CHECK'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Check 3",
+			"type": "shell",
+			"command": "Start-Sleep 20; Write-Host 'CHECK_3'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Clean x86 Build",
+			"type": "shell",
+			"command": "Start-Sleep 30; taskkill /F /IM ISCC.exe 2>$null; Start-Sleep 5; Write-Host 'All ISCC killed'; Remove-Item 'D:\\مسح\\POS\\Deployment\\Installers\\KasserPro-Setup-x86-v1.1.exe' -Force -ErrorAction SilentlyContinue; Start-Sleep 2; $ISCC = 'C:\\Users\\mo\\AppData\\Local\\Programs\\Inno Setup 6\\ISCC.exe'; Write-Host 'Starting clean x86 ISCC...'; & $ISCC 'D:\\مسح\\POS\\Deployment\\ISS\\KasserPro-Setup-x86.iss'; Write-Host 'X86_BUILD_COMPLETE'"
+		},
+		{
+			"label": "Size Check Final",
+			"type": "shell",
+			"command": "Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host '---'; Get-Process ISCC -ErrorAction SilentlyContinue | Select-Object Id, ProcessName"
+		},
+		{
+			"label": "Wait 60s Check",
+			"type": "shell",
+			"command": "Start-Sleep 60; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Final Sizes",
+			"type": "shell",
+			"command": "Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Wait 2 min",
+			"type": "shell",
+			"command": "Start-Sleep 120; Write-Host 'CHECKING_AFTER_2MIN'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC_RUNNING:'; Get-Process ISCC -ErrorAction SilentlyContinue | Select-Object Id, ProcessName"
+		},
+		{
+			"label": "Long Wait Check",
+			"type": "shell",
+			"command": "Start-Sleep 90; Write-Host 'FINAL_CHECK_AFTER_LONG_WAIT'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "3 Min Wait",
+			"type": "shell",
+			"command": "Start-Sleep 180; Write-Host 'FINAL_3MIN'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC?'; Get-Process ISCC -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count"
+		},
+		{
+			"label": "Quick Size",
+			"type": "shell",
+			"command": "Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "60s check",
+			"type": "shell",
+			"command": "Start-Sleep 60; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC_COUNT:'; (Get-Process ISCC -ErrorAction SilentlyContinue).Count"
+		},
+		{
+			"label": "60s final",
+			"type": "shell",
+			"command": "Start-Sleep 60; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC_RUNNING:'; (Get-Process ISCC -ErrorAction SilentlyContinue).Count"
+		},
+		{
+			"label": "60s last",
+			"type": "shell",
+			"command": "Start-Sleep 60; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC:'; (Get-Process ISCC -ErrorAction SilentlyContinue).Count"
+		},
+		{
+			"label": "Definitive",
+			"type": "shell",
+			"command": "Start-Sleep 120; Write-Host 'DEFINITIVE_CHECK'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC_RUNNING:'; $c = (Get-Process ISCC -ErrorAction SilentlyContinue).Count; Write-Host \"Count: $c\""
+		},
+		{
+			"label": "2min wait 2",
+			"type": "shell",
+			"command": "Start-Sleep 120; Write-Host 'CHECK_AFTER_2MORE_MIN'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC:'; $c = (Get-Process ISCC -ErrorAction SilentlyContinue).Count; Write-Host $c"
+		},
+		{
+			"label": "Final Final",
+			"type": "shell",
+			"command": "Start-Sleep 180; Write-Host 'FINAL_FINAL'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC:'; $c = (Get-Process ISCC -ErrorAction SilentlyContinue).Count; Write-Host $c"
+		},
+		{
+			"label": "Kill ISCC Final",
+			"type": "shell",
+			"command": "taskkill /F /IM ISCC.exe 2>$null; Start-Sleep 5; Write-Host 'ALL_ISCC_KILLED'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Post Kill Check",
+			"type": "shell",
+			"command": "Start-Sleep 15; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC:'; (Get-Process ISCC -ErrorAction SilentlyContinue).Count"
+		},
+		{
+			"label": "build-api-only",
+			"type": "shell",
+			"command": "dotnet build backend/KasserPro.API/KasserPro.API.csproj --no-restore 2>&1 | Tee-Object -Variable buildOutput; $buildOutput | Out-File 'build-result3.txt' -Encoding utf8; Write-Host 'DONE'",
+			"group": "build"
+		},
+		{
+			"label": "State Check",
+			"type": "shell",
+			"command": "Write-Host 'CHECKING_STATE'; Test-Path 'C:\\temp\\kasserpro-src-win7-x64'; Test-Path 'C:\\temp\\kasserpro-src-win7-x86'; Test-Path 'C:\\temp\\kasserpro-src'; Test-Path 'C:\\temp\\kasserpro-src-x86'; Write-Host '---SIZES---'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host '---ISS_DIRS---'; Get-ChildItem 'C:\\temp\\kasserpro-src\\' -File | Where-Object { $_.Name -like 'KasserPro*' } | Select-Object Name | Sort-Object Name"
+		},
+		{
+			"label": "Fix x86 and Win7x64",
+			"type": "shell",
+			"command": "taskkill /F /IM ISCC.exe 2>$null; Start-Sleep 3; Remove-Item 'D:\\مسح\\POS\\Deployment\\Installers\\KasserPro-Setup-x86-v1.1.exe' -Force; Start-Sleep 2; $ISCC = 'C:\\Users\\mo\\AppData\\Local\\Programs\\Inno Setup 6\\ISCC.exe'; Write-Host 'Building x86...'; & $ISCC 'D:\\مسح\\POS\\Deployment\\ISS\\KasserPro-Setup-x86.iss' 2>&1 | Select-Object -Last 5; $s1 = (Get-Item 'D:\\مسح\\POS\\Deployment\\Installers\\KasserPro-Setup-x86-v1.1.exe' -ErrorAction SilentlyContinue).Length/1MB; Write-Host \"x86 done: $([math]::Round($s1,1)) MB\"; Write-Host 'Building Win7-x64...'; & $ISCC 'D:\\مسح\\POS\\Deployment\\ISS\\KasserPro-Setup-Win7-x64.iss' 2>&1 | Select-Object -Last 5; $s2 = (Get-Item 'D:\\مسح\\POS\\Deployment\\Installers\\KasserPro-Setup-Win7-x64-v1.1.exe' -ErrorAction SilentlyContinue).Length/1MB; Write-Host \"Win7-x64 done: $([math]::Round($s2,1)) MB\"; Write-Host '---FINAL---'; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Watch Build",
+			"type": "shell",
+			"command": "Start-Sleep 90; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host 'ISCC:'; (Get-Process ISCC -ErrorAction SilentlyContinue).Count"
+		},
+		{
+			"label": "frontend-build",
+			"type": "shell",
+			"command": "cd frontend; npm run build 2>&1; Write-Host 'FRONTEND-DONE'",
+			"group": "build"
+		},
+		{
+			"label": "Final Verify",
+			"type": "shell",
+			"command": "Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | ForEach-Object { Write-Host ('{0} - {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }"
+		},
+		{
+			"label": "Wait ISCC Done",
+			"type": "shell",
+			"command": "Start-Sleep 120; Get-ChildItem 'D:\\مسح\\POS\\Deployment\\Installers\\*.exe' | Sort-Object Name | ForEach-Object { Write-Host ('{0,-45} {1:N1} MB' -f $_.Name, ($_.Length/1MB)) }; Write-Host '---'; Write-Host ('ISCC: ' + (Get-Process ISCC -ErrorAction SilentlyContinue).Count)"
+		},
+		{
+			"label": "Run Backend API",
+			"type": "shell",
+			"command": "dotnet run",
+			"args": [],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Backend API (Dev)",
+			"type": "shell",
+			"command": "cd '${workspaceFolder}/backend/KasserPro.API' ; $env:ASPNETCORE_ENVIRONMENT='Development' ; dotnet run",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "▶ Run Backend (Dev)",
+			"type": "shell",
+			"command": "$env:ASPNETCORE_ENVIRONMENT='Development'; dotnet run --project '${workspaceFolder}/backend/KasserPro.API/KasserPro.API.csproj'",
+			"isBackground": true,
+			"problemMatcher": [
+				{
+					"pattern": [
+						{
+							"regexp": ".",
+							"file": 1,
+							"location": 2,
+							"message": 3
+						}
+					],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "Building\\.\\.\\.",
+						"endsPattern": "Now listening on: http"
+					}
+				}
+			],
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": true
+			}
+		},
+		{
+			"label": "▶ Run Frontend (Dev)",
+			"type": "shell",
+			"command": "cd '${workspaceFolder}/frontend'; npm run dev",
+			"isBackground": true,
+			"problemMatcher": [
+				{
+					"pattern": [
+						{
+							"regexp": ".",
+							"file": 1,
+							"location": 2,
+							"message": 3
+						}
+					],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "VITE",
+						"endsPattern": "Local:"
+					}
+				}
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new",
+				"focus": false
+			}
+		},
+		{
+			"label": "▶ Run Full App (Backend + Frontend)",
+			"dependsOn": [
+				"▶ Run Backend (Dev)",
+				"▶ Run Frontend (Dev)"
+			],
+			"dependsOrder": "parallel",
+			"type": "shell",
+			"command": "echo Full App Started",
+			"presentation": {
+				"reveal": "silent"
+			}
+		},
+		{
+			"label": "Run Backend API",
+			"type": "shell",
+			"command": "dotnet run",
+			"args": [],
+			"isBackground": true,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Backend API Server",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"backend/KasserPro.API/KasserPro.API.csproj"
+			],
+			"isBackground": true,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		}
+	]
+}

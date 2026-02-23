@@ -4,18 +4,65 @@
 
 ### Modern Point of Sale System | نظام نقاط البيع الحديث
 
-[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 A full-featured, production-ready Point of Sale system built with Clean Architecture principles.
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Testing](#-testing)
+[Features](#-features) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [Documentation](#-documentation)
 
 </div>
+
+---
+
+## 🚀 Quick Start للمطورين
+
+### بناء جميع الإصدارات:
+```powershell
+cd Deployment\Scripts
+.\BUILD_ALL.ps1
+```
+
+**النتيجة:** 4 ملفات تثبيت جاهزة في `Deployment\Installers\`
+
+### للتطوير المحلي:
+```bash
+# Backend
+cd backend/KasserPro.API
+dotnet run
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📦 Deployment
+
+### الإصدارات المتاحة:
+
+| الملف | نظام التشغيل | المعمارية | الحجم |
+|------|--------------|-----------|------|
+| KasserPro-Setup.exe | Win10/11 | x64 | ~124 MB |
+| KasserPro-Setup-x86.exe | Win10/11 | x86 | ~74 MB |
+| KasserPro-Setup-Win7-x64.exe | Win7 SP1+ | x64 | ~79 MB |
+| KasserPro-Setup-Win7-x86.exe | Win7 SP1+ | x86 | ~71 MB |
+
+### 📁 Deployment Structure:
+```
+Deployment/
+├── Installers/       → ملفات التثبيت النهائية
+├── ISS/              → Inno Setup configurations
+├── Scripts/          → BUILD_ALL.ps1
+└── Docs/             → التوثيق الكامل
+```
+
+**📚 للتفاصيل الكاملة:** [Deployment/Docs/BUILD_GUIDE.md](Deployment/Docs/BUILD_GUIDE.md)
 
 ---
 

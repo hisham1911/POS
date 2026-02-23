@@ -4,6 +4,7 @@ import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch } from "../../store/slices/branchSlice";
 import { Package, AlertTriangle, Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateOnly } from "../../utils/formatters";
 
 export default function BranchInventoryList() {
   const currentBranch = useAppSelector(selectCurrentBranch);
@@ -220,11 +221,7 @@ export default function BranchInventoryList() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(item.lastUpdatedAt).toLocaleDateString("ar-EG", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {formatDateOnly(item.lastUpdatedAt)}
                     </td>
                   </tr>
                 ))

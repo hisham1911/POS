@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SignalR;
 using KasserPro.Application.DTOs.Orders;
 using KasserPro.Application.Services.Interfaces;
 using KasserPro.API.Hubs;
+using KasserPro.Domain.Enums;
+using KasserPro.API.Middleware;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -30,6 +32,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(Permission.OrdersView)]
     public async Task<IActionResult> GetAllOrders(
         [FromQuery] string? status = null,
         [FromQuery] DateTime? fromDate = null,
@@ -42,6 +45,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("today")]
+    [HasPermission(Permission.OrdersView)]
     public async Task<IActionResult> GetTodayOrders()
     {
         var result = await _orderService.GetTodayOrdersAsync();
@@ -49,6 +53,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [HasPermission(Permission.OrdersView)]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _orderService.GetByIdAsync(id);
@@ -59,6 +64,7 @@ public class OrdersController : ControllerBase
     /// Get all orders for a specific customer with pagination
     /// </summary>
     [HttpGet("by-customer/{customerId}")]
+    [HasPermission(Permission.OrdersView)]
     public async Task<IActionResult> GetByCustomer(int customerId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var result = await _orderService.GetByCustomerIdAsync(customerId, page, pageSize);
@@ -189,6 +195,7 @@ public class OrdersController : ControllerBase
     /// </summary>
     [HttpPost("{id}/refund")]
     [Authorize(Roles = "Admin,Manager")]
+    [HasPermission(Permission.OrdersRefund)]
     public async Task<IActionResult> Refund(int id, [FromBody] RefundRequest request)
     {
         // For full refund (no items), reason is required

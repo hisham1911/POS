@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KasserPro.Application.DTOs.Categories;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.Domain.Enums;
+using KasserPro.API.Middleware;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,6 +17,7 @@ public class CategoriesController : ControllerBase
     public CategoriesController(ICategoryService categoryService) => _categoryService = categoryService;
 
     [HttpGet]
+    [HasPermission(Permission.CategoriesView)]
     public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var result = await _categoryService.GetAllAsync(search, page, pageSize);
@@ -22,6 +25,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [HasPermission(Permission.CategoriesView)]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _categoryService.GetByIdAsync(id);
@@ -30,6 +34,7 @@ public class CategoriesController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.CategoriesManage)]
     public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
     {
         var result = await _categoryService.CreateAsync(request);
@@ -38,6 +43,7 @@ public class CategoriesController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.CategoriesManage)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequest request)
     {
         var result = await _categoryService.UpdateAsync(id, request);
@@ -46,6 +52,7 @@ public class CategoriesController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.CategoriesManage)]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _categoryService.DeleteAsync(id);

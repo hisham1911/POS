@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermission } from "@/hooks/usePermission";
 import {
   LogOut,
   User,
@@ -20,28 +21,29 @@ import {
   Receipt,
   Wallet,
   Boxes,
+  HardDrive,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
 import { BranchSelector } from "./BranchSelector";
 
 const navItems = [
-  { path: "/pos", label: "نقطة البيع", icon: ShoppingCart },
-  { path: "/orders", label: "الطلبات", icon: ClipboardList },
-  { path: "/shift", label: "الوردية", icon: Timer },
+  { path: "/pos", label: "نقطة البيع", icon: ShoppingCart, permission: "PosSell" },
+  { path: "/orders", label: "الطلبات", icon: ClipboardList, permission: "OrdersView" },
+  { path: "/shift", label: "الوردية", icon: Timer }, // Available to all authenticated users
   {
     path: "/shifts-management",
     label: "إدارة الورديات",
     icon: Clock,
-    adminOnly: true,
+    permission: "ShiftsManage",
   },
-  { path: "/customers", label: "العملاء", icon: Users, adminOnly: true },
-  { path: "/products", label: "المنتجات", icon: Package, adminOnly: true },
+  { path: "/customers", label: "العملاء", icon: Users, permission: "CustomersView" },
+  { path: "/products", label: "المنتجات", icon: Package, permission: "ProductsView" },
   {
     path: "/categories",
     label: "التصنيفات",
     icon: FolderOpen,
-    adminOnly: true,
+    permission: "CategoriesView",
   },
   { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
   {
@@ -50,12 +52,13 @@ const navItems = [
     icon: FileText,
     adminOnly: true,
   },
-  { path: "/inventory", label: "المخزون", icon: Boxes, adminOnly: true },
-  { path: "/expenses", label: "المصروفات", icon: Receipt, adminOnly: true },
-  { path: "/cash-register", label: "الخزينة", icon: Wallet, adminOnly: true },
+  { path: "/inventory", label: "المخزون", icon: Boxes, permission: "InventoryView" },
+  { path: "/expenses", label: "المصروفات", icon: Receipt, permission: "ExpensesView" },
+  { path: "/cash-register", label: "الخزينة", icon: Wallet, permission: "CashRegisterView" },
   { path: "/branches", label: "الفروع", icon: Building2, adminOnly: true },
-  { path: "/reports", label: "التقارير", icon: BarChart3, adminOnly: true },
+  { path: "/reports", label: "التقارير", icon: BarChart3, permission: "ReportsView" },
   { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
+  { path: "/backup", label: "النسخ الاحتياطية", icon: HardDrive, adminOnly: true },
   { path: "/settings", label: "الإعدادات", icon: Settings, adminOnly: true },
   {
     path: "/owner/tenants",
@@ -67,17 +70,29 @@ const navItems = [
 
 export const MainLayout = () => {
   const { user, logout, isAdmin, isSystemOwner } = useAuth();
+  const { hasPermission } = usePermission();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentTime = new Date().toLocaleTimeString("ar-EG", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Africa/Cairo",
   });
 
   const filteredNavItems = navItems.filter((item) => {
+    // System owner only sees system owner items
     if (isSystemOwner) return !!item.systemOwnerOnly;
-    if (item.systemOwnerOnly) return isSystemOwner;
+    
+    // Hide system owner items from non-system owners
+    if (item.systemOwnerOnly) return false;
+    
+    // Admin-only items (no permission check, just role check)
     if (item.adminOnly) return isAdmin;
+    
+    // Permission-based items
+    if (item.permission) return hasPermission(item.permission);
+    
+    // Items without permission requirement (like /shift) are available to all
     return true;
   });
 

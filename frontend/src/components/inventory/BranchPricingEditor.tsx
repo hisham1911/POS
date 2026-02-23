@@ -13,6 +13,7 @@ import {
 import { selectIsAdmin } from "../../store/slices/authSlice";
 import { DollarSign, Edit, Trash2, Plus, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateOnly } from "../../utils/formatters";
 
 export default function BranchPricingEditor() {
   const isAdmin = useAppSelector(selectIsAdmin);
@@ -342,9 +343,7 @@ export default function BranchPricingEditor() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {new Date(price.effectiveFrom).toLocaleDateString(
-                              "ar-EG",
-                            )}
+                            {formatDateOnly(price.effectiveFrom)}
                           </div>
                         </td>
                         <td className="px-6 py-4">

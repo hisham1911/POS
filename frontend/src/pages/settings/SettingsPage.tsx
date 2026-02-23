@@ -16,12 +16,20 @@ import {
   User,
   Upload,
   X,
+  Wifi,
+  WifiOff,
+  Copy,
+  Check,
+  Shield,
+  ChevronLeft,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   useGetCurrentTenantQuery,
   useUpdateCurrentTenantMutation,
   useUploadLogoMutation,
 } from "@/api/branchesApi";
+import { useGetSystemInfoQuery, useHealthQuery } from "@/api/systemApi";
 import { useAppDispatch } from "@/store/hooks";
 import { setTaxSettings } from "@/store/slices/cartSlice";
 import { Button } from "@/components/common/Button";
@@ -35,6 +43,11 @@ export const SettingsPage = () => {
   const [updateTenant, { isLoading: isUpdating }] =
     useUpdateCurrentTenantMutation();
   const [uploadLogo, { isLoading: isUploading }] = useUploadLogoMutation();
+  
+  // System Info & Network Status
+  const { data: systemData } = useGetSystemInfoQuery();
+  const { data: healthData, isError: isHealthError } = useHealthQuery();
+  const [urlCopied, setUrlCopied] = useState(false);
 
   const tenant = tenantData?.data;
 
@@ -133,6 +146,17 @@ export const SettingsPage = () => {
     }
   };
 
+  const copyUrl = () => {
+    if (systemData?.data?.url) {
+      navigator.clipboard.writeText(systemData.data.url);
+      setUrlCopied(true);
+      toast.success("تم نسخ الرابط");
+      setTimeout(() => setUrlCopied(false), 2000);
+    }
+  };
+
+  const isOnline = !isHealthError && healthData?.success;
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -156,6 +180,100 @@ export const SettingsPage = () => {
             </p>
           </div>
         </div>
+
+        {/* System Network Info Card */}
+        {systemData?.data && (
+          <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-lg font-semibold">
+                {isOnline ? (
+                  <Wifi className="w-5 h-5 text-green-500" />
+                ) : (
+                  <WifiOff className="w-5 h-5 text-red-500" />
+                )}
+                <span>معلومات الشبكة</span>
+              </div>
+              <div
+                className={clsx(
+                  "px-3 py-1 rounded-full text-sm font-medium",
+                  isOnline
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                )}
+              >
+                {isOnline ? "متصل" : "غير متصل"}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="text-sm text-gray-500">عنوان للأجهزة الأخرى</div>
+                  <div className="font-mono text-sm font-medium mt-1" dir="ltr">
+                    {systemData.data.url}
+                  </div>
+                </div>
+                <button
+                  onClick={copyUrl}
+                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                  title="نسخ الرابط"
+                >
+                  {urlCopied ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-500">عنوان IP</div>
+                  <div className="font-mono text-sm font-medium mt-1" dir="ltr">
+                    {systemData.data.lanIp}
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-500">المنفذ</div>
+                  <div className="font-mono text-sm font-medium mt-1" dir="ltr">
+                    {systemData.data.port}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="text-sm text-blue-700">
+                  📱 استخدم هذا العنوان على الموبايل، التابلت، أو أي جهاز آخر في
+                  نفس الشبكة
+                </div>
+              </div>
+
+              {!isOnline && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="text-sm text-yellow-700">
+                    ⚠️ التطبيق يعمل في وضع عدم الاتصال. البيانات محلية ومتاحة.
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Permissions Management Card */}
+        <Link to="/settings/permissions">
+          <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Shield className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold">إدارة صلاحيات الكاشيرين</h3>
+                <p className="text-sm text-gray-500">تحكم في صلاحيات كل كاشير بشكل منفصل</p>
+              </div>
+              <ChevronLeft className="w-5 h-5 text-gray-400" />
+            </div>
+          </div>
+        </Link>
 
         {/* Company Info Card */}
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
@@ -647,7 +765,7 @@ export const SettingsPage = () => {
                 <span>ORD-001</span>
               </div>
               <p className="text-center" style={{ fontSize: `${receiptBodyFontSize}px` }}>
-                {new Date().toLocaleDateString("ar-EG")}
+                {new Date().toLocaleDateString("ar-EG", { timeZone: "Africa/Cairo" })}
               </p>
               <div className="border-t border-dashed border-gray-400 my-1" />
               {receiptShowCashier && (

@@ -47,6 +47,9 @@ public class AppDbContext : DbContext
     public DbSet<BranchInventory> BranchInventories => Set<BranchInventory>();
     public DbSet<BranchProductPrice> BranchProductPrices => Set<BranchProductPrice>();
     public DbSet<InventoryTransfer> InventoryTransfers => Set<InventoryTransfer>();
+    
+    // User Permissions
+    public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +90,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BranchInventory>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<BranchProductPrice>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<InventoryTransfer>().HasQueryFilter(e => !e.IsDeleted);
+        
+        // User Permissions: Soft delete filter
+        modelBuilder.Entity<UserPermission>().HasQueryFilter(e => !e.IsDeleted);
 
         // Tenant relationships
         modelBuilder.Entity<Branch>()
@@ -291,6 +297,28 @@ public class AppDbContext : DbContext
         // Supplier indexes
         modelBuilder.Entity<Supplier>()
             .HasIndex(s => new { s.TenantId, s.Name });
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // USER PERMISSIONS: Configuration
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // UserPermission relationships and constraints
+        modelBuilder.Entity<UserPermission>(entity =>
+        {
+            // Unique index to prevent duplicate permissions for same user
+            entity.HasIndex(e => new { e.UserId, e.Permission })
+                  .IsUnique();
+            
+            // Relationship with User (cascade delete - if user deleted, permissions deleted)
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Permissions)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Store Permission enum as integer in database
+            entity.Property(e => e.Permission)
+                  .HasConversion<int>();
+        });
 
         // ═══════════════════════════════════════════════════════════════════════
         // PRODUCTION: Performance-critical indexes

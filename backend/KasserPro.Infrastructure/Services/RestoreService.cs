@@ -2,40 +2,62 @@ namespace KasserPro.Infrastructure.Services;
 
 using KasserPro.Application.DTOs.Backup;
 using KasserPro.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using KasserPro.Infrastructure.Data;
 
 /// <summary>
 /// P2: Restore service for database recovery
+/// Handles: maintenance mode, integrity check, pre-restore backup, 
+///          file replacement, migration application, and restart notification
 /// </summary>
 public class RestoreService : IRestoreService
 {
     private readonly ILogger<RestoreService> _logger;
     private readonly IBackupService _backupService;
     private readonly IConfiguration _configuration;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly string _backupDirectory;
+    private readonly DataValidationService _dataValidationService;
+    private readonly string _contentRootPath;
+
+    // MaintenanceModeService is resolved dynamically to avoid circular DI
+    private readonly IServiceProvider _serviceProvider;
 
     public RestoreService(
         ILogger<RestoreService> logger,
         IBackupService backupService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IServiceScopeFactory scopeFactory,
+        IServiceProvider serviceProvider,
+        IWebHostEnvironment environment,
+        DataValidationService dataValidationService)
     {
         _logger = logger;
         _backupService = backupService;
         _configuration = configuration;
-        _backupDirectory = Path.Combine(Directory.GetCurrentDirectory(), "backups");
+        _scopeFactory = scopeFactory;
+        _serviceProvider = serviceProvider;
+        _dataValidationService = dataValidationService;
+        _contentRootPath = environment.ContentRootPath;
+        _backupDirectory = Path.Combine(_contentRootPath, "backups");
     }
 
     /// <summary>
     /// P2: Restores database from backup with full safety checks
+    /// Flow: Validate → Integrity Check → Maintenance Mode ON → Pre-Restore Backup → 
+    ///       Replace DB → Apply Migrations → Maintenance Mode OFF → Return result
     /// </summary>
     public async Task<RestoreResult> RestoreFromBackupAsync(string backupFileName)
     {
         var timestamp = DateTime.UtcNow;
         var backupPath = Path.Combine(_backupDirectory, backupFileName);
+        var maintenanceEnabled = false;
+        int migrationsApplied = 0;
 
         try
         {
@@ -48,7 +70,7 @@ public class RestoreService : IRestoreService
                 return new RestoreResult
                 {
                     Success = false,
-                    ErrorMessage = "Backup file not found",
+                    ErrorMessage = "ملف النسخة الاحتياطية غير موجود",
                     RestoreTimestamp = timestamp,
                     MaintenanceModeEnabled = false
                 };
@@ -64,35 +86,41 @@ public class RestoreService : IRestoreService
                 return new RestoreResult
                 {
                     Success = false,
-                    ErrorMessage = "Backup integrity check failed",
+                    ErrorMessage = "ملف النسخة الاحتياطية تالف - فشل فحص السلامة",
                     RestoreTimestamp = timestamp,
                     MaintenanceModeEnabled = false
                 };
             }
 
-            // Step 3: Log warning about restore
-            _logger.LogWarning("Starting database restore - application should be in maintenance mode");
+            // Step 3: Enable maintenance mode (blocks all API requests)
+            EnableMaintenanceMode("restore");
+            maintenanceEnabled = true;
+            _logger.LogWarning("Maintenance mode ENABLED for restore operation");
 
-            // Step 4: Create pre-restore backup
+            // Step 4: Create pre-restore backup (safety net)
             _logger.LogInformation("Creating pre-restore backup");
             var preRestoreBackup = await _backupService.CreateBackupAsync("pre-restore");
 
             if (!preRestoreBackup.Success)
             {
                 _logger.LogError("Pre-restore backup FAILED - aborting restore");
+                DisableMaintenanceMode();
+                maintenanceEnabled = false;
                 return new RestoreResult
                 {
                     Success = false,
-                    ErrorMessage = "Pre-restore backup failed",
+                    ErrorMessage = "فشل إنشاء نسخة احتياطية قبل الاستعادة",
                     RestoreTimestamp = timestamp,
                     MaintenanceModeEnabled = false
                 };
             }
 
-            // Step 5: Clear connection pools
+            _logger.LogInformation("Pre-restore backup created: {BackupPath}", preRestoreBackup.BackupPath);
+
+            // Step 5: Clear ALL connection pools (critical for SQLite file replacement)
             _logger.LogInformation("Clearing SQLite connection pools");
             SqliteConnection.ClearAllPools();
-            await Task.Delay(1000); // Wait for connections to close
+            await Task.Delay(2000); // Wait for connections to fully close
 
             // Step 6: Replace database file
             var connectionString = _configuration.GetConnectionString("DefaultConnection") 
@@ -108,7 +136,7 @@ public class RestoreService : IRestoreService
 
             _logger.LogWarning("Replacing database file: {DbPath}", dbPath);
 
-            // Delete WAL and SHM files if they exist
+            // Delete WAL and SHM files if they exist (SQLite journal files)
             var walPath = $"{dbPath}-wal";
             var shmPath = $"{dbPath}-shm";
 
@@ -126,21 +154,65 @@ public class RestoreService : IRestoreService
 
             // Replace main database file
             File.Copy(backupPath, dbPath, overwrite: true);
-            _logger.LogInformation("Database file replaced successfully");
+            _logger.LogInformation("Database file replaced successfully from backup");
 
-            // Step 7: Run migrations (if needed)
-            _logger.LogInformation("Running migrations on restored database");
-            // Note: Migrations will run on next startup, or we can run them here
-            // For safety, we'll let them run on next startup
+            // Step 7: Apply pending migrations to the restored database
+            // THIS IS CRITICAL: If the backup is from an older version,
+            // the new app code expects new tables/columns that don't exist yet.
+            // Running migrations upgrades the old schema to match the current code.
+            _logger.LogInformation("Checking for pending migrations on restored database...");
+            migrationsApplied = await ApplyMigrationsAsync();
 
-            // Step 8: Log completion
-            _logger.LogInformation("Restore successful - maintenance mode should be disabled manually");
+            if (migrationsApplied > 0)
+            {
+                _logger.LogWarning("Applied {MigrationCount} migrations to restored database", migrationsApplied);
+            }
+            else
+            {
+                _logger.LogInformation("No pending migrations - restored database schema is current");
+            }
+
+            // Step 7b: Validate data integrity after migrations
+            _logger.LogInformation("Validating data integrity after restore and migrations...");
+            var validationIssues = await _dataValidationService.ValidateRestoredDataAsync(dbPath);
+            
+            if (validationIssues.Count > 0)
+            {
+                var errorIssues = validationIssues.Where(i => i.Severity == "ERROR").ToList();
+                if (errorIssues.Count > 0)
+                {
+                    _logger.LogError(
+                        "Found {Count} critical data issues after restore: {Issues}",
+                        errorIssues.Count,
+                        string.Join("; ", errorIssues.Select(i => i.Message)));
+                }
+
+                var warningIssues = validationIssues.Where(i => i.Severity == "WARNING").ToList();
+                if (warningIssues.Count > 0)
+                {
+                    _logger.LogWarning(
+                        "Found {Count} data warnings after restore: {Issues}",
+                        warningIssues.Count,
+                        string.Join("; ", warningIssues.Select(i => i.Message)));
+                }
+            }
+            else
+            {
+                _logger.LogInformation("✓ Data integrity validation PASSED - no issues found");
+            }
+
+            // Step 8: Disable maintenance mode
+            DisableMaintenanceMode();
+            maintenanceEnabled = false;
+            _logger.LogInformation("Maintenance mode DISABLED - restore complete");
 
             _logger.LogWarning(
-                "RESTORE COMPLETED: {BackupFileName} -> {DbPath} (Pre-restore backup: {PreRestoreBackup})",
+                "RESTORE COMPLETED: {BackupFileName} -> {DbPath} (Pre-restore: {PreRestore}, Migrations: {MigrationCount}, Issues: {IssueCount})",
                 backupFileName,
                 dbPath,
-                preRestoreBackup.BackupPath);
+                preRestoreBackup.BackupPath,
+                migrationsApplied,
+                validationIssues.Count);
 
             return new RestoreResult
             {
@@ -148,23 +220,102 @@ public class RestoreService : IRestoreService
                 RestoredFromPath = backupPath,
                 PreRestoreBackupPath = preRestoreBackup.BackupPath,
                 RestoreTimestamp = timestamp,
-                MaintenanceModeEnabled = false
+                MaintenanceModeEnabled = false,
+                RequiresRestart = true, // Always recommend restart after restore
+                MigrationsApplied = migrationsApplied,
+                DataValidationIssuesFound = validationIssues.Count
             };
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "RESTORE FAILED: {BackupFileName}", backupFileName);
 
-            // Keep maintenance mode enabled on failure
-            _logger.LogWarning("Maintenance mode remains ENABLED due to restore failure");
+            // Keep maintenance mode enabled on failure for safety
+            if (maintenanceEnabled)
+            {
+                _logger.LogWarning("Maintenance mode remains ENABLED due to restore failure. Manual intervention required.");
+            }
 
             return new RestoreResult
             {
                 Success = false,
-                ErrorMessage = ex.Message,
+                ErrorMessage = $"فشلت عملية الاستعادة: {ex.Message}",
                 RestoreTimestamp = timestamp,
-                MaintenanceModeEnabled = true
+                MaintenanceModeEnabled = maintenanceEnabled,
+                RequiresRestart = maintenanceEnabled // If maintenance is stuck, restart needed
             };
+        }
+    }
+
+    /// <summary>
+    /// Applies pending EF Core migrations to the restored database.
+    /// This is critical when restoring old backups after schema updates.
+    /// </summary>
+    private async Task<int> ApplyMigrationsAsync()
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+            var migrationList = pendingMigrations.ToList();
+
+            if (migrationList.Count == 0)
+            {
+                return 0;
+            }
+
+            _logger.LogWarning("Found {Count} pending migrations after restore: {Migrations}",
+                migrationList.Count,
+                string.Join(", ", migrationList));
+
+            await context.Database.MigrateAsync();
+
+            _logger.LogInformation("Successfully applied {Count} migrations to restored database", migrationList.Count);
+            return migrationList.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to apply migrations after restore - app restart required");
+            throw; // Let the caller handle this - it's critical
+        }
+    }
+
+    /// <summary>
+    /// Enables maintenance mode by creating the lock file
+    /// </summary>
+    private void EnableMaintenanceMode(string reason)
+    {
+        try
+        {
+            var lockFilePath = Path.Combine(_contentRootPath, "maintenance.lock");
+            File.WriteAllText(lockFilePath, $"{DateTime.UtcNow:O}|{reason}");
+            _logger.LogWarning("Maintenance mode ENABLED: {Reason}", reason);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enable maintenance mode");
+        }
+    }
+
+    /// <summary>
+    /// Disables maintenance mode by deleting the lock file
+    /// </summary>
+    private void DisableMaintenanceMode()
+    {
+        try
+        {
+            var lockFilePath = Path.Combine(_contentRootPath, "maintenance.lock");
+            if (File.Exists(lockFilePath))
+            {
+                File.Delete(lockFilePath);
+                _logger.LogInformation("Maintenance mode DISABLED");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to disable maintenance mode");
         }
     }
 

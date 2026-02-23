@@ -69,3 +69,12 @@ export interface HandoverShiftRequest {
   currentBalance: number;
   notes?: string;
 }
+
+export interface ShiftWarning {
+  level: 'None' | 'Warning' | 'Critical';
+  message: string;
+  hoursOpen: number;
+  shouldWarn: boolean;
+  isCritical: boolean;
+  shiftId?: number;
+}

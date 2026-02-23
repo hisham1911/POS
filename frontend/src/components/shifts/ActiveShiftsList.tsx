@@ -1,5 +1,6 @@
 import { useGetActiveShiftsQuery } from '../../api/shiftsApi';
 import { Shift } from '../../types/shift.types';
+import { formatTime } from '../../utils/formatters';
 
 interface ActiveShiftsListProps {
   onForceClose?: (shift: Shift) => void;
@@ -90,10 +91,7 @@ export default function ActiveShiftsList({
               <div>
                 <span className="text-gray-600">وقت الفتح:</span>
                 <div className="font-medium">
-                  {new Date(shift.openedAt).toLocaleTimeString('ar-EG', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatTime(shift.openedAt)}
                 </div>
               </div>
               <div>

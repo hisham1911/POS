@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
+import { formatDateOnly, formatDateTimeFull } from '../../utils/formatters';
 import type { ExpenseStatus } from '../../types/expense.types';
 
 export function ExpenseDetailsPage() {
@@ -170,7 +171,7 @@ export function ExpenseDetailsPage() {
               </div>
               <div>
                 <span className="text-sm text-gray-600">تاريخ المصروف:</span>
-                <p className="font-medium">{new Date(expense.expenseDate).toLocaleDateString('ar-EG')}</p>
+                <p className="font-medium">{formatDateOnly(expense.expenseDate)}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">الحالة:</span>
@@ -233,7 +234,7 @@ export function ExpenseDetailsPage() {
                 <div>
                   <span className="text-sm text-gray-600">تاريخ الرفض:</span>
                   <p className="font-medium">
-                    {expense.rejectedAt && new Date(expense.rejectedAt).toLocaleString('ar-EG')}
+                    {expense.rejectedAt && formatDateTimeFull(expense.rejectedAt)}
                   </p>
                 </div>
               </>
@@ -246,7 +247,7 @@ export function ExpenseDetailsPage() {
                 <div>
                   <span className="text-sm text-gray-600">تاريخ الاعتماد:</span>
                   <p className="font-medium">
-                    {expense.approvedAt && new Date(expense.approvedAt).toLocaleString('ar-EG')}
+                    {expense.approvedAt && formatDateTimeFull(expense.approvedAt)}
                   </p>
                 </div>
               </>
@@ -271,7 +272,7 @@ export function ExpenseDetailsPage() {
             <div>
               <span className="text-sm text-gray-600">تاريخ الدفع:</span>
               <p className="font-medium">
-                {expense.paidAt && new Date(expense.paidAt).toLocaleString('ar-EG')}
+                {expense.paidAt && formatDateTimeFull(expense.paidAt)}
               </p>
             </div>
           </div>

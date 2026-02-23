@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KasserPro.Application.DTOs.Products;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.Domain.Enums;
+using KasserPro.API.Middleware;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,6 +17,7 @@ public class ProductsController : ControllerBase
     public ProductsController(IProductService productService) => _productService = productService;
 
     [HttpGet]
+    [HasPermission(Permission.ProductsView)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int? categoryId,
         [FromQuery] string? search,
@@ -26,6 +29,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [HasPermission(Permission.ProductsView)]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _productService.GetByIdAsync(id);
@@ -34,6 +38,7 @@ public class ProductsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.ProductsManage)]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
         var result = await _productService.CreateAsync(request);
@@ -42,6 +47,7 @@ public class ProductsController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.ProductsManage)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProductRequest request)
     {
         var result = await _productService.UpdateAsync(id, request);
@@ -50,6 +56,7 @@ public class ProductsController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.ProductsManage)]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _productService.DeleteAsync(id);
@@ -57,6 +64,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost("{id}/adjust-stock")]
+    [HasPermission(Permission.ProductsManage)]
     public async Task<IActionResult> AdjustStock(int id, [FromBody] AdjustStockRequest request)
     {
         var result = await _productService.AdjustStockAsync(id, request);

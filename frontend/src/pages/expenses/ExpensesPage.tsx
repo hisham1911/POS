@@ -10,7 +10,7 @@ import type { ExpenseStatus, ExpenseFilters } from "@/types/expense.types";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Loading } from "@/components/common/Loading";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, formatDateOnly } from "@/utils/formatters";
 import { toast } from "sonner";
 
 export function ExpensesPage() {
@@ -282,9 +282,7 @@ export function ExpensesPage() {
                         {formatCurrency(expense.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(expense.expenseDate).toLocaleDateString(
-                          "ar-EG",
-                        )}
+                        {formatDateOnly(expense.expenseDate)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(expense.status)}

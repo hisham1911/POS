@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Power,
 } from "lucide-react";
+import { formatDateOnly } from "../../utils/formatters";
 
 const strongPasswordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,100}$/;
@@ -470,14 +471,12 @@ export default function TenantCreationPage() {
                         <div>
                           آخر تحديث:{" "}
                           {tenant.updatedAt
-                            ? new Date(tenant.updatedAt).toLocaleDateString(
-                                "ar-EG",
-                              )
+                            ? formatDateOnly(tenant.updatedAt)
                             : "-"}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(tenant.createdAt).toLocaleDateString("ar-EG")}
+                        {formatDateOnly(tenant.createdAt)}
                       </td>
                       <td className="px-4 py-3">
                         <span

@@ -10,10 +10,12 @@ import { Menu, ScanBarcode, PackageCheck, AlertCircle } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useShift } from "@/hooks/useShift";
 import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
+import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
 import { Customer } from "@/types/customer.types";
 import { toast } from "sonner";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
+import { ShiftWarningBanner } from "@/components/shifts";
 
 export const POSPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -31,6 +33,14 @@ export const POSPage = () => {
   const { categories } = useCategories();
   const { addItem, itemsCount } = useCart();
   const { hasActiveShift, isLoading: isLoadingShift } = useShift();
+
+  // Fetch shift warnings (polls every 10 minutes in POS)
+  const { data: warningsData } = useGetShiftWarningsQuery(undefined, {
+    pollingInterval: 10 * 60 * 1000, // 10 minutes
+    skip: !hasActiveShift, // Only fetch if shift is open
+  });
+
+  const shiftWarning = warningsData?.data;
 
   // Shortcuts
   usePOSShortcuts({
@@ -147,6 +157,13 @@ export const POSPage = () => {
     <div className="h-full flex overflow-hidden">
       {/* Products Section */}
       <div className="flex-1 flex flex-col bg-gray-50 p-4 min-w-0">
+        {/* Shift Warning Banner */}
+        {shiftWarning && shiftWarning.shouldWarn && (
+          <div className="mb-4">
+            <ShiftWarningBanner warning={shiftWarning} />
+          </div>
+        )}
+
         {/* Low Stock Alert - Admin/Manager only */}
         <LowStockAlert />
 

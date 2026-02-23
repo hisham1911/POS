@@ -15,7 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Card } from "@/components/common/Card";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, formatDateTimeFull } from "@/utils/formatters";
 import { useGetDailyReportQuery } from "@/api/reportsApi";
 
 export const DailyReportPage = () => {
@@ -123,23 +123,13 @@ export const DailyReportPage = () => {
                   <div>
                     <p className="text-xs text-gray-500">وقت الفتح</p>
                     <p className="text-sm font-medium text-gray-700">
-                      {new Date(shift.openedAt).toLocaleString('ar-EG', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatDateTimeFull(shift.openedAt)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">وقت الإغلاق</p>
                     <p className="text-sm font-medium text-gray-700">
-                      {new Date(shift.closedAt).toLocaleString('ar-EG', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatDateTimeFull(shift.closedAt)}
                     </p>
                   </div>
                   <div>

@@ -41,11 +41,13 @@ public class BackupService : IBackupService
         var timestamp = DateTime.UtcNow;
         
         // P2: Include reason in filename for easy identification
-        var fileName = reason == "pre-migration" 
-            ? $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-pre-migration.db"
-            : reason == "daily-scheduled"
-                ? $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-daily-scheduled.db"
-                : $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}.db";
+        var fileName = reason switch
+        {
+            "pre-migration" => $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-pre-migration.db",
+            "pre-restore" => $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-pre-restore.db",
+            "daily-scheduled" => $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-daily-scheduled.db",
+            _ => $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}.db"
+        };
         
         var backupPath = Path.Combine(_backupDirectory, fileName);
 
@@ -274,10 +276,14 @@ public class BackupService : IBackupService
     {
         // kasserpro-backup-20260214-143045.db -> "manual"
         // kasserpro-backup-20260214-143045-pre-migration.db -> "pre-migration"
+        // kasserpro-backup-20260214-143045-pre-restore.db -> "pre-restore"
         // kasserpro-backup-20260214-020000-daily-scheduled.db -> "daily-scheduled"
         
         if (fileName.Contains("pre-migration", StringComparison.OrdinalIgnoreCase))
             return "pre-migration";
+        
+        if (fileName.Contains("pre-restore", StringComparison.OrdinalIgnoreCase))
+            return "pre-restore";
         
         if (fileName.Contains("daily-scheduled", StringComparison.OrdinalIgnoreCase))
             return "daily-scheduled";

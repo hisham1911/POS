@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Clock, DollarSign, ShoppingBag, CreditCard, Banknote, Play, Square, Users } from "lucide-react";
 import { useShift } from "@/hooks/useShift";
 import { useAuth } from "@/hooks/useAuth";
+import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { Card } from "@/components/common/Card";
@@ -13,6 +14,7 @@ import {
   HandoverShiftModal,
   ActiveShiftsList,
   ForceCloseShiftModal,
+  ShiftWarningBanner,
 } from "@/components/shifts";
 import clsx from "clsx";
 
@@ -25,6 +27,7 @@ export const ShiftPage = () => {
   const [openingBalance, setOpeningBalance] = useState("");
   const [closingBalance, setClosingBalance] = useState("");
   const [notes, setNotes] = useState("");
+  const [dismissedWarning, setDismissedWarning] = useState(false);
 
   const { user } = useAuth();
   const isAdmin = user?.role === "Admin";
@@ -38,6 +41,14 @@ export const ShiftPage = () => {
     isOpening,
     isClosing,
   } = useShift();
+
+  // Fetch shift warnings (polls every 5 minutes)
+  const { data: warningsData } = useGetShiftWarningsQuery(undefined, {
+    pollingInterval: 5 * 60 * 1000, // 5 minutes
+    skip: !hasActiveShift, // Only fetch if shift is open
+  });
+
+  const shiftWarning = warningsData?.data;
 
   const handleOpenShift = async () => {
     await openShift({ openingBalance: Number(openingBalance) });
@@ -63,6 +74,14 @@ export const ShiftPage = () => {
 
   return (
     <div className="h-full overflow-auto p-6 space-y-6">
+      {/* Shift Warning Banner */}
+      {shiftWarning && !dismissedWarning && (
+        <ShiftWarningBanner
+          warning={shiftWarning}
+          onClose={() => setDismissedWarning(true)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -65,6 +65,59 @@ public class SystemController : ControllerBase
     }
 
     /// <summary>
+    /// Get system information (IP, Network status, etc.)
+    /// </summary>
+    [HttpGet("info")]
+    [AllowAnonymous]
+    public IActionResult GetSystemInfo()
+    {
+        try
+        {
+            var lanIp = GetLanIpAddress();
+            var hostname = System.Net.Dns.GetHostName();
+
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    lanIp = lanIp,
+                    hostname = hostname,
+                    port = 5243,
+                    url = $"http://{lanIp}:5243",
+                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
+                    timestamp = DateTime.UtcNow,
+                    isOffline = false // Will be set by frontend based on API connectivity
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving system info");
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Failed to retrieve system information"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Health check endpoint (for network status monitoring)
+    /// </summary>
+    [HttpGet("health")]
+    [AllowAnonymous]
+    public IActionResult Health()
+    {
+        return Ok(new
+        {
+            success = true,
+            status = "healthy",
+            timestamp = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
     /// Migrate Product.StockQuantity to BranchInventory (Admin only)
     /// This is a one-time migration to fix products missing from inventory
     /// </summary>
@@ -116,5 +169,26 @@ public class SystemController : ControllerBase
                 message = $"Migration failed: {ex.Message}"
             });
         }
+    }
+
+    /// <summary>
+    /// Helper: Get LAN IP address
+    /// </summary>
+    private static string GetLanIpAddress()
+    {
+        try
+        {
+            var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+        }
+        catch { }
+        
+        return "127.0.0.1";
     }
 }

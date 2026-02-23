@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { TransferStatus } from "../../types/inventory.types";
+import { formatDateTimeFull } from "../../utils/formatters";
 
 export default function InventoryTransferList() {
   const isAdmin = useAppSelector(selectIsAdmin);
@@ -292,24 +293,24 @@ export default function InventoryTransferList() {
                     <div className="text-xs text-gray-500 space-y-1">
                       <p>
                         أنشئ بواسطة {transfer.createdByUserName} في{" "}
-                        {new Date(transfer.createdAt).toLocaleString("ar-EG")}
+                        {formatDateTimeFull(transfer.createdAt)}
                       </p>
                       {transfer.approvedByUserName && (
                         <p>
                           وافق عليه {transfer.approvedByUserName} في{" "}
-                          {new Date(transfer.approvedAt!).toLocaleString("ar-EG")}
+                          {formatDateTimeFull(transfer.approvedAt!)}
                         </p>
                       )}
                       {transfer.receivedByUserName && (
                         <p>
                           استلمه {transfer.receivedByUserName} في{" "}
-                          {new Date(transfer.receivedAt!).toLocaleString("ar-EG")}
+                          {formatDateTimeFull(transfer.receivedAt!)}
                         </p>
                       )}
                       {transfer.cancelledByUserName && (
                         <p className="text-red-600">
                           ألغاه {transfer.cancelledByUserName} في{" "}
-                          {new Date(transfer.cancelledAt!).toLocaleString("ar-EG")}
+                          {formatDateTimeFull(transfer.cancelledAt!)}
                           {transfer.cancellationReason && ` - ${transfer.cancellationReason}`}
                         </p>
                       )}

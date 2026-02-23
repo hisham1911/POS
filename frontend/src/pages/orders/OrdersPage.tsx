@@ -155,6 +155,7 @@ export const OrdersPage = () => {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
+                        timeZone: "Africa/Cairo",
                       },
                     )}`
                   : "عرض وإدارة جميع الطلبات والمبيعات"}

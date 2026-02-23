@@ -43,6 +43,9 @@ public class UnitOfWork : IUnitOfWork
         Expenses = new GenericRepository<Expense>(context);
         ExpenseAttachments = new GenericRepository<ExpenseAttachment>(context);
         CashRegisterTransactions = new GenericRepository<CashRegisterTransaction>(context);
+
+        // User Permissions repository
+        UserPermissions = new GenericRepository<UserPermission>(context);
     }
 
     public IRepository<Tenant> Tenants { get; }
@@ -76,6 +79,9 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Expense> Expenses { get; }
     public IRepository<ExpenseAttachment> ExpenseAttachments { get; }
     public IRepository<CashRegisterTransaction> CashRegisterTransactions { get; }
+
+    // User Permissions repository property
+    public IRepository<UserPermission> UserPermissions { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

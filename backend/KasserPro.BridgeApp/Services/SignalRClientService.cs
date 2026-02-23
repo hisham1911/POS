@@ -5,6 +5,15 @@ using Serilog;
 namespace KasserPro.BridgeApp.Services;
 
 /// <summary>
+/// Retries forever with exponential back-off capped at 30 s.
+/// </summary>
+file sealed class InfiniteRetryPolicy : IRetryPolicy
+{
+    public TimeSpan? NextRetryDelay(RetryContext ctx)
+        => TimeSpan.FromSeconds(Math.Min(ctx.PreviousRetryCount * 5 + 5, 30));
+}
+
+/// <summary>
 /// Manages SignalR connection to backend Device Hub
 /// </summary>
 public class SignalRClientService : ISignalRClientService
@@ -16,6 +25,8 @@ public class SignalRClientService : ISignalRClientService
     public event EventHandler<ConnectionStateChangedEventArgs>? OnConnectionStateChanged;
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
+
+    private bool _disposed;
 
     public SignalRClientService(ISettingsManager settingsManager)
     {
@@ -45,6 +56,13 @@ public class SignalRClientService : ISignalRClientService
 
             Log.Information("Connecting to Device Hub at {Url}", settings.BackendUrl);
 
+            // Dispose previous connection if any
+            if (_hubConnection != null)
+            {
+                _hubConnection.Closed -= OnClosed;
+                await _hubConnection.DisposeAsync();
+            }
+
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl($"{settings.BackendUrl}/hubs/devices", options =>
                 {
@@ -52,7 +70,7 @@ public class SignalRClientService : ISignalRClientService
                     options.Headers.Add("X-Device-Id", settings.DeviceId);
                     options.Headers.Add("X-Branch-Id", settings.BranchId ?? "default");
                 })
-                .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
+                .WithAutomaticReconnect(new InfiniteRetryPolicy())
                 .Build();
 
             RegisterHandlers();
@@ -120,13 +138,39 @@ public class SignalRClientService : ISignalRClientService
             return Task.CompletedTask;
         };
 
-        // Handle closed event
-        _hubConnection.Closed += (error) =>
+        // Handle closed event - reconnect loop so we NEVER stay disconnected
+        _hubConnection.Closed += OnClosed;
+    }
+
+    /// <summary>
+    /// Called when SignalR gives up its built-in retries. Starts a fresh connection loop.
+    /// </summary>
+    private async Task OnClosed(Exception? error)
+    {
+        Log.Warning("Connection closed. Error: {Error} - Starting reconnect loop...", error?.Message);
+        OnConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(false));
+
+        // Keep trying until we connect again (or app is shutting down)
+        while (!_disposed)
         {
-            Log.Warning("Connection closed. Error: {Error}", error?.Message);
-            OnConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(false));
-            return Task.CompletedTask;
-        };
+            await Task.Delay(TimeSpan.FromSeconds(10));
+            if (_disposed) break;
+
+            try
+            {
+                Log.Information("Attempting fresh reconnect to Device Hub...");
+                var reconnected = await ConnectAsync();
+                if (reconnected)
+                {
+                    Log.Information("Reconnect successful");
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning("Reconnect attempt failed: {Error} - will retry in 10s", ex.Message);
+            }
+        }
     }
 
     /// <summary>

@@ -120,11 +120,32 @@ public partial class App : Application
                 );
             };
 
-            // Attempt to connect
+            // Attempt to connect - if backend not up yet, keep retrying in background
             var connected = await signalRClient.ConnectAsync();
             if (!connected)
             {
-                Log.Warning("Failed to connect to backend on startup - will retry automatically");
+                Log.Warning("Failed to connect to backend on startup - retrying in background every 10s");
+                _ = Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(10));
+                        try
+                        {
+                            if (signalRClient.IsConnected) break;
+                            var ok = await signalRClient.ConnectAsync();
+                            if (ok)
+                            {
+                                Log.Information("Background retry connected to Device Hub");
+                                break;
+                            }
+                        }
+                        catch (Exception retryEx)
+                        {
+                            Log.Warning("Background retry failed: {Error}", retryEx.Message);
+                        }
+                    }
+                });
             }
         }
         catch (Exception ex)

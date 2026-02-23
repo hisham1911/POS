@@ -9,7 +9,7 @@ import { useGetSuppliersQuery } from "../../api/suppliersApi";
 import { Button } from "../../components/common/Button";
 import { Card } from "../../components/common/Card";
 import { Loading } from "../../components/common/Loading";
-import { formatCurrency, formatDate } from "../../utils/formatters";
+import { formatCurrency, formatDateOnly } from "../../utils/formatters";
 import { PurchaseInvoiceStatus } from "../../types/purchaseInvoice.types";
 import { toast } from "sonner";
 
@@ -245,7 +245,7 @@ export function PurchaseInvoicesPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        {formatDate(invoice.invoiceDate)}
+                        {formatDateOnly(invoice.invoiceDate)}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         {getStatusBadge(invoice.status)}

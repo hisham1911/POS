@@ -15,6 +15,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
 import { ShiftRecoveryModal } from "./components/shifts";
 import { shiftPersistence } from "./utils/shiftPersistence";
+import { usePermission } from "./hooks/usePermission";
 import LoginPage from "./pages/auth/LoginPage";
 import POSPage from "./pages/pos/POSPage";
 import ProductsPage from "./pages/products/ProductsPage";
@@ -28,6 +29,7 @@ import { BranchesPage } from "./pages/branches/BranchesPage";
 import DailyReportPage from "./pages/reports/DailyReportPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
+import PermissionsPage from "./pages/settings/PermissionsPage";
 import { PurchaseInvoicesPage } from "./pages/purchase-invoices/PurchaseInvoicesPage";
 import { PurchaseInvoiceFormPage } from "./pages/purchase-invoices/PurchaseInvoiceFormPage";
 import { PurchaseInvoiceDetailsPage } from "./pages/purchase-invoices/PurchaseInvoiceDetailsPage";
@@ -38,6 +40,7 @@ import { CashRegisterDashboard } from "./pages/cash-register/CashRegisterDashboa
 import { CashRegisterTransactionsPage } from "./pages/cash-register/CashRegisterTransactionsPage";
 import InventoryPage from "./pages/inventory/InventoryPage";
 import TenantCreationPage from "./pages/owner/TenantCreationPage";
+import { BackupPage } from "./pages/backup/BackupPage";
 import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -49,6 +52,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const isAdmin = useAppSelector(selectIsAdmin);
   if (!isAdmin) return <Navigate to="/pos" replace />;
+  return <>{children}</>;
+};
+
+const PermissionRoute = ({
+  children,
+  permission,
+}: {
+  children: React.ReactNode;
+  permission: string;
+}) => {
+  const { hasPermission } = usePermission();
+  if (!hasPermission(permission)) return <Navigate to="/pos" replace />;
   return <>{children}</>;
 };
 
@@ -141,9 +156,9 @@ const AppRoutes = () => (
         path="/customers"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="CustomersView">
               <CustomersPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -151,9 +166,9 @@ const AppRoutes = () => (
         path="/products"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="ProductsView">
               <ProductsPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -161,9 +176,9 @@ const AppRoutes = () => (
         path="/categories"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="CategoriesView">
               <CategoriesPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -231,9 +246,9 @@ const AppRoutes = () => (
         path="/reports"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="ReportsView">
               <DailyReportPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -258,12 +273,32 @@ const AppRoutes = () => (
         }
       />
       <Route
-        path="/expenses"
+        path="/settings/permissions"
         element={
           <NonSystemOwnerRoute>
             <AdminRoute>
-              <ExpensesPage />
+              <PermissionsPage />
             </AdminRoute>
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/backup"
+        element={
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <BackupPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/expenses"
+        element={
+          <NonSystemOwnerRoute>
+            <PermissionRoute permission="ExpensesView">
+              <ExpensesPage />
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -271,9 +306,9 @@ const AppRoutes = () => (
         path="/expenses/new"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="ExpensesCreate">
               <ExpenseFormPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -281,9 +316,9 @@ const AppRoutes = () => (
         path="/expenses/:id"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="ExpensesView">
               <ExpenseDetailsPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -291,9 +326,9 @@ const AppRoutes = () => (
         path="/expenses/:id/edit"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="ExpensesCreate">
               <ExpenseFormPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -301,9 +336,9 @@ const AppRoutes = () => (
         path="/cash-register"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="CashRegisterView">
               <CashRegisterDashboard />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -311,9 +346,9 @@ const AppRoutes = () => (
         path="/cash-register/transactions"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="CashRegisterView">
               <CashRegisterTransactionsPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />
@@ -321,9 +356,9 @@ const AppRoutes = () => (
         path="/inventory"
         element={
           <NonSystemOwnerRoute>
-            <AdminRoute>
+            <PermissionRoute permission="InventoryView">
               <InventoryPage />
-            </AdminRoute>
+            </PermissionRoute>
           </NonSystemOwnerRoute>
         }
       />

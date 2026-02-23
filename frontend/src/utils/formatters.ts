@@ -1,4 +1,4 @@
-// Cairo timezone for Egypt
+// Cairo timezone for Egypt (Version: 2026-02-21-v2)
 const TIMEZONE = "Africa/Cairo";
 
 /**
@@ -8,12 +8,46 @@ const TIMEZONE = "Africa/Cairo";
 const parseApiDate = (date: string | Date): Date => {
   if (date instanceof Date) return date;
   
-  // If the date string doesn't have timezone info, assume it's UTC
-  // Add 'Z' suffix to indicate UTC if not present
-  if (!date.endsWith('Z') && !date.includes('+') && !date.includes('-', 10)) {
-    return new Date(date + 'Z');
+  // Backend sends dates in UTC format like "2024-01-15T05:00:00"
+  // We need to treat them as UTC by adding 'Z' suffix
+  const dateStr = date.toString();
+  
+  // If no timezone info, assume UTC and add 'Z'
+  if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+    return new Date(dateStr + 'Z');
   }
-  return new Date(date);
+  
+  return new Date(dateStr);
+};
+
+/**
+ * Format date with Cairo timezone using toLocaleString
+ * Use this instead of new Date().toLocaleString() directly
+ */
+export const formatDateTimeFull = (date: string | Date): string => {
+  const parsed = parseApiDate(date);
+  return parsed.toLocaleString("ar-EG", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
+/**
+ * Format date only with Cairo timezone
+ * Use this instead of new Date().toLocaleDateString() directly
+ */
+export const formatDateOnly = (date: string | Date): string => {
+  return parseApiDate(date).toLocaleDateString("ar-EG", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 };
 
 // تنسيق العملة

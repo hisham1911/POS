@@ -4,6 +4,7 @@ using KasserPro.Application.Services.Interfaces;
 using KasserPro.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using KasserPro.API.Middleware;
 
 namespace KasserPro.API.Controllers;
 
@@ -33,6 +34,7 @@ public class CashRegisterController : ControllerBase
     /// Get current cash balance for a branch
     /// </summary>
     [HttpGet("balance")]
+    [HasPermission(Permission.CashRegisterView)]
     public async Task<IActionResult> GetBalance([FromQuery] int? branchId = null)
     {
         // Use current user's branch if not specified
@@ -50,6 +52,7 @@ public class CashRegisterController : ControllerBase
     /// Get cash register transactions with filtering and pagination
     /// </summary>
     [HttpGet("transactions")]
+    [HasPermission(Permission.CashRegisterView)]
     public async Task<IActionResult> GetTransactions(
         [FromQuery] int? branchId = null,
         [FromQuery] CashRegisterTransactionType? type = null,
@@ -138,6 +141,7 @@ public class CashRegisterController : ControllerBase
     /// Get cash register summary for a date range
     /// </summary>
     [HttpGet("summary")]
+    [HasPermission(Permission.CashRegisterView)]
     public async Task<IActionResult> GetSummary(
         [FromQuery] int? branchId = null,
         [FromQuery] DateTime? fromDate = null,

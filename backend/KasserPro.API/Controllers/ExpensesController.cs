@@ -3,6 +3,7 @@ using KasserPro.Application.Services.Interfaces;
 using KasserPro.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using KasserPro.API.Middleware;
 
 namespace KasserPro.API.Controllers;
 
@@ -29,6 +30,7 @@ public class ExpensesController : ControllerBase
     /// Get all expenses with filtering and pagination
     /// </summary>
     [HttpGet]
+    [HasPermission(Permission.ExpensesView)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int? categoryId = null,
         [FromQuery] ExpenseStatus? status = null,
@@ -51,6 +53,7 @@ public class ExpensesController : ControllerBase
     /// Get expense by ID
     /// </summary>
     [HttpGet("{id}")]
+    [HasPermission(Permission.ExpensesView)]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _expenseService.GetByIdAsync(id);
@@ -65,6 +68,7 @@ public class ExpensesController : ControllerBase
     /// Create a new expense (Draft status)
     /// </summary>
     [HttpPost]
+    [HasPermission(Permission.ExpensesCreate)]
     public async Task<IActionResult> Create([FromBody] CreateExpenseRequest request)
     {
         var result = await _expenseService.CreateAsync(request);

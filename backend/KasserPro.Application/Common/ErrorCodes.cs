@@ -75,6 +75,8 @@ public static class ErrorCodes
     public const string SHIFT_HANDOVER_TO_SAME_USER = "SHIFT_HANDOVER_TO_SAME_USER";
     public const string SHIFT_ALREADY_HANDED_OVER = "SHIFT_ALREADY_HANDED_OVER";
     public const string SHIFT_INACTIVE_TOO_LONG = "SHIFT_INACTIVE_TOO_LONG";
+    public const string SHIFT_WARNING_12_HOURS = "SHIFT_WARNING_12_HOURS";
+    public const string SHIFT_CRITICAL_24_HOURS = "SHIFT_CRITICAL_24_HOURS";
 
     // System Errors (1900-1999)
     public const string SYSTEM_INTERNAL_ERROR = "SYSTEM_INTERNAL_ERROR";
@@ -215,6 +217,8 @@ public static class ErrorMessages
         { ErrorCodes.SHIFT_USER_HAS_OPEN_SHIFT, "المستخدم لديه وردية مفتوحة بالفعل" },
         { ErrorCodes.SHIFT_HANDOVER_NOT_FOUND, "تسليم الوردية غير موجود" },
         { ErrorCodes.SHIFT_INACTIVITY_WARNING, "تحذير: الوردية غير نشطة منذ فترة طويلة" },
+        { ErrorCodes.SHIFT_WARNING_12_HOURS, "⚠️ تحذير: الوردية مفتوحة منذ أكثر من 12 ساعة. يُنصح بإغلاقها وفتح وردية جديدة" },
+        { ErrorCodes.SHIFT_CRITICAL_24_HOURS, "🚨 تحذير شديد: الوردية مفتوحة منذ أكثر من 24 ساعة! يجب إغلاقها فوراً" },
 
         // System
         { ErrorCodes.SYSTEM_INTERNAL_ERROR, "حدث خطأ في النظام" },

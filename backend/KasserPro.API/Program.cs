@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Caching.Memory;
 using KasserPro.Application.Common.Interfaces;
 using KasserPro.Application.Services.Implementations;
 using KasserPro.Application.Services.Interfaces;
@@ -42,7 +43,17 @@ try
 {
     Log.Information("Starting KasserPro API");
 
-var builder = WebApplication.CreateBuilder(args);
+    // License check - must pass before app starts
+    LicenseService.ValidateOrCreateLicense(AppContext.BaseDirectory);
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory  // Required for Windows Service
+});
+
+// Windows Service support (no-op when run as console app)
+builder.Host.UseWindowsService(options => options.ServiceName = "KasserProService");
 
 // P1 PRODUCTION: Use Serilog for logging
 builder.Host.UseSerilog();
@@ -88,6 +99,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -118,10 +130,12 @@ builder.Services.AddScoped<IDeviceCommandService, DeviceCommandService>();
 // P2: Backup and Restore services
 builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<IRestoreService, RestoreService>();
+builder.Services.AddScoped<DataValidationService>();
 
 // Background Services
 // AutoCloseShiftBackgroundService disabled - shifts are managed manually by users
 // builder.Services.AddHostedService<KasserPro.Infrastructure.Services.AutoCloseShiftBackgroundService>();
+builder.Services.AddHostedService<KasserPro.Infrastructure.Services.ShiftWarningBackgroundService>();
 builder.Services.AddHostedService<KasserPro.Infrastructure.Services.DailyBackupBackgroundService>();
 
 // SignalR
@@ -156,6 +170,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 var tokenStamp = context.Principal?.FindFirst("security_stamp")?.Value;
 
+                // P1 PERFORMANCE: Use MemoryCache to avoid database queries on every request
+                var cache = context.HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                var cacheKey = $"user_validation_{userId}_{tokenStamp}";
+
+                // Try to get cached validation result
+                if (cache.TryGetValue(cacheKey, out bool isValid))
+                {
+                    if (!isValid)
+                    {
+                        context.Fail("User is inactive or token invalidated (cached)");
+                    }
+                    return;
+                }
+
                 var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
                 var user = await db.Users
                     .AsNoTracking()
@@ -163,6 +191,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 if (user == null || !user.IsActive)
                 {
+                    cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
                     context.Fail("User is inactive or not found");
                     return;
                 }
@@ -170,21 +199,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 // P0 SECURITY: Validate SecurityStamp
                 if (!string.IsNullOrEmpty(tokenStamp) && user.SecurityStamp != tokenStamp)
                 {
+                    cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
                     context.Fail("TOKEN_INVALIDATED");
                     return;
                 }
 
                 if (user.TenantId.HasValue)
                 {
-                    var tenant = await db.Tenants
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(t => t.Id == user.TenantId.Value);
-
-                    if (tenant == null || !tenant.IsActive)
+                    var tenantCacheKey = $"tenant_active_{user.TenantId.Value}";
+                    if (!cache.TryGetValue(tenantCacheKey, out bool tenantActive))
                     {
+                        var tenant = await db.Tenants
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(t => t.Id == user.TenantId.Value);
+
+                        tenantActive = tenant != null && tenant.IsActive;
+                        cache.Set(tenantCacheKey, tenantActive, TimeSpan.FromMinutes(5));
+                    }
+
+                    if (!tenantActive)
+                    {
+                        cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
                         context.Fail("Tenant is inactive");
+                        return;
                     }
                 }
+
+                // Cache successful validation for 30 seconds
+                cache.Set(cacheKey, true, TimeSpan.FromSeconds(30));
             }
         };
     });
@@ -216,20 +258,28 @@ builder.Services.AddSwaggerGen();
 // CORS
 builder.Services.AddCors(options =>
 {
-    // Production CORS - only allow specific origins
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
         ?? new[] { "http://localhost:3000" };
 
+    // If AllowedOrigins contains "*", allow any origin (LAN multi-device mode)
+    var allowAll = allowedOrigins.Contains("*");
+
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader());
+    {
+        if (allowAll)
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        else
+            policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+    });
 
     options.AddPolicy("SignalRPolicy", policy =>
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials());
+    {
+        if (allowAll)
+            // AllowCredentials() cannot be used with AllowAnyOrigin() - use SetIsOriginAllowed instead
+            policy.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        else
+            policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    });
 });
 
 var app = builder.Build();
@@ -287,6 +337,18 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    // Log all requests + status codes for debugging
+    app.Use(async (context, next) =>
+    {
+        await next();
+        if (context.Response.StatusCode >= 400)
+        {
+            Log.Warning("[HTTP] {Method} {Path} → {StatusCode}",
+                context.Request.Method,
+                context.Request.Path + context.Request.QueryString,
+                context.Response.StatusCode);
+        }
+    });
 }
 
 // Serve Frontend static files (index.html + assets)
@@ -308,7 +370,51 @@ app.MapHub<KasserPro.API.Hubs.DeviceHub>("/hubs/devices");
 // Fallback to index.html for SPA routing (React Router)
 app.MapFallbackToFile("index.html");
 
+// PRODUCTION: Auto-open browser (simple - info shown in UI Settings page)
+_ = Task.Run(async () =>
+{
+    await Task.Delay(2000); // Wait for server to start
+    
+    try
+    {
+        // Open browser on localhost
+        var startInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "cmd",
+            Arguments = "/c start http://localhost:5243",
+            UseShellExecute = true,
+            CreateNoWindow = true
+        };
+        System.Diagnostics.Process.Start(startInfo);
+        
+        Log.Information("Browser opened - Application ready at http://localhost:5243");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning("Could not open browser automatically: {Exception}", ex.Message);
+    }
+});
+
 app.Run();
+
+// Helper: Get LAN IP address
+static string GetLanIpAddress()
+{
+    try
+    {
+        var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                return ip.ToString();
+            }
+        }
+    }
+    catch { }
+    
+    return "192.168.1.X (unknown)";
+}
 
 }
 catch (Exception ex)

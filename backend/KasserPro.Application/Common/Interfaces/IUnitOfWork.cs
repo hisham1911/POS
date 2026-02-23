@@ -37,6 +37,9 @@ public interface IUnitOfWork : IDisposable
     IRepository<BranchProductPrice> BranchProductPrices { get; }
     IRepository<InventoryTransfer> InventoryTransfers { get; }
 
+    // User Permissions repository
+    IRepository<UserPermission> UserPermissions { get; }
+
     Task<int> SaveChangesAsync();
 
     /// <summary>

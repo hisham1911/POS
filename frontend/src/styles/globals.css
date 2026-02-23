@@ -1,4 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap");
+/* Offline Font Configuration - @fontsource */
+/* Cairo font loaded from npm package for reliable offline support */
+/* Fonts imported in main.tsx from @fontsource/cairo */
+
+:root {
+  --font-arabic: 'Cairo', 'Tahoma', 'Arial', 'Segoe UI', sans-serif;
+  --font-en: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
 
 @tailwind base;
 @tailwind components;

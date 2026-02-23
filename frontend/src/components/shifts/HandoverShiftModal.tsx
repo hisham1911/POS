@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useHandoverShiftMutation } from '../../api/shiftsApi';
 import { Shift } from '../../types/shift.types';
+import { formatDateTimeFull } from '../../utils/formatters';
 
 interface HandoverShiftModalProps {
   shift: Shift;
@@ -81,7 +82,7 @@ export default function HandoverShiftModal({
           <div className="flex justify-between mb-2">
             <span className="text-gray-600">وقت الفتح:</span>
             <span className="font-medium">
-              {new Date(shift.openedAt).toLocaleString('ar-EG')}
+              {formatDateTimeFull(shift.openedAt)}
             </span>
           </div>
           <div className="flex justify-between">

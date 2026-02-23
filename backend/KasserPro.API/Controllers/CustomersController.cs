@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KasserPro.Application.DTOs.Customers;
 using KasserPro.Application.Services.Interfaces;
+using KasserPro.Domain.Enums;
+using KasserPro.API.Middleware;
 
 /// <summary>
 /// Customer management endpoints
@@ -25,6 +27,7 @@ public class CustomersController : ControllerBase
     /// <param name="pageSize">Items per page (default: 20)</param>
     /// <param name="search">Search by phone, name, or email</param>
     [HttpGet]
+    [HasPermission(Permission.CustomersView)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? search = null)
     {
         var result = await _customerService.GetAllAsync(page, pageSize, search);
@@ -35,6 +38,7 @@ public class CustomersController : ControllerBase
     /// Get customer by ID
     /// </summary>
     [HttpGet("{id}")]
+    [HasPermission(Permission.CustomersView)]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _customerService.GetByIdAsync(id);
@@ -47,6 +51,7 @@ public class CustomersController : ControllerBase
     /// Get customer by phone number
     /// </summary>
     [HttpGet("by-phone/{phone}")]
+    [HasPermission(Permission.CustomersView)]
     public async Task<IActionResult> GetByPhone(string phone)
     {
         var result = await _customerService.GetByPhoneAsync(phone);
@@ -59,6 +64,7 @@ public class CustomersController : ControllerBase
     /// Create a new customer
     /// </summary>
     [HttpPost]
+    [HasPermission(Permission.CustomersManage)]
     public async Task<IActionResult> Create([FromBody] CreateCustomerRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Phone))
@@ -83,6 +89,7 @@ public class CustomersController : ControllerBase
     /// Update an existing customer
     /// </summary>
     [HttpPut("{id}")]
+    [HasPermission(Permission.CustomersManage)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerRequest request)
     {
         var result = await _customerService.UpdateAsync(id, request);
@@ -151,6 +158,7 @@ public class CustomersController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
+    [HasPermission(Permission.CustomersManage)]
     public async Task<IActionResult> Delete(int id)
     {
         var success = await _customerService.DeleteAsync(id);

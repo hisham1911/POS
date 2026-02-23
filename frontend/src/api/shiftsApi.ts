@@ -5,6 +5,7 @@ import {
   CloseShiftRequest,
   ForceCloseShiftRequest,
   HandoverShiftRequest,
+  ShiftWarning,
 } from "../types/shift.types";
 import { ApiResponse } from "../types/api.types";
 
@@ -88,6 +89,12 @@ export const shiftsApi = baseApi.injectEndpoints({
       query: () => "/shifts/active",
       providesTags: ["Shifts"],
     }),
+
+    // جلب تحذيرات الوردية
+    getShiftWarnings: builder.query<ApiResponse<ShiftWarning>, void>({
+      query: () => "/shifts/warnings",
+      providesTags: [{ type: "Shifts", id: "WARNINGS" }],
+    }),
   }),
 });
 
@@ -101,4 +108,5 @@ export const {
   useHandoverShiftMutation,
   useUpdateShiftActivityMutation,
   useGetActiveShiftsQuery,
+  useGetShiftWarningsQuery,
 } = shiftsApi;

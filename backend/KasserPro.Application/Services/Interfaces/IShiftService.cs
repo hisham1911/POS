@@ -15,6 +15,7 @@ public interface IShiftService
     Task<ApiResponse<ShiftDto>> HandoverAsync(int shiftId, HandoverShiftRequest request);
     Task<ApiResponse<bool>> UpdateActivityAsync(int shiftId);
     Task<ApiResponse<List<ShiftDto>>> GetActiveShiftsAsync();
+    Task<ApiResponse<ShiftWarningDto>> GetShiftWarningsAsync(int userId);
     
     /// <summary>
     /// Shift deletion is NOT supported for audit/financial integrity.
