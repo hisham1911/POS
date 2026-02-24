@@ -133,16 +133,6 @@ public static class ButcherDataSeeder
         {
             new()
             {
-                TenantId = null,
-                BranchId = null,
-                Name = "System Owner",
-                Email = "owner@kasserpro.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Owner@123"),
-                Role = UserRole.SystemOwner,
-                IsActive = true
-            },
-            new()
-            {
                 TenantId = tenant.Id,
                 BranchId = branch.Id,
                 Name = "أحمد المدير",
@@ -175,7 +165,7 @@ public static class ButcherDataSeeder
 
         context.Users.AddRange(users);
         await context.SaveChangesAsync();
-        Console.WriteLine($"   ✓ المستخدمين: {users.Count} (1 مالك نظام + 1 مدير + 2 كاشير)");
+        Console.WriteLine($"   ✓ المستخدمين: {users.Count} (1 مدير + 2 كاشير)");
         return users;
     }
 

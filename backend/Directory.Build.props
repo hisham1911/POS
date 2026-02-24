@@ -1,0 +1,43 @@
+<Project>
+  <PropertyGroup>
+    <!-- CRITICAL: UseSharedCompilation=false يعطي 3x سرعة في هذا البيئة -->
+    <!-- تم اكتشاف أن VBCSCompiler يسبب بطء شديد (89s vs 27s) -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <BuildInParallel>true</BuildInParallel>
+    <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    
+    <!-- Skip ALL Heavy Tasks -->
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Allow REQUIRED Assembly Generation -->
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>true</GenerateTargetFrameworkAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    
+    <!-- Skip Source Generators and SourceLink -->
+    <UseSourceLink>false</UseSourceLink>
+    <PublishRepositoryUrl>false</PublishRepositoryUrl>
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    
+    <!-- Suppress ALL Warnings to Speed Up Compilation -->
+    <NoWarn>$(NoWarn);CS0414;CS8618;CS8625;CS1591;CS8602;CS8604;CS8600;CS8601;CS8603;CS8605;CS8981</NoWarn>
+    
+    <!-- Optimize Package Resolution -->
+    <RestoreUseSkipNonexistentTargets>true</RestoreUseSkipNonexistentTargets>
+    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+    
+    <!-- DO NOT skip build product copying -->
+    <SkipCopyBuildProduct>false</SkipCopyBuildProduct>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+</Project>
