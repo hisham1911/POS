@@ -1,4 +1,5 @@
 # 🛠️ خطة الإصلاح التفصيلية - KasserPro Performance Optimization
+
 **المرحلة**: Implementation-Ready  
 **التاريخ**: 24 فبراير 2026  
 **الحالة**: Patches جاهزة للتطبيق الفوري
@@ -7,18 +8,19 @@
 
 ## 📋 ملخص المشاكل + الحلول
 
-| المشكلة | المؤثر | الحل | الأولوية | الوقت |
-|--------|--------|------|---------|-------|
-| DbContext monolithic (449 سطور) | +8-12s model building | Split into 4 modules | P0 | 4h |
-| Blocking migrations in startup | App unresponsive 20-30s | Move to background | P0 | 2h |
-| HostedServices eager execution | +200-300ms startup | Delay start 3s | P1 | 30m |
-| Serilog file I/O in static constructor | +100-200ms | Lazy initialization | P2 | 30m |
+| المشكلة                                | المؤثر                  | الحل                 | الأولوية | الوقت |
+| -------------------------------------- | ----------------------- | -------------------- | -------- | ----- |
+| DbContext monolithic (449 سطور)        | +8-12s model building   | Split into 4 modules | P0       | 4h    |
+| Blocking migrations in startup         | App unresponsive 20-30s | Move to background   | P0       | 2h    |
+| HostedServices eager execution         | +200-300ms startup      | Delay start 3s       | P1       | 30m   |
+| Serilog file I/O in static constructor | +100-200ms              | Lazy initialization  | P2       | 30m   |
 
 ---
 
 ## 🔧 الحل #1: تقسيم DbContext
 
 ### المشكلة الحالية
+
 ```
 f:\POS\backend\KasserPro.API\KasserproContext.cs (449 سطور)
 ├─ OnModelCreating (~400 سطور)
@@ -31,6 +33,7 @@ f:\POS\backend\KasserPro.API\KasserproContext.cs (449 سطور)
 ```
 
 ### الحل المقترح
+
 ```
 f:\POS\backend\KasserPro.Infrastructure\Data\
 ├─ AppDbContext.cs (50 سطور - orchestrator فقط)
@@ -46,6 +49,7 @@ f:\POS\backend\KasserPro.Infrastructure\Data\
 ```
 
 ### التوقع المتوقع
+
 ```
 Before:  Model building = 4.48-8.5s (per EF Core 9 regression)
 After:   Model building = 2.5-3.5s (50% تحسن)
@@ -58,18 +62,20 @@ Reason:  Distributed configuration reduces method size + JIT compilation
 ## 🚀 الحل #2: Async Database Initialization
 
 ### المشكلة الحالية
+
 ```
-app.Build() → Database Init (synchronous) 
+app.Build() → Database Init (synchronous)
     ├─ ConfigureAsync: 1-2s
     ├─ GetPendingMigrations: 2-3s
     ├─ CreateBackupAsync: 10-30s ⚠️⚠️
-    ├─ MigrateAsync: 3-5s   
+    ├─ MigrateAsync: 3-5s
     └─ SeedAsync: 2-5s
-    
+
 Total: 18-50 seconds (BLOCKS all requests!)
 ```
 
 ### الحل المقترح
+
 ```
 app.Build() → Check migration status (0.1s) → Start listening immediately ✅
    ↓
@@ -82,6 +88,7 @@ Background Task (parallel)
 ```
 
 ### التوقع المتوقع
+
 ```
 Before: Startup time = 20-50s (app unresponsive)
 After:  Startup time = 1-2s (listening immediately)
@@ -247,7 +254,7 @@ public class DatabaseInitializationService : BackgroundService
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     // Signal for middleware to check if DB is ready
-    public static TaskCompletionSource<bool> DatabaseReadySignal { get; set; } 
+    public static TaskCompletionSource<bool> DatabaseReadySignal { get; set; }
         = new TaskCompletionSource<bool>();
 
     public DatabaseInitializationService(
@@ -351,7 +358,7 @@ _ = Task.Run(async () =>
             DatabaseInitializationService.DatabaseReadySignal.Task,
             Task.Delay(TimeSpan.FromSeconds(60))
         );
-        
+
         if (ready == DatabaseInitializationService.DatabaseReadySignal.Task)
             Log.Information("Database initialization completed before first request");
         else
@@ -413,7 +420,7 @@ public class DatabaseReadinessMiddleware
             _logger.LogWarning("Request arrived but database not ready yet");
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
             context.Response.ContentType = "application/json";
-            
+
             await context.Response.WriteAsJsonAsync(new
             {
                 error = "Service initializing database",
@@ -428,6 +435,7 @@ public class DatabaseReadinessMiddleware
 ```
 
 Add to Program.cs (after line 330):
+
 ```csharp
 // Optional: Uncomment to enable
 // app.UseMiddleware<DatabaseReadinessMiddleware>();
@@ -437,12 +445,12 @@ Add to Program.cs (after line 330):
 
 ## ⏱️ الوقت المتوقع للتحسن
 
-| المرحلة | قبل الإصلاح | بعد الإصلاح | تحسن |
-|--------|-----------|-----------|------|
-| **Cold Build** | 75-85s | 50-60s | ✅ 30% |
-| **Hot Build** | 17-25s | 12-16s | ✅ 25% |
-| **App Startup** | 20-50s (blocking) | 1-2s (responsive) | ✅ 95% |
-| **DB Init** | Parallel with startup | 18-50s background | ✅ Non-blocking |
+| المرحلة         | قبل الإصلاح           | بعد الإصلاح       | تحسن            |
+| --------------- | --------------------- | ----------------- | --------------- |
+| **Cold Build**  | 75-85s                | 50-60s            | ✅ 30%          |
+| **Hot Build**   | 17-25s                | 12-16s            | ✅ 25%          |
+| **App Startup** | 20-50s (blocking)     | 1-2s (responsive) | ✅ 95%          |
+| **DB Init**     | Parallel with startup | 18-50s background | ✅ Non-blocking |
 
 ---
 

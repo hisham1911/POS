@@ -22,6 +22,7 @@ Optimization:      UseSharedCompilation=false (تم تطبيق الإصلاح)
 ### ⚠️ النقطة الحرجة الأولى
 
 **SDK Host Mismatch**: Host الذي يشغل `dotnet` command هو .NET 10.0.3، لكن SDK المشدد هو 8.0.418
+
 - هذا قد يسبب incompatibility في build process
 - قد تؤثر على performance بشكل كبير
 
@@ -31,17 +32,18 @@ Optimization:      UseSharedCompilation=false (تم تطبيق الإصلاح)
 
 ### ✅ هيكل المشروع
 
-| المكون | الحجم | التفاصيل |
-|--------|------|----------|
-| DbSets | 28 | كبير جداً - Model explosion |
-| Indexes | 60+ | معقد جداً - Indices explosion |
-| Foreign Keys | 70+ | علاقات معقدة جداً |
-| Services | 15+ | تسجيل كبير في DI |
+| المكون         | الحجم   | التفاصيل                       |
+| -------------- | ------- | ------------------------------ |
+| DbSets         | 28      | كبير جداً - Model explosion    |
+| Indexes        | 60+     | معقد جداً - Indices explosion  |
+| Foreign Keys   | 70+     | علاقات معقدة جداً              |
+| Services       | 15+     | تسجيل كبير في DI               |
 | DbContext File | 668 سطر | ❌ محترف غير حقيقي - يجب تقسيم |
 
 ### 🔴 المشاكل المعمارية المكتشفة
 
 #### 1. **DbContext في API بدلاً من Infrastructure** ❌
+
 ```csharp
 // ❌ الموجود: f:\POS\backend\KasserPro.API\KasserproContext.cs
 // ✅ يجب أن يكون: f:\POS\backend\KasserPro.Infrastructure\Data\
@@ -53,6 +55,7 @@ Optimization:      UseSharedCompilation=false (تم تطبيق الإصلاح)
 ```
 
 #### 2. **Database Initialization at Startup** ⚠️
+
 ```csharp
 // Program.cs - lines 280-320
 if (!app.Environment.IsEnvironment("Testing"))
@@ -60,12 +63,12 @@ if (!app.Environment.IsEnvironment("Testing"))
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
+
         // 🔴 مشاكل:
         // 1. Migrations يتم تطبيقها بشكل متزامن في startup
         // 2. Backup creation قد يستغرق 10-30 ثانية
         // 3. Seeding data قد يكون بطيئاً
-        
+
         await sqliteConfig.ConfigureAsync(context.Database.GetDbConnection());
         var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
         if (pendingMigrations.Any())
@@ -80,6 +83,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 ```
 
 **التأثير على الأداء**:
+
 - First startup: 30-60 ثانية
 - Migration startup: +30 ثانية
 - Database operations blocking thread
@@ -87,6 +91,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 #### 3. **HostedServices تعمل بشكل Aggressive** ⚠️
 
 ##### ShiftWarningBackgroundService
+
 ```csharp
 // - يعمل كل 30 دقيقة
 // - يفحص جميع الورديات المفتوحة (O(n) database queries)
@@ -95,6 +100,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 ```
 
 ##### DailyBackupBackgroundService
+
 ```csharp
 // - ينشئ backup يومياً الساعة 2 AM
 // - قد تأخذ الـ backup 20-40 ثانية
@@ -102,6 +108,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 ```
 
 #### 4. **JWT Token Validation مع Database Queries** ⚠️
+
 ```csharp
 // Program.cs - JwtBearerEvents.OnTokenValidated
 // كل request authentication يستفسر database!
@@ -113,7 +120,7 @@ options.Events = new JwtBearerEvents
         var user = await db.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId);
-        
+
         if (user.TenantId.HasValue)
         {
             // 📍 Second database hit:
@@ -127,6 +134,7 @@ options.Events = new JwtBearerEvents
 ```
 
 #### 5. **EF Core Model Complexity** 🔴
+
 ```
 Total Entities:  28
 Total Indexes:   60+
@@ -139,8 +147,10 @@ OnModelCreating: ~400 سطر
 - EF Core snapshot creation overhead
 ```
 
-#### 6. **Large Static Constructor Risk** ⚠️  
+#### 6. **Large Static Constructor Risk** ⚠️
+
 من دراسة Program.cs:
+
 ```csharp
 // Serilog configuration + multiple file sinks
 Log.Logger = new LoggerConfiguration()
@@ -205,29 +215,29 @@ Log.Logger = new LoggerConfiguration()
 
 ## 📍 أين يضيع الوقت - التفصيل
 
-| المرحلة | الوقت (ثانية) | السبب | الحل الممكن |
-|--------|---|------|----------|
-| SDK Initialization | 2-3s | Host version mismatch | توحيد Host/SDK |
-| Model Compilation | 5-8s | 28 DbSets complexity | تقسيم DbContext |
-| Database Startup | 20-40s | Migration + Backup | Async database init |
-| Seeding | 5-10s | Large data insertion | Lazy initialization |
-| HostedServices setup | 1-3s | Service registration | Profile startup |
-| Serilog init | 1-2s | File I/O operations | Lazy initialization |
-| **المجموع** | **34-66s** | - | **تطبيق الحلول** |
+| المرحلة              | الوقت (ثانية) | السبب                 | الحل الممكن         |
+| -------------------- | ------------- | --------------------- | ------------------- |
+| SDK Initialization   | 2-3s          | Host version mismatch | توحيد Host/SDK      |
+| Model Compilation    | 5-8s          | 28 DbSets complexity  | تقسيم DbContext     |
+| Database Startup     | 20-40s        | Migration + Backup    | Async database init |
+| Seeding              | 5-10s         | Large data insertion  | Lazy initialization |
+| HostedServices setup | 1-3s          | Service registration  | Profile startup     |
+| Serilog init         | 1-2s          | File I/O operations   | Lazy initialization |
+| **المجموع**          | **34-66s**    | -                     | **تطبيق الحلول**    |
 
 ---
 
 ## ✅ ما تم استبعاده علمياً
 
-| العامل | النتيجة | الدليل |
-|--------|---------|--------|
-| Windows Defender | ✅ معطل | تم التحقق من الإعدادات |
-| Analyzer overhead | ✅ معطل | RunAnalyzers=false في Directory.Build.props |
-| SharedCompilation | ✅ معطل | UseSharedCompilation=false تم تطبيقه |
-| SDK version lock | ✅ صحيح | global.json يحدد SDK 8.0.418 |
-| Network issues | ✅ لا توجد | حتى بدون NuGet restore |
-| Reflection scanning | ✅ تم تقليله | DI setup مباشر وليس auto-scan |
-| Source generators | ✅ لا توجد | تم الفحص في Program.cs و csproj files |
+| العامل              | النتيجة      | الدليل                                      |
+| ------------------- | ------------ | ------------------------------------------- |
+| Windows Defender    | ✅ معطل      | تم التحقق من الإعدادات                      |
+| Analyzer overhead   | ✅ معطل      | RunAnalyzers=false في Directory.Build.props |
+| SharedCompilation   | ✅ معطل      | UseSharedCompilation=false تم تطبيقه        |
+| SDK version lock    | ✅ صحيح      | global.json يحدد SDK 8.0.418                |
+| Network issues      | ✅ لا توجد   | حتى بدون NuGet restore                      |
+| Reflection scanning | ✅ تم تقليله | DI setup مباشر وليس auto-scan               |
+| Source generators   | ✅ لا توجد   | تم الفحص في Program.cs و csproj files       |
 
 ---
 
@@ -299,12 +309,12 @@ Status:           ⚠️ MISMATCH - Host و SDK مختلفان
 
 ## 📈 النتائج المتوقعة
 
-| السيناريو | الحالي | بعد الإصلاحات | التحسن |
-|----------|--------|--------------|--------|
-| Cold Build | 75-85s | 45-50s | 40% أسرع |
-| Hot Build | 17-25s | 10-15s | 35% أسرع |
-| App Startup | 30-45s | 5-10s | 70% أسرع |
-| First Request | 2-3s | 0.5-1s | 60% أسرع |
+| السيناريو     | الحالي | بعد الإصلاحات | التحسن   |
+| ------------- | ------ | ------------- | -------- |
+| Cold Build    | 75-85s | 45-50s        | 40% أسرع |
+| Hot Build     | 17-25s | 10-15s        | 35% أسرع |
+| App Startup   | 30-45s | 5-10s         | 70% أسرع |
+| First Request | 2-3s   | 0.5-1s        | 60% أسرع |
 
 ---
 

@@ -4,30 +4,30 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    
+
     <!-- CRITICAL FIX: SharedCompilation=false speeds up build 3x (27s vs 89s) -->
     <UseSharedCompilation>false</UseSharedCompilation>
     <BuildInParallel>true</BuildInParallel>
     <MultiProcessorCompilation>true</MultiProcessorCompilation>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-    
+
     <!-- Skip ALL Heavy Tasks in Debug -->
     <RunAnalyzersDuringBuild Condition="'$(Configuration)' == 'Debug'">false</RunAnalyzersDuringBuild>
     <RunCodeAnalysis Condition="'$(Configuration)' == 'Debug'">false</RunCodeAnalysis>
     <GenerateDocumentationFile Condition="'$(Configuration)' == 'Debug'">false</GenerateDocumentationFile>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Debug'">false</TreatWarningsAsErrors>
-    
+
     <!-- Minimize Assembly Generation -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    
+
     <!-- Suppress Warnings to Speed Up Compilation -->
     <NoWarn>$(NoWarn);CS0414;CS8618;CS8625;CS1591;CS8602;CS8604</NoWarn>
-    
+
     <!-- Optimize Package Resolution -->
     <RestoreUseSkipNonexistentTargets>true</RestoreUseSkipNonexistentTargets>
     <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
