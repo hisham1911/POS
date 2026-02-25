@@ -370,30 +370,33 @@ app.MapHub<KasserPro.API.Hubs.DeviceHub>("/hubs/devices");
 // Fallback to index.html for SPA routing (React Router)
 app.MapFallbackToFile("index.html");
 
-// PRODUCTION: Auto-open browser (simple - info shown in UI Settings page)
-_ = Task.Run(async () =>
+// PRODUCTION: Auto-open browser (disabled in Development mode)
+if (!app.Environment.IsDevelopment())
 {
-    await Task.Delay(2000); // Wait for server to start
-    
-    try
+    _ = Task.Run(async () =>
     {
-        // Open browser on localhost
-        var startInfo = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = "cmd",
-            Arguments = "/c start http://localhost:5243",
-            UseShellExecute = true,
-            CreateNoWindow = true
-        };
-        System.Diagnostics.Process.Start(startInfo);
+        await Task.Delay(2000); // Wait for server to start
         
-        Log.Information("Browser opened - Application ready at http://localhost:5243");
-    }
-    catch (Exception ex)
-    {
-        Log.Warning("Could not open browser automatically: {Exception}", ex.Message);
-    }
-});
+        try
+        {
+            // Open browser on localhost
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "cmd",
+                Arguments = "/c start http://localhost:5243",
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+            System.Diagnostics.Process.Start(startInfo);
+            
+            Log.Information("Browser opened - Application ready at http://localhost:5243");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("Could not open browser automatically: {Exception}", ex.Message);
+        }
+    });
+}
 
 app.Run();
 
