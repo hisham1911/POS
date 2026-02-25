@@ -275,7 +275,7 @@ if ($response -eq "200") {
 
 ```powershell
 # Verify CORS headers
-$headers = curl.exe -s -i http://localhost:5243/api/system/info | 
+$headers = curl.exe -s -i http://localhost:5243/api/system/info |
     select-string "Access-Control"
 
 if ($headers) {
@@ -361,7 +361,7 @@ Build Version: [VERSION]
 5. ROLLBACK PLAN
 ───────────────────────────────────────────────────────────────
 If issues occur, rollback to: [BACKUP_PATH]
-Steps: 
+Steps:
 1. Stop current application
 2. Restore from backup
 3. Restart application
@@ -428,25 +428,25 @@ Set-Location "D:\Deployment\KasserPro"
 
 Establish baseline metrics after successful deployment:
 
-| Metric | Value | Target |
-|--------|-------|--------|
-| GET /api/system/info response time | ___ ms | < 15ms |
-| GET /api/system/health response time | ___ ms | < 10ms |
-| Frontend page load time | ___ ms | < 2000ms |
-| Memory usage | ___ MB | < 200MB |
-| CPU usage (idle) | ___ % | < 5% |
-| Concurrent connections | 5+ | Yes/No |
+| Metric                               | Value     | Target   |
+| ------------------------------------ | --------- | -------- |
+| GET /api/system/info response time   | \_\_\_ ms | < 15ms   |
+| GET /api/system/health response time | \_\_\_ ms | < 10ms   |
+| Frontend page load time              | \_\_\_ ms | < 2000ms |
+| Memory usage                         | \_\_\_ MB | < 200MB  |
+| CPU usage (idle)                     | \_\_\_ %  | < 5%     |
+| Concurrent connections               | 5+        | Yes/No   |
 
 ---
 
 ## 👥 Support Contact Information
 
-| Issue Type | Contact | Response Time |
-|-----------|---------|---------------|
-| Critical (app down) | [PHONE] | 15 min |
-| Major (features broken) | [EMAIL] | 1 hour |
-| Minor (cosmetic issue) | [TICKET] | 24 hours |
-| Question | [FORUM] | 48 hours |
+| Issue Type              | Contact  | Response Time |
+| ----------------------- | -------- | ------------- |
+| Critical (app down)     | [PHONE]  | 15 min        |
+| Major (features broken) | [EMAIL]  | 1 hour        |
+| Minor (cosmetic issue)  | [TICKET] | 24 hours      |
+| Question                | [FORUM]  | 48 hours      |
 
 ---
 

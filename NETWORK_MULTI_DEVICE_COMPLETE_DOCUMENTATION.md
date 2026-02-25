@@ -1,4 +1,5 @@
 # شامل توثيق ميزة الشبكة متعددة الأجهزة
+
 # Network Multi-Device Feature - Complete Technical Documentation
 
 **Document Version:** 2.0  
@@ -31,6 +32,7 @@
 ## المشكلة التي تحلها الميزة | Problem Statement
 
 قبل هذه الميزة:
+
 - ❌ المستخدمون لا يعرفون عنوان IP للسيرفر
 - ❌ لا توجد طريقة سهلة للوصول من أجهزة أخرى بالشبكة
 - ❌ لا يوجد تنبيه عند فقدان الاتصال بالسيرفر
@@ -39,6 +41,7 @@
 ## الحل | Solution
 
 هذه الميزة توفر:
+
 - ✅ عرض تلقائي لعنوان IP
 - ✅ رابط مباشر للنسخ والمشاركة
 - ✅ مؤشر حالة الاتصال في الوقت الفعلي
@@ -47,13 +50,13 @@
 
 ## الفوائد التجارية | Business Value
 
-| الفائدة | القيمة |
-|--------|--------|
-| سهولة الإعداد | لا حاجة لوثائق تقنية معقدة |
-| توافر أفضل | الكشف التلقائي عن مشاكل الاتصال |
-| تجربة المستخدم | واجهة بديهية وواضحة |
-| الدعم الفني | تقليل الاستفسارات عن كيفية الاتصال |
-| التوسع | دعم بسيط لأجهزة متعددة |
+| الفائدة        | القيمة                             |
+| -------------- | ---------------------------------- |
+| سهولة الإعداد  | لا حاجة لوثائق تقنية معقدة         |
+| توافر أفضل     | الكشف التلقائي عن مشاكل الاتصال    |
+| تجربة المستخدم | واجهة بديهية وواضحة                |
+| الدعم الفني    | تقليل الاستفسارات عن كيفية الاتصال |
+| التوسع         | دعم بسيط لأجهزة متعددة             |
 
 ---
 
@@ -319,7 +322,7 @@
 Protocol: HTTP/REST
 Base URL: http://{LAN_IP}:5243
 CORS: Enabled (AllowedOrigins: ["*"])
-Authentication: 
+Authentication:
   - Public endpoints: [AllowAnonymous]
   - Other endpoints: JWT Bearer Token
 Response Format: JSON
@@ -364,14 +367,14 @@ Access-Control-Allow-Origin: *
 
 ### Response Fields
 
-| Field | Type | Description | مثال |
-|-------|------|-------------|------|
-| lanIp | string | LAN IP address | "192.168.1.100" |
-| hostname | string | Computer name | "DESKTOP-ABC123" |
-| port | number | Server port | 5243 |
-| url | string | Full access URL | "http://192.168.1.100:5243" |
-| environment | string | Environment mode | "Production" |
-| timestamp | string | UTC timestamp | "2026-02-25T10:30:45.123Z" |
+| Field       | Type   | Description      | مثال                        |
+| ----------- | ------ | ---------------- | --------------------------- |
+| lanIp       | string | LAN IP address   | "192.168.1.100"             |
+| hostname    | string | Computer name    | "DESKTOP-ABC123"            |
+| port        | number | Server port      | 5243                        |
+| url         | string | Full access URL  | "http://192.168.1.100:5243" |
+| environment | string | Environment mode | "Production"                |
+| timestamp   | string | UTC timestamp    | "2026-02-25T10:30:45.123Z"  |
 
 ### Response (Error)
 
@@ -409,14 +412,14 @@ curl -X GET "http://192.168.1.100:5243/api/system/info" \
 // TypeScript
 async function getSystemInfo(): Promise<SystemInfo | null> {
   try {
-    const response = await fetch('/api/system/info');
+    const response = await fetch("/api/system/info");
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
+
     const data = await response.json();
-    console.log('System Info:', data);
+    console.log("System Info:", data);
     return data;
   } catch (error) {
-    console.error('Failed to fetch system info:', error);
+    console.error("Failed to fetch system info:", error);
     return null;
   }
 }
@@ -430,10 +433,10 @@ if (info) {
 
 ### Response Time
 
-| Scenario | Min | Avg | Max |
-|----------|-----|-----|-----|
-| Localhost | 1ms | 2ms | 5ms |
-| LAN (same network) | 5ms | 8ms | 15ms |
+| Scenario               | Min  | Avg  | Max  |
+| ---------------------- | ---- | ---- | ---- |
+| Localhost              | 1ms  | 2ms  | 5ms  |
+| LAN (same network)     | 5ms  | 8ms  | 15ms |
 | LAN (different subnet) | 10ms | 20ms | 50ms |
 
 ---
@@ -488,12 +491,12 @@ Content-Type: application/json
 
 ### Frontend Interpretation
 
-| Response | Status Message | Icon | Color |
-|----------|----------------|------|-------|
-| 200 OK + success=true | متصل (Connected) | WiFi | 🟢 Green |
-| 503 Service Unavailable | غير متصل (Disconnected) | WifiOff | 🔴 Red |
-| Timeout (5s pass) | غير متصل (Disconnected) | WifiOff | 🔴 Red |
-| Network Error | غير متصل (Disconnected) | WifiOff | 🔴 Red |
+| Response                | Status Message          | Icon    | Color    |
+| ----------------------- | ----------------------- | ------- | -------- |
+| 200 OK + success=true   | متصل (Connected)        | WiFi    | 🟢 Green |
+| 503 Service Unavailable | غير متصل (Disconnected) | WifiOff | 🔴 Red   |
+| Timeout (5s pass)       | غير متصل (Disconnected) | WifiOff | 🔴 Red   |
+| Network Error           | غير متصل (Disconnected) | WifiOff | 🔴 Red   |
 
 ### JavaScript Polling Example
 
@@ -527,14 +530,14 @@ function HealthMonitor() {
 ```typescript
 // Monitor response times
 const startTime = performance.now();
-const response = await fetch('/api/system/health');
+const response = await fetch("/api/system/health");
 const endTime = performance.now();
 const responseTime = endTime - startTime;
 
 console.log(`Health check took ${responseTime}ms`);
 
 if (responseTime > 1000) {
-  console.warn('Health check is slow - network issue?');
+  console.warn("Health check is slow - network issue?");
 }
 ```
 
@@ -628,25 +631,25 @@ frontend/
 ```typescript
 // filepath: frontend/src/api/systemApi.ts
 
-import { baseApi } from './baseApi';
+import { baseApi } from "./baseApi";
 
 // ============================================
 // TYPE DEFINITIONS
 // ============================================
 
 export interface SystemInfo {
-  lanIp: string;           // e.g., "192.168.1.100"
-  hostname: string;        // e.g., "DESKTOP-ABC123"
-  port: number;            // e.g., 5243
-  url: string;             // e.g., "http://192.168.1.100:5243"
-  environment: string;     // e.g., "Production"
-  timestamp: string;       // UTC timestamp
+  lanIp: string; // e.g., "192.168.1.100"
+  hostname: string; // e.g., "DESKTOP-ABC123"
+  port: number; // e.g., 5243
+  url: string; // e.g., "http://192.168.1.100:5243"
+  environment: string; // e.g., "Production"
+  timestamp: string; // UTC timestamp
 }
 
 export interface HealthCheckResponse {
-  success: boolean;        // true if healthy
-  status: string;          // "healthy" or "unhealthy"
-  timestamp: string;       // UTC timestamp
+  success: boolean; // true if healthy
+  status: string; // "healthy" or "unhealthy"
+  timestamp: string; // UTC timestamp
 }
 
 export interface SystemInfoResponse {
@@ -665,8 +668,8 @@ export const systemApi = baseApi.injectEndpoints({
     // ==================
     getSystemInfo: builder.query<SystemInfoResponse, void>({
       query: () => ({
-        url: '/system/info',
-        method: 'GET',
+        url: "/system/info",
+        method: "GET",
       }),
       // Keep cached for 5 minutes
       keepUnusedDataFor: 300,
@@ -679,8 +682,8 @@ export const systemApi = baseApi.injectEndpoints({
     // ==================
     health: builder.query<HealthCheckResponse, void>({
       query: () => ({
-        url: '/system/health',
-        method: 'GET',
+        url: "/system/health",
+        method: "GET",
       }),
       // Poll every 5 seconds
       pollingInterval: 5000,
@@ -698,10 +701,7 @@ export const systemApi = baseApi.injectEndpoints({
 // EXPORT HOOKS
 // ============================================
 
-export const {
-  useGetSystemInfoQuery,
-  useHealthQuery,
-} = systemApi;
+export const { useGetSystemInfoQuery, useHealthQuery } = systemApi;
 ```
 
 ## Component Integration | دمج المكونات
@@ -732,11 +732,11 @@ export const SettingsPage: React.FC = () => {
   // RTK Queries
   // ==================
   // Fetch system info once on mount
-  const { data: systemData, isLoading: systemLoading } = 
+  const { data: systemData, isLoading: systemLoading } =
     useGetSystemInfoQuery();
-  
+
   // Poll health status every 5 seconds
-  const { data: healthData, isError: isHealthError } = 
+  const { data: healthData, isError: isHealthError } =
     useHealthQuery();
 
   // ======================
@@ -772,7 +772,7 @@ export const SettingsPage: React.FC = () => {
         {/* Header with Icon and Status */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">معلومات الشبكة</h3>
-          
+
           {/* Status Indicator */}
           <div className="flex items-center gap-2">
             {isOnline ? (
@@ -825,7 +825,7 @@ export const SettingsPage: React.FC = () => {
           <p className="text-sm text-gray-700 mb-3">
             استخدم هذا الرابط للوصول من أجهزة أخرى بالشبكة:
           </p>
-          
+
           <div className="flex gap-2">
             <input
               type="text"
@@ -833,7 +833,7 @@ export const SettingsPage: React.FC = () => {
               value={systemInfo.url}
               className="flex-1 px-3 py-2 border rounded font-mono text-sm bg-white"
             />
-            
+
             <Button
               onClick={copyUrl}
               variant="outline"
@@ -859,7 +859,7 @@ export const SettingsPage: React.FC = () => {
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex gap-2 mb-6">
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-800">
-            شارك هذا الرابط مع الأجهزة الأخرى بالشبكة 
+            شارك هذا الرابط مع الأجهزة الأخرى بالشبكة
             (WiFi أو LAN) للوصول إلى النظام
           </p>
         </div>
@@ -869,7 +869,7 @@ export const SettingsPage: React.FC = () => {
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
             <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-red-800">
-              السيرفر غير متاح حالياً. 
+              السيرفر غير متاح حالياً.
               تأكد من تشغيل التطبيق الرئيسي.
             </p>
           </div>
@@ -920,7 +920,7 @@ const getApiUrl = (): string => {
 
 const API_URL = getApiUrl();
 
-console.log('API URL resolved to:', API_URL);
+console.log("API URL resolved to:", API_URL);
 
 // ============================================
 // REST OF baseApi.ts (unchanged)
@@ -1358,7 +1358,7 @@ copy frontend\dist\* backend\KasserPro.API\wwwroot\ /Y
 # Option B: Automated (PowerShell)
 $srcPath = "frontend\dist"
 $destPath = "backend\KasserPro.API\wwwroot"
-Get-ChildItem -Path $srcPath -Recurse | 
+Get-ChildItem -Path $srcPath -Recurse |
     Copy-Item -Destination $destPath -Recurse -Force
 ```
 
@@ -1470,13 +1470,13 @@ Access URLs:
 
 ### Endpoint Authorization Matrix
 
-| Endpoint | Auth | Method | Data | Risk |
-|----------|------|--------|------|------|
-| GET /api/system/info | ❌ None | GET | IP, Hostname, URL | ✅ LOW |
-| GET /api/system/health | ❌ None | GET | Status | ✅ LOW |
-| GET /api/orders | ✅ JWT | GET | Orders | ✅ PROTECTED |
-| POST /api/orders | ✅ JWT | POST | Create order | ✅ PROTECTED |
-| DELETE /api/user | ✅ JWT | DELETE | User data | ✅ PROTECTED |
+| Endpoint               | Auth    | Method | Data              | Risk         |
+| ---------------------- | ------- | ------ | ----------------- | ------------ |
+| GET /api/system/info   | ❌ None | GET    | IP, Hostname, URL | ✅ LOW       |
+| GET /api/system/health | ❌ None | GET    | Status            | ✅ LOW       |
+| GET /api/orders        | ✅ JWT  | GET    | Orders            | ✅ PROTECTED |
+| POST /api/orders       | ✅ JWT  | POST   | Create order      | ✅ PROTECTED |
+| DELETE /api/user       | ✅ JWT  | DELETE | User data         | ✅ PROTECTED |
 
 ### CORS Security
 
@@ -1752,11 +1752,11 @@ public class SystemControllerTests
         // Assert
         var okResult = result as OkObjectResult;
         Assert.IsNotNull(okResult);
-        
+
         var data = okResult.Value as SystemInfoDto;
         Assert.IsNotNull(data);
         Assert.IsNotNull(data.LanIp);
-        Assert.IsTrue(data.LanIp.StartsWith("192.") || 
+        Assert.IsTrue(data.LanIp.StartsWith("192.") ||
                       data.LanIp.StartsWith("10.") ||
                       data.LanIp == "127.0.0.1");
     }
@@ -1771,7 +1771,7 @@ public class SystemControllerTests
         // Assert
         var okResult = result as OkObjectResult;
         Assert.IsNotNull(okResult);
-        
+
         var data = okResult.Value as HealthCheckDto;
         Assert.IsTrue(data.Success);
         Assert.AreEqual("healthy", data.Status);
@@ -1784,39 +1784,39 @@ public class SystemControllerTests
 ```typescript
 // e2e/settings.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Settings - Network Info', () => {
+test.describe("Settings - Network Info", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5243/settings');
-    await page.fill('[data-testid="email"]', 'admin@kasserpro.com');
-    await page.fill('[data-testid="password"]', 'Admin@123');
+    await page.goto("http://localhost:5243/settings");
+    await page.fill('[data-testid="email"]', "admin@kasserpro.com");
+    await page.fill('[data-testid="password"]', "Admin@123");
     await page.click('[data-testid="login-button"]');
     await page.waitForNavigation();
   });
 
-  test('Network Info Card is visible', async ({ page }) => {
+  test("Network Info Card is visible", async ({ page }) => {
     const card = page.locator('[data-testid="network-info-card"]');
     await expect(card).toBeVisible();
   });
 
-  test('Displays correct IP address', async ({ page }) => {
+  test("Displays correct IP address", async ({ page }) => {
     const ipText = page.locator('[data-testid="system-ip"]');
     await expect(ipText).toContainText(/\d+\.\d+\.\d+\.\d+/);
   });
 
-  test('Copy button works', async ({ page, context }) => {
+  test("Copy button works", async ({ page, context }) => {
     // Grant clipboard permission
-    await context.grantPermissions(['clipboard-read']);
+    await context.grantPermissions(["clipboard-read"]);
 
     const copyButton = page.locator('[data-testid="copy-url-button"]');
     await copyButton.click();
 
-    const toast = page.locator('text=تم نسخ الرابط');
+    const toast = page.locator("text=تم نسخ الرابط");
     await expect(toast).toBeVisible();
   });
 
-  test('Health status updates', async ({ page }) => {
+  test("Health status updates", async ({ page }) => {
     const wifiIcon = page.locator('[data-testid="wifi-icon"]');
     // Should be green initially
     await expect(wifiIcon).toHaveClass(/text-green/);
@@ -1840,7 +1840,7 @@ async function measureApiPerformance() {
 
   for (let i = 0; i < 10; i++) {
     const start = performance.now();
-    const response = await fetch('/api/system/info');
+    const response = await fetch("/api/system/info");
     const end = performance.now();
 
     measurements.push({
@@ -1852,9 +1852,10 @@ async function measureApiPerformance() {
     console.log(`Request ${i + 1}: ${end - start}ms`);
   }
 
-  const avg = measurements.reduce((sum, m) => sum + m.time, 0) / measurements.length;
-  const max = Math.max(...measurements.map(m => m.time));
-  const min = Math.min(...measurements.map(m => m.time));
+  const avg =
+    measurements.reduce((sum, m) => sum + m.time, 0) / measurements.length;
+  const max = Math.max(...measurements.map((m) => m.time));
+  const min = Math.min(...measurements.map((m) => m.time));
 
   console.log(`Average: ${avg.toFixed(2)}ms`);
   console.log(`Min: ${min.toFixed(2)}ms`);
@@ -1881,10 +1882,12 @@ async function measureApiPerformance() {
 ### Issue 1: Network Info Card Not Visible
 
 **Symptoms:**
+
 - Settings page loads but Network Info card missing
 - No errors in console
 
 **Causes:**
+
 - systemData is null (API call failed)
 - User not Admin role
 - Endpoint not responding
@@ -1894,8 +1897,8 @@ async function measureApiPerformance() {
 ```typescript
 // Debug in browser console
 // 1. Check if hook returned data
-console.log('systemData:', systemData);
-console.log('systemLoading:', systemLoading);
+console.log("systemData:", systemData);
+console.log("systemLoading:", systemLoading);
 
 // 2. Check network tab
 // - Open F12 DevTools
@@ -1919,11 +1922,13 @@ console.log('systemLoading:', systemLoading);
 ### Issue 2: "غير متصل" (Disconnected) Shows Permanently
 
 **Symptoms:**
+
 - WiFi icon is RED
 - Status shows "غير متصل"
 - But backend IS running
 
 **Causes:**
+
 - Health endpoint not responding
 - Endpoint returning error
 - Network timeout
@@ -1957,11 +1962,13 @@ dotnet run
 ### Issue 3: Secondary Device Can't Reach Primary IP
 
 **Symptoms:**
+
 - Copied URL: http://192.168.1.100:5243
 - Pasting in browser shows error
 - "Cannot reach this page"
 
 **Causes:**
+
 - Different network (WiFi vs LAN)
 - Firewall blocking port
 - IP changed
@@ -2012,11 +2019,13 @@ ipconfig /all | findstr "IPv4"
 ### Issue 4: API URL Shows "localhost" Instead of IP
 
 **Symptoms:**
+
 - URL displays: "http://localhost:5243" instead of IP
 - Copy button copies wrong URL
 - Secondary device can't use it
 
 **Causes:**
+
 - getApiUrl() not working correctly
 - Frontend not built with new code
 - Development mode when should be production
@@ -2026,9 +2035,9 @@ ipconfig /all | findstr "IPv4"
 ```typescript
 // Check baseApi.ts
 const getApiUrl = (): string => {
-  console.log('DEV mode?', import.meta.env.DEV);
-  console.log('window.location.origin:', window.location.origin);
-  
+  console.log("DEV mode?", import.meta.env.DEV);
+  console.log("window.location.origin:", window.location.origin);
+
   if (import.meta.env.DEV) return "/api";
   return `${window.location.origin}/api`;
 };
@@ -2047,12 +2056,14 @@ const getApiUrl = (): string => {
 ### Issue 5: CORS Error in Browser console
 
 **Symptoms:**
+
 ```
-Access to XMLHttpRequest at 'http://192.168.1.100:5243/api/system/info' 
+Access to XMLHttpRequest at 'http://192.168.1.100:5243/api/system/info'
 from origin 'http://192.168.1.50:5243' has been blocked by CORS policy
 ```
 
 **Causes:**
+
 - CORS not configured in backend
 - CORS headers not being sent
 
@@ -2087,10 +2098,12 @@ dotnet run  // Restart backend
 ### Issue 6: Health Check Always Returns 503 (Unhealthy)
 
 **Symptoms:**
+
 - GET /api/system/health returns 503
 - WiFi icon is RED even though backend is running
 
 **Causes:**
+
 - Exception in Health() endpoint
 - Database not responding
 - Logic error in endpoint
@@ -2106,7 +2119,7 @@ public ActionResult<HealthCheckDto> Health()
     try
     {
         // Check multiple things
-        
+
         // 1. Database
         try
         {
@@ -2117,10 +2130,10 @@ public ActionResult<HealthCheckDto> Health()
                 if (!test)
                 {
                     _logger.LogError("Database connection failed");
-                    return StatusCode(503, new HealthCheckDto 
-                    { 
-                        Success = false, 
-                        Status = "database_error" 
+                    return StatusCode(503, new HealthCheckDto
+                    {
+                        Success = false,
+                        Status = "database_error"
                     });
                 }
             }
@@ -2128,27 +2141,27 @@ public ActionResult<HealthCheckDto> Health()
         catch (Exception dbEx)
         {
             _logger.LogError(dbEx, "DB health check failed");
-            return StatusCode(503, new HealthCheckDto 
-            { 
-                Success = false, 
-                Status = "database_exception" 
+            return StatusCode(503, new HealthCheckDto
+            {
+                Success = false,
+                Status = "database_exception"
             });
         }
 
         // 2. If all good
-        return Ok(new HealthCheckDto 
-        { 
-            Success = true, 
-            Status = "healthy" 
+        return Ok(new HealthCheckDto
+        {
+            Success = true,
+            Status = "healthy"
         });
     }
     catch (Exception ex)
     {
         _logger.LogError(ex, "Unexpected health check error");
-        return StatusCode(503, new HealthCheckDto 
-        { 
-            Success = false, 
-            Status = "unknown_error" 
+        return StatusCode(503, new HealthCheckDto
+        {
+            Success = false,
+            Status = "unknown_error"
         });
     }
 }
@@ -2159,10 +2172,12 @@ public ActionResult<HealthCheckDto> Health()
 ### Issue 7: Mobile Device Can't Connect
 
 **Symptoms:**
+
 - Mobile browser can't reach http://192.168.1.100:5243
 - Works from Windows device on same WiFi
 
 **Causes:**
+
 - Mobile on different WiFi network
 - Guest network vs main network
 - Mobile network isolation
@@ -2246,7 +2261,7 @@ health: builder.query<HealthCheckDto, void>({
 // Only poll when tab is visible
 useHealthQuery(undefined, {
   pollingInterval: 5000,
-  skipPollingIfUnfocused: true,  // Pause when not focused
+  skipPollingIfUnfocused: true, // Pause when not focused
 });
 
 // Adaptive polling based on network quality
@@ -2254,7 +2269,7 @@ const [pollingInterval, setPollingInterval] = useState(5000);
 
 // If high latency detected, increase interval
 if (responseTime > 1000) {
-  setPollingInterval(10000);  // 10 seconds
+  setPollingInterval(10000); // 10 seconds
 }
 ```
 
@@ -2265,12 +2280,12 @@ if (responseTime > 1000) {
 // When possible, fetch data together to reduce round trips
 
 // Before (2 separate requests):
-const info = await fetch('/api/system/info');  // 8ms
-const health = await fetch('/api/system/health');  // 5ms
+const info = await fetch("/api/system/info"); // 8ms
+const health = await fetch("/api/system/health"); // 5ms
 // Total: 13ms + overhead
 
 // After (1 combined request):
-const both = await fetch('/api/system/combined');  // 10ms
+const both = await fetch("/api/system/combined"); // 10ms
 // Total: 10ms (faster!)
 ```
 
@@ -2367,7 +2382,7 @@ Timeline: Q1 2027
 **Status:** ✅ COMPLETE & PRODUCTION READY  
 **Last Updated:** February 25, 2026  
 **Maintained By:** Development Team  
-**Review Cycle:** Quarterly  
+**Review Cycle:** Quarterly
 
 **For Questions/Updates:** [Contact Development Team]
 

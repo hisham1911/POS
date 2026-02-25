@@ -7,6 +7,7 @@
 ## 1. نظرة عامة (Overview)
 
 الميزة توفر:
+
 - إنشاء نسخة احتياطية من قاعدة البيانات أثناء التشغيل (Hot Backup).
 - فحص سلامة النسخة الاحتياطية (`integrity_check`).
 - استعادة قاعدة البيانات مع تفعيل وضع الصيانة.
@@ -21,16 +22,20 @@
 ## 2. Backend - الخدمات الأساسية
 
 ### 2.1 BackupService
+
 **المسار:**
+
 - `backend/KasserPro.Infrastructure/Services/BackupService.cs`
 
 **المهام الأساسية:**
+
 - إنشاء نسخة احتياطية باستخدام SQLite Backup API.
 - فحص سلامة النسخة الاحتياطية.
 - إدارة الاحتفاظ بالنسخ القديمة (Retention).
 - توفير قائمة بالنسخ الاحتياطية.
 
 **المنطق الأساسي:**
+
 - يستخدم:
   - `SqliteConnection.BackupDatabase(...)`
   - `PRAGMA integrity_check;`
@@ -42,6 +47,7 @@
   - `manual` (عند إنشاء نسخة يدوية)
 
 **اسم الملف النموذجي:**
+
 ```
 KasserPro-backup-20260225-142210-pre-migration.db
 KasserPro-backup-20260225-142210-pre-restore.db
@@ -52,10 +58,13 @@ KasserPro-backup-20260225-142210.db
 ---
 
 ### 2.2 RestoreService
+
 **المسار:**
+
 - `backend/KasserPro.Infrastructure/Services/RestoreService.cs`
 
 **المهام الأساسية:**
+
 - فحص سلامة نسخة الاستعادة قبل استخدامها.
 - تفعيل وضع الصيانة قبل الاستبدال.
 - إنشاء نسخة أمان (`pre-restore`).
@@ -65,6 +74,7 @@ KasserPro-backup-20260225-142210.db
 - تعطيل وضع الصيانة.
 
 **تسلسل الاستعادة:**
+
 1. التحقق من وجود ملف النسخة.
 2. فحص سلامة الملف.
 3. تفعيل وضع الصيانة (maintenance.lock).
@@ -78,18 +88,23 @@ KasserPro-backup-20260225-142210.db
 ---
 
 ### 2.3 DataValidationService
+
 **المسار:**
+
 - `backend/KasserPro.Infrastructure/Services/DataValidationService.cs`
 
 **الهدف:**
+
 - التأكد من أن القيم الحرجة بعد الاستعادة متوافقة مع نوع البيانات المتوقع.
 
 **التحقق الحالي يشمل:**
+
 - `Products.Price` (سعر المنتج) يجب أن يكون رقمي.
 - `Products.StockQuantity` (كمية المخزون) يجب أن تكون رقمية.
 - `Orders.Total` (إجمالي الفاتورة) يجب أن يكون رقمياً.
 
 **آلية الفحص:**
+
 - استخدام `typeof()` في SQLite لمعرفة نوع التخزين.
 - استخدام نمط `GLOB` لاكتشاف النصوص غير الرقمية.
 - أي مشكلة يتم تسجيلها في اللوج وإرجاع عدد المشاكل للواجهة.
@@ -97,24 +112,31 @@ KasserPro-backup-20260225-142210.db
 ---
 
 ### 2.4 MaintenanceModeMiddleware
+
 **المسار:**
+
 - `backend/KasserPro.API/Middleware/MaintenanceModeMiddleware.cs`
 
 **الهدف:**
+
 - منع جميع الطلبات أثناء الاستعادة.
 - السماح فقط بـ `/health` أثناء وضع الصيانة.
 
 **الآلية:**
+
 - إذا وُجد ملف `maintenance.lock` في `ContentRootPath`:
   - يتم رد 503 على جميع الطلبات.
 
 ---
 
 ### 2.5 DailyBackupBackgroundService
+
 **المسار:**
+
 - `backend/KasserPro.Infrastructure/Services/DailyBackupBackgroundService.cs`
 
 **الهدف:**
+
 - إنشاء نسخة احتياطية يومية تلقائية الساعة 2:00 صباحاً.
 - تشغيل تنظيف النسخ القديمة بعد الإنشاء.
 
@@ -123,15 +145,19 @@ KasserPro-backup-20260225-142210.db
 ## 3. Backend - Controllers
 
 ### AdminController
+
 **المسار:**
+
 - `backend/KasserPro.API/Controllers/AdminController.cs`
 
 **الـ Endpoints:**
+
 - `POST /api/admin/backup` → إنشاء نسخة احتياطية يدوية.
 - `GET /api/admin/backups` → عرض قائمة النسخ الاحتياطية.
 - `POST /api/admin/restore` → استعادة نسخة احتياطية.
 
 **الصلاحيات:**
+
 - `backup` و `listBackups`: Admin أو SystemOwner.
 - `restore`: SystemOwner فقط.
 
@@ -140,6 +166,7 @@ KasserPro-backup-20260225-142210.db
 ## 4. Backend - النماذج (DTOs)
 
 **BackupResult**
+
 - `Success`
 - `BackupPath`
 - `BackupSizeBytes`
@@ -149,6 +176,7 @@ KasserPro-backup-20260225-142210.db
 - `ErrorMessage`
 
 **RestoreResult**
+
 - `Success`
 - `RestoredFromPath`
 - `PreRestoreBackupPath`
@@ -164,14 +192,17 @@ KasserPro-backup-20260225-142210.db
 ## 5. Frontend - API Client
 
 **المسار:**
+
 - `frontend/src/api/backupApi.ts`
 
 **الـ Endpoints:**
+
 - `createBackup` → POST `/api/admin/backup`
 - `listBackups` → GET `/api/admin/backups`
 - `restoreBackup` → POST `/api/admin/restore`
 
 **الـ Types المستخدمة:**
+
 - `BackupInfo`
 - `BackupResult`
 - `RestoreResult`
@@ -181,9 +212,11 @@ KasserPro-backup-20260225-142210.db
 ## 6. Frontend - صفحة النسخ الاحتياطي
 
 **المسار:**
+
 - `frontend/src/pages/backup/BackupPage.tsx`
 
 **الخصائص:**
+
 - عرض قائمة النسخ الاحتياطية.
 - زر إنشاء نسخة احتياطية يدوياً.
 - زر استعادة مع نافذة تأكيد.
@@ -192,6 +225,7 @@ KasserPro-backup-20260225-142210.db
   - عدد مشاكل التحقق من البيانات.
 
 **الحالات المعروضة:**
+
 - ✅ إذا لم توجد مشاكل (DataValidationIssuesFound = 0).
 - ⚠️ إذا تم اكتشاف مشاكل (DataValidationIssuesFound > 0).
 
