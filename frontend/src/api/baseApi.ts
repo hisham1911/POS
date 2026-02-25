@@ -7,7 +7,21 @@ import {
 import type { RootState } from "../store";
 import { toast } from "sonner";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Dynamic API URL: In production, use the same origin so network devices work correctly
+// In development (Vite dev server), use relative URL and let Vite proxy handle it
+const getApiUrl = (): string => {
+  // If running in development with Vite dev server, use relative path
+  // Vite proxy will forward /api/* to the backend
+  if (import.meta.env.DEV) {
+    return "/api";
+  }
+  
+  // In production, use the current page's origin
+  // This ensures network clients connect to the actual server, not localhost
+  return `${window.location.origin}/api`;
+};
+
+const API_URL = getApiUrl();
 
 // API Response type from backend
 interface ApiErrorResponse {
