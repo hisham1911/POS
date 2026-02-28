@@ -84,7 +84,6 @@ export const systemApi = baseApi.injectEndpoints({
     // Health Check (for network status monitoring)
     health: builder.query<HealthCheck, void>({
       query: () => "/system/health",
-      pollingInterval: 5000, // Poll every 5 seconds
     }),
   }),
 });

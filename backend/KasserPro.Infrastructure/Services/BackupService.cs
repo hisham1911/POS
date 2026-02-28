@@ -2,6 +2,7 @@ namespace KasserPro.Infrastructure.Services;
 
 using KasserPro.Application.DTOs.Backup;
 using KasserPro.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -18,12 +19,13 @@ public class BackupService : IBackupService
 
     public BackupService(
         ILogger<BackupService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         _logger = logger;
         _connectionString = configuration.GetConnectionString("DefaultConnection") 
             ?? throw new InvalidOperationException("DefaultConnection not configured");
-        _backupDirectory = Path.Combine(Directory.GetCurrentDirectory(), "backups");
+        _backupDirectory = Path.Combine(environment.ContentRootPath, "backups");
 
         // Ensure backup directory exists
         if (!Directory.Exists(_backupDirectory))
@@ -289,5 +291,29 @@ public class BackupService : IBackupService
             return "daily-scheduled";
         
         return "manual";
+    }
+
+    /// <summary>
+    /// Returns the full path of a backup file located in the backups directory.
+    /// Returns null if the file is not found or the name is unsafe.
+    /// </summary>
+    public Task<string?> GetBackupFilePathAsync(string fileName)
+    {
+        // Security: only plain filenames allowed (no directory traversal)
+        if (string.IsNullOrWhiteSpace(fileName) || fileName.Contains('/') || fileName.Contains('\\') || fileName.Contains(".."))
+        {
+            _logger.LogWarning("Invalid backup file name requested: {FileName}", fileName);
+            return Task.FromResult<string?>(null);
+        }
+
+        var fullPath = Path.Combine(_backupDirectory, fileName);
+
+        if (!File.Exists(fullPath))
+        {
+            _logger.LogWarning("Backup file not found for download: {FileName}", fileName);
+            return Task.FromResult<string?>(null);
+        }
+
+        return Task.FromResult<string?>(fullPath);
     }
 }

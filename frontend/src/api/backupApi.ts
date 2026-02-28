@@ -40,7 +40,7 @@ const backupApi = baseApi.injectEndpoints({
     // Create manual backup
     createBackup: builder.mutation<BackupResult, void>({
       query: () => ({
-        url: "/api/admin/backup",
+        url: "/admin/backup",
         method: "POST",
       }),
       invalidatesTags: ["Backup"],
@@ -49,18 +49,39 @@ const backupApi = baseApi.injectEndpoints({
     // List all backups
     listBackups: builder.query<BackupInfo[], void>({
       query: () => ({
-        url: "/api/admin/backups",
+        url: "/admin/backups",
         method: "GET",
       }),
       providesTags: ["Backup"],
     }),
 
-    // Restore from backup
+    // Restore from backup (existing file in server backups directory)
     restoreBackup: builder.mutation<RestoreResult, RestoreRequest>({
       query: (request) => ({
-        url: "/api/admin/restore",
+        url: "/admin/restore",
         method: "POST",
         body: request,
+      }),
+      invalidatesTags: ["Backup"],
+    }),
+
+    // Download a backup file to the client machine
+    downloadBackup: builder.mutation<Blob, string>({
+      query: (fileName) => ({
+        url: `/admin/backup/${encodeURIComponent(fileName)}/download`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+
+    // Restore from an uploaded backup file (from client machine)
+    restoreFromUpload: builder.mutation<RestoreResult, FormData>({
+      query: (formData) => ({
+        url: "/admin/restore/upload",
+        method: "POST",
+        body: formData,
+        // Do NOT set Content-Type header; browser sets it with boundary for multipart
+        formData: true,
       }),
       invalidatesTags: ["Backup"],
     }),
@@ -71,4 +92,6 @@ export const {
   useCreateBackupMutation,
   useListBackupsQuery,
   useRestoreBackupMutation,
+  useDownloadBackupMutation,
+  useRestoreFromUploadMutation,
 } = backupApi;

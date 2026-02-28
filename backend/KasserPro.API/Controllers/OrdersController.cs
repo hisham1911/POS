@@ -133,7 +133,9 @@ public class OrdersController : ControllerBase
                         AmountDue = order.AmountDue,
                         PaymentMethod = order.Payments.FirstOrDefault()?.Method ?? "Cash",
                         CashierName = order.UserName ?? userName,
-                        CustomerName = order.CustomerName ?? ""
+                        CustomerName = order.CustomerName ?? "",
+                        IsRefund = false,
+                        RefundReason = (string?)null
                     },
                     Settings = tenant != null ? new
                     {
@@ -215,6 +217,104 @@ public class OrdersController : ControllerBase
 
         var result = await _orderService.RefundAsync(id, userId, request?.Reason, refundItems);
         return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Print receipt for an existing order
+    /// </summary>
+    [HttpPost("{id}/print")]
+    [HasPermission(Permission.OrdersView)]
+    public async Task<IActionResult> PrintReceipt(int id)
+    {
+        var orderResult = await _orderService.GetByIdAsync(id);
+        if (!orderResult.Success || orderResult.Data == null)
+            return NotFound(orderResult);
+
+        var order = orderResult.Data;
+
+        // Only print completed orders
+        if (order.Status != "Completed" && order.Status != "PartiallyRefunded" && order.Status != "Refunded")
+            return BadRequest(new { Success = false, Message = "يمكن طباعة الطلبات المكتملة فقط" });
+
+        try
+        {
+            var userName = User.FindFirst("name")?.Value ?? "Cashier";
+
+            // Get tenant settings for receipt configuration
+            var tenantResult = await _tenantService.GetCurrentTenantAsync();
+            var tenant = tenantResult.Data;
+
+            var printCommand = new
+            {
+                CommandId = Guid.NewGuid().ToString(),
+                Receipt = new
+                {
+                    ReceiptNumber = order.OrderNumber,
+                    BranchName = order.BranchName ?? "KasserPro Store",
+                    Date = ConvertToLocalTime(order.CompletedAt ?? order.CreatedAt, tenant?.Timezone),
+                    Items = order.Items.Select(item => new
+                    {
+                        Name = item.ProductName,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        TotalPrice = item.Total
+                    }).ToList(),
+                    NetTotal = order.Subtotal,
+                    TaxAmount = order.TaxAmount,
+                    TotalAmount = order.Total,
+                    AmountPaid = order.AmountPaid,
+                    ChangeAmount = order.ChangeAmount,
+                    AmountDue = order.AmountDue,
+                    PaymentMethod = order.Payments.FirstOrDefault()?.Method ?? "Cash",
+                    CashierName = order.UserName ?? userName,
+                    CustomerName = order.CustomerName ?? "",
+                    IsRefund = order.Status == "Refunded" || order.Status == "PartiallyRefunded" || order.OrderType == "Return",
+                    RefundReason = order.RefundReason ?? (order.OrderType == "Return" ? "ارجاع بضاعة" : null)
+                },
+                Settings = tenant != null ? new
+                {
+                    PaperSize = tenant.ReceiptPaperSize,
+                    CustomWidth = tenant.ReceiptCustomWidth,
+                    HeaderFontSize = tenant.ReceiptHeaderFontSize,
+                    BodyFontSize = tenant.ReceiptBodyFontSize,
+                    TotalFontSize = tenant.ReceiptTotalFontSize,
+                    ShowBranchName = tenant.ReceiptShowBranchName,
+                    ShowCashier = tenant.ReceiptShowCashier,
+                    ShowThankYou = tenant.ReceiptShowThankYou,
+                    ShowCustomerName = tenant.ReceiptShowCustomerName,
+                    ShowLogo = tenant.ReceiptShowLogo,
+                    FooterMessage = tenant.ReceiptFooterMessage,
+                    PhoneNumber = tenant.ReceiptPhoneNumber,
+                    LogoUrl = tenant.LogoUrl,
+                    TaxRate = tenant.TaxRate,
+                    IsTaxEnabled = tenant.IsTaxEnabled
+                } : (object?)null
+            };
+
+            // Send receipt to branch group AND default group to ensure delivery
+            var branchId = User.FindFirst("branchId")?.Value ?? "default";
+            var branchGroup = $"branch-{branchId}";
+
+            // Send to specific branch group
+            await _hubContext.Clients.Group(branchGroup)
+                .SendAsync("PrintReceipt", printCommand);
+
+            // Also send to default group as fallback (for devices without branch config)
+            if (branchGroup != "branch-default")
+            {
+                await _hubContext.Clients.Group("branch-default")
+                    .SendAsync("PrintReceipt", printCommand);
+            }
+
+            _logger.LogInformation("Print command sent for order {OrderId} to branch group {BranchId}", order.Id, branchId);
+
+            return Ok(new { Success = true, Message = "تم إرسال أمر الطباعة بنجاح" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send print command for order {OrderId}", id);
+            return StatusCode(500, new { Success = false, Message = "فشل إرسال أمر الطباعة" });
+        }
     }
 
     /// <summary>

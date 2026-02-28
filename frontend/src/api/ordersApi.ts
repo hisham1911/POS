@@ -181,6 +181,14 @@ export const ordersApi = baseApi.injectEndpoints({
         "Shifts",
       ],
     }),
+
+    // طباعة فاتورة الطلب
+    printReceipt: builder.mutation<ApiResponse<{ message: string }>, number>({
+      query: (orderId) => ({
+        url: `/orders/${orderId}/print`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -195,4 +203,5 @@ export const {
   useCompleteOrderMutation,
   useCancelOrderMutation,
   useRefundOrderMutation,
+  usePrintReceiptMutation,
 } = ordersApi;

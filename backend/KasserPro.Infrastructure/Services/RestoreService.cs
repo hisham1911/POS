@@ -66,14 +66,24 @@ public class RestoreService : IRestoreService
             // Step 1: Validate backup file exists
             if (!File.Exists(backupPath))
             {
-                _logger.LogError("Backup file not found: {BackupPath}", backupPath);
-                return new RestoreResult
+                // Fallback: check bin/Debug/net8.0/backups for old backups
+                var fallbackPath = Path.Combine(Directory.GetCurrentDirectory(), "backups", backupFileName);
+                if (File.Exists(fallbackPath))
                 {
-                    Success = false,
-                    ErrorMessage = "ملف النسخة الاحتياطية غير موجود",
-                    RestoreTimestamp = timestamp,
-                    MaintenanceModeEnabled = false
-                };
+                    backupPath = fallbackPath;
+                    _logger.LogInformation("Using fallback backup location: {BackupPath}", backupPath);
+                }
+                else
+                {
+                    _logger.LogError("Backup file not found: {BackupPath}", backupPath);
+                    return new RestoreResult
+                    {
+                        Success = false,
+                        ErrorMessage = "ملف النسخة الاحتياطية غير موجود",
+                        RestoreTimestamp = timestamp,
+                        MaintenanceModeEnabled = false
+                    };
+                }
             }
 
             // Step 2: Run integrity check on backup
@@ -352,5 +362,49 @@ public class RestoreService : IRestoreService
             _logger.LogError(ex, "Integrity check error: {BackupPath}", backupPath);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Restores database from an externally uploaded file.
+    /// The file is copied to the backups directory first then the standard restore flow is used.
+    /// </summary>
+    public async Task<RestoreResult> RestoreFromExternalFileAsync(string uploadedFilePath)
+    {
+        var timestamp = DateTime.UtcNow;
+
+        if (string.IsNullOrWhiteSpace(uploadedFilePath) || !File.Exists(uploadedFilePath))
+        {
+            return new RestoreResult
+            {
+                Success = false,
+                ErrorMessage = "ملف الاستعادة غير موجود أو المسار غير صحيح",
+                RestoreTimestamp = timestamp,
+                MaintenanceModeEnabled = false
+            };
+        }
+
+        // Copy uploaded file to backups directory with a recognisable external-upload name
+        var importedFileName = $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-external-upload.db";
+        var importedPath = Path.Combine(_backupDirectory, importedFileName);
+
+        try
+        {
+            File.Copy(uploadedFilePath, importedPath, overwrite: true);
+            _logger.LogInformation("External backup file copied to backups directory: {FileName}", importedFileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to copy uploaded backup file to backups directory");
+            return new RestoreResult
+            {
+                Success = false,
+                ErrorMessage = $"فشل نسخ الملف المرفوع: {ex.Message}",
+                RestoreTimestamp = timestamp,
+                MaintenanceModeEnabled = false
+            };
+        }
+
+        // Run the standard restore flow against the copied file
+        return await RestoreFromBackupAsync(importedFileName);
     }
 }

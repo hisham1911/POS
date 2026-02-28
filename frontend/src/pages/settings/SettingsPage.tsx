@@ -22,6 +22,8 @@ import {
   Check,
   Shield,
   ChevronLeft,
+  ShoppingCart,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -36,6 +38,7 @@ import { Button } from "@/components/common/Button";
 import { Loading } from "@/components/common/Loading";
 import { toast } from "sonner";
 import clsx from "clsx";
+import { usePOSMode } from "@/hooks/usePOSMode";
 
 export const SettingsPage = () => {
   const dispatch = useAppDispatch();
@@ -43,6 +46,9 @@ export const SettingsPage = () => {
   const [updateTenant, { isLoading: isUpdating }] =
     useUpdateCurrentTenantMutation();
   const [uploadLogo, { isLoading: isUploading }] = useUploadLogoMutation();
+  
+  // POS Mode
+  const { mode, setMode } = usePOSMode();
   
   // System Info & Network Status
   const { data: systemData } = useGetSystemInfoQuery();
@@ -274,6 +280,142 @@ export const SettingsPage = () => {
             </div>
           </div>
         </Link>
+
+        {/* POS Mode Settings Card */}
+        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <ShoppingCart className="w-5 h-5 text-gray-500" />
+            <span>وضع نقطة البيع</span>
+          </div>
+
+          <p className="text-sm text-gray-600">
+            اختر الوضع المناسب لطريقة عملك. يمكنك التبديل بين الأوضاع في أي وقت.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Cashier Mode */}
+            <button
+              onClick={() => {
+                setMode("cashier");
+                toast.success("تم التبديل إلى وضع الكاشير");
+              }}
+              className={clsx(
+                "p-6 rounded-xl border-2 transition-all text-right",
+                mode === "cashier"
+                  ? "border-primary-500 bg-primary-50 shadow-md"
+                  : "border-gray-200 hover:border-gray-300 bg-white"
+              )}
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div
+                  className={clsx(
+                    "p-3 rounded-lg",
+                    mode === "cashier" ? "bg-primary-100" : "bg-gray-100"
+                  )}
+                >
+                  <ShoppingCart
+                    className={clsx(
+                      "w-6 h-6",
+                      mode === "cashier" ? "text-primary-600" : "text-gray-600"
+                    )}
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-1">وضع الكاشير</h3>
+                  {mode === "cashier" && (
+                    <span className="inline-block px-2 py-1 bg-primary-200 text-primary-800 text-xs rounded-full font-medium">
+                      النشط حالياً
+                    </span>
+                  )}
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary-600 mt-0.5">✓</span>
+                  <span>بطاقات كبيرة للمنتجات</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary-600 mt-0.5">✓</span>
+                  <span>مناسب للمطاعم والمحلات الكبيرة</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary-600 mt-0.5">✓</span>
+                  <span>تصميم مرئي وجذاب</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary-600 mt-0.5">✓</span>
+                  <span>سهل الاستخدام</span>
+                </li>
+              </ul>
+            </button>
+
+            {/* Standard Mode */}
+            <button
+              onClick={() => {
+                setMode("standard");
+                toast.success("تم التبديل إلى الوضع الأساسي");
+              }}
+              className={clsx(
+                "p-6 rounded-xl border-2 transition-all text-right",
+                mode === "standard"
+                  ? "border-blue-500 bg-blue-50 shadow-md"
+                  : "border-gray-200 hover:border-gray-300 bg-white"
+              )}
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div
+                  className={clsx(
+                    "p-3 rounded-lg",
+                    mode === "standard" ? "bg-blue-100" : "bg-gray-100"
+                  )}
+                >
+                  <Sparkles
+                    className={clsx(
+                      "w-6 h-6",
+                      mode === "standard" ? "text-blue-600" : "text-gray-600"
+                    )}
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-1">الوضع الأساسي</h3>
+                  {mode === "standard" && (
+                    <span className="inline-block px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full font-medium">
+                      النشط حالياً
+                    </span>
+                  )}
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-0.5">✓</span>
+                  <span>تصميم نظيف ومبتكر</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-0.5">✓</span>
+                  <span>قائمة منتجات مضغوطة</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-0.5">✓</span>
+                  <span>بحث سريع وذكي</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 mt-0.5">✓</span>
+                  <span>مناسب للبيع السريع</span>
+                </li>
+              </ul>
+            </button>
+          </div>
+
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2 text-sm text-blue-800">
+              <Sparkles className="w-5 h-5 mt-0.5 shrink-0" />
+              <p>
+                <strong>نصيحة:</strong> جرب كلا الوضعين واختر الأنسب لك. التغيير فوري
+                ويظهر مباشرة في صفحة نقطة البيع.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Company Info Card */}
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">

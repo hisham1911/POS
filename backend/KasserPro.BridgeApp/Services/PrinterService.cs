@@ -96,6 +96,17 @@ public class PrinterService : IPrinterService
         {
             var printDoc = new PrintDocument();
             printDoc.PrinterSettings.PrinterName = printerName;
+            
+            // Set default document name (used when printing to PDF)
+            printDoc.DocumentName = receipt.ReceiptNumber;
+            
+            // Also set PrintFileName for better compatibility with Print to PDF
+            if (printerName.Contains("PDF", StringComparison.OrdinalIgnoreCase) || 
+                printerName.Contains("XPS", StringComparison.OrdinalIgnoreCase))
+            {
+                var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                printDoc.PrinterSettings.PrintFileName = System.IO.Path.Combine(documentsPath, $"{receipt.ReceiptNumber}.pdf");
+            }
 
             // Set paper size based on server settings
             float paperWidth = rs.PaperSize switch
@@ -200,6 +211,14 @@ public class PrinterService : IPrinterService
                 DrawRow("فاتورة رقم", receipt.ReceiptNumber, font);
                 DrawCenter(receipt.Date.ToString("dd/MM/yyyy  hh:mm tt"), font);
 
+                // ========== REFUND INDICATOR ==========
+                if (receipt.IsRefund)
+                {
+                    y += 4;
+                    DrawCenter("*** فاتورة ارجاع ***", fontHeader);
+                    y += 2;
+                }
+
                 DrawDash();
 
                 // ========== 3. CASHIER, CUSTOMER & PAYMENT ==========
@@ -222,29 +241,38 @@ public class PrinterService : IPrinterService
                 // ========== 4. ITEMS ==========
                 foreach (var item in receipt.Items)
                 {
-                    DrawRow($"{item.Name} × {item.Quantity:F0}", $"{item.TotalPrice:F0} ج.م", font);
+                    // For refunds, show absolute values (positive numbers)
+                    var displayQuantity = receipt.IsRefund ? Math.Abs(item.Quantity) : item.Quantity;
+                    var displayPrice = receipt.IsRefund ? Math.Abs(item.TotalPrice) : item.TotalPrice;
+                    DrawRow($"{item.Name} × {displayQuantity:F0}", $"{displayPrice:F0} ج.م", font);
                 }
 
                 DrawDash();
 
                 // ========== 5. TOTALS ==========
-                DrawRow("المجموع", $"{receipt.NetTotal:F2} ج.م", font);
+                // For refunds, show absolute values (positive numbers)
+                var displayNetTotal = receipt.IsRefund ? Math.Abs(receipt.NetTotal) : receipt.NetTotal;
+                var displayTaxAmount = receipt.IsRefund ? Math.Abs(receipt.TaxAmount) : receipt.TaxAmount;
+                var displayTotalAmount = receipt.IsRefund ? Math.Abs(receipt.TotalAmount) : receipt.TotalAmount;
 
-                if (receipt.TaxAmount > 0 && rs.IsTaxEnabled)
+                DrawRow("المجموع", $"{displayNetTotal:F2} ج.م", font);
+
+                if (Math.Abs(receipt.TaxAmount) > 0 && rs.IsTaxEnabled)
                 {
-                    DrawRow($"الضريبة ({rs.TaxRate:F0}%)", $"{receipt.TaxAmount:F2} ج.م", font);
+                    DrawRow($"الضريبة ({rs.TaxRate:F0}%)", $"{displayTaxAmount:F2} ج.م", font);
                 }
 
                 var discount = receipt.NetTotal - receipt.TotalAmount + receipt.TaxAmount;
-                if (discount > 0)
+                if (Math.Abs(discount) > 0)
                 {
-                    DrawRow("الخصم", $"-{discount:F2} ج.م", font);
+                    var displayDiscount = Math.Abs(discount);
+                    DrawRow("الخصم", $"-{displayDiscount:F2} ج.م", font);
                 }
 
                 DrawDash();
 
                 // Total - bold and bigger
-                DrawRow("الإجمالي", $"{receipt.TotalAmount:F2} ج.م", fontTotal);
+                DrawRow("الإجمالي", $"{displayTotalAmount:F2} ج.م", fontTotal);
 
                 // ========== 6. PAYMENT AMOUNTS ==========
                 // Amount paid and change/due

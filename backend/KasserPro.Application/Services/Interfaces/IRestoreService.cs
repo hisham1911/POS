@@ -19,4 +19,12 @@ public interface IRestoreService
     /// <param name="backupFileName">Name of backup file in backups directory</param>
     /// <returns>Restore result with status and metadata</returns>
     Task<RestoreResult> RestoreFromBackupAsync(string backupFileName);
+
+    /// <summary>
+    /// Restores database from an externally uploaded file (full path)
+    /// Uses the same flow as RestoreFromBackupAsync
+    /// </summary>
+    /// <param name="uploadedFilePath">Absolute path to the uploaded backup file</param>
+    /// <returns>Restore result with status and metadata</returns>
+    Task<RestoreResult> RestoreFromExternalFileAsync(string uploadedFilePath);
 }

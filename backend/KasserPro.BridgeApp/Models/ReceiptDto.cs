@@ -33,6 +33,10 @@ public class ReceiptDto
     public string CashierName { get; set; } = string.Empty;
     [JsonPropertyName("customerName")]
     public string CustomerName { get; set; } = string.Empty;
+    [JsonPropertyName("isRefund")]
+    public bool IsRefund { get; set; } = false;
+    [JsonPropertyName("refundReason")]
+    public string? RefundReason { get; set; }
 }
 
 /// <summary>

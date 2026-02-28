@@ -24,6 +24,11 @@ public interface IBackupService
     /// Lists all available backups
     /// </summary>
     Task<List<BackupInfo>> ListBackupsAsync();
+
+    /// <summary>
+    /// Gets the full path of a backup file for download
+    /// </summary>
+    Task<string?> GetBackupFilePathAsync(string fileName);
 }
 
 /// <summary>

@@ -474,6 +474,13 @@
 				"$msCompile"
 			],
 			"group": "build"
+		},
+		{
+			"label": "verify-frontend-build",
+			"type": "shell",
+			"command": "cd frontend; npm run build",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

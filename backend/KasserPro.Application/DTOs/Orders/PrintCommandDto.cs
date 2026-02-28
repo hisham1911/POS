@@ -50,6 +50,8 @@ public class ReceiptDto
     public string PaymentMethod { get; set; } = string.Empty;
     public string CashierName { get; set; } = string.Empty;
     public string? CustomerName { get; set; }
+    public bool IsRefund { get; set; } = false;
+    public string? RefundReason { get; set; }
 }
 
 /// <summary>

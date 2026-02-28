@@ -632,6 +632,30 @@ Response: 200 OK with updated OrderDto
 Note: Only works if order.status != 'Completed'
 ```
 
+#### POST /api/orders/{id}/print
+
+طباعة فاتورة لطلب موجود (يستخدم نفس نظام الطباعة الحراري في POS)
+
+```typescript
+// Request: No body required
+// Response:
+interface PrintResponse {
+  success: boolean;
+  message: string;
+}
+```
+
+**Validation Rules:**
+- Order must exist (`ORDER_NOT_FOUND`)
+- Order status must be `Completed`, `PartiallyRefunded`, or `Refunded`
+- User must have `OrdersView` permission
+
+**Behavior:**
+- يرسل أمر الطباعة عبر SignalR إلى Bridge App
+- يستخدم نفس إعدادات الطباعة من Tenant
+- يطبع على الطابعة الحرارية المتصلة بالجهاز
+- يدعم إعادة طباعة الفواتير القديمة
+
 ---
 
 ### 5. Shifts

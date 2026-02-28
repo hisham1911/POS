@@ -7,6 +7,8 @@ import { Button } from "@/components/common/Button";
 import { RefundModal } from "./RefundModal";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
+import { usePrintReceiptMutation } from "@/api/ordersApi";
+import { toast } from "sonner";
 import clsx from "clsx";
 
 interface OrderDetailsModalProps {
@@ -20,6 +22,7 @@ export const OrderDetailsModal = ({
 }: OrderDetailsModalProps) => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const user = useAppSelector(selectCurrentUser);
+  const [printReceipt, { isLoading: isPrinting }] = usePrintReceiptMutation();
 
   // Only Admin or SystemOwner can refund - can also do additional partial refund on PartiallyRefunded orders
   const canRefund =
@@ -30,8 +33,14 @@ export const OrderDetailsModal = ({
   const isPartiallyRefunded = order.status === "PartiallyRefunded";
   const hasRefund = isFullyRefunded || isPartiallyRefunded;
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      await printReceipt(order.id).unwrap();
+      toast.success("تم إرسال أمر الطباعة بنجاح");
+    } catch (error) {
+      toast.error("فشل إرسال أمر الطباعة");
+      console.error("Print error:", error);
+    }
   };
 
   return (
@@ -56,7 +65,13 @@ export const OrderDetailsModal = ({
                 <RotateCcw className="w-4 h-4" />
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              disabled={isPrinting}
+              title="طباعة الفاتورة"
+            >
               <Printer className="w-4 h-4" />
             </Button>
             <button
