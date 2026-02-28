@@ -66,3 +66,13 @@ export interface ProductsQueryParams {
   isActive?: boolean;
   lowStock?: boolean;
 }
+
+export interface QuickCreateProductRequest {
+  name: string;
+  price: number;
+  categoryId: number;
+  trackInventory?: boolean;
+  initialStock?: number;
+  sku?: string;
+  barcode?: string;
+}

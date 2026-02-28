@@ -70,4 +70,15 @@ public class ProductsController : ControllerBase
         var result = await _productService.AdjustStockAsync(id, request);
         return result.Success ? Ok(result) : BadRequest(result);
     }
+
+    /// <summary>
+    /// Quick create product from POS - simplified product creation for cashiers
+    /// </summary>
+    [HttpPost("quick-create")]
+    [HasPermission(Permission.ProductsCreateFromPOS)]
+    public async Task<IActionResult> QuickCreate([FromBody] QuickCreateProductRequest request)
+    {
+        var result = await _productService.QuickCreateAsync(request);
+        return result.Success ? CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result) : BadRequest(result);
+    }
 }

@@ -518,9 +518,15 @@ public class OrderService : IOrderService
                 }
             }
             
-            // Decrement stock for all items in the order
+            // Decrement stock ONLY for products that track inventory
+            // Fetch all products in one query for performance
+            var productIds = order.Items.Where(i => i.ProductId > 0).Select(i => i.ProductId).Distinct().ToList();
+            var products = await _unitOfWork.Products.Query()
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p);
+            
             var stockItems = order.Items
-                .Where(i => i.ProductId > 0)
+                .Where(i => i.ProductId > 0 && products.ContainsKey(i.ProductId) && products[i.ProductId].TrackInventory)
                 .Select(i => (i.ProductId, i.Quantity))
                 .ToList();
             
@@ -712,21 +718,25 @@ public class OrderService : IOrderService
                     };
                     returnOrder.Items.Add(returnItem);
 
-                    // Restore stock
+                    // Restore stock ONLY if product tracks inventory
                     if (orderItem.ProductId > 0)
                     {
-                        var currentStock = await _inventoryService.GetCurrentStockAsync(orderItem.ProductId);
-                        var newStock = await _inventoryService.IncrementStockAsync(orderItem.ProductId, refundItem.Quantity, originalOrder.Id);
-                        
-                        stockChanges.Add(new 
-                        { 
-                            ProductId = orderItem.ProductId, 
-                            ProductName = orderItem.ProductName,
-                            Quantity = refundItem.Quantity,
-                            BalanceBefore = currentStock, 
-                            BalanceAfter = newStock,
-                            Reason = refundItem.Reason ?? refundReason
-                        });
+                        var product = await _unitOfWork.Products.GetByIdAsync(orderItem.ProductId);
+                        if (product != null && product.TrackInventory)
+                        {
+                            var currentStock = await _inventoryService.GetCurrentStockAsync(orderItem.ProductId);
+                            var newStock = await _inventoryService.IncrementStockAsync(orderItem.ProductId, refundItem.Quantity, originalOrder.Id);
+                            
+                            stockChanges.Add(new 
+                            { 
+                                ProductId = orderItem.ProductId, 
+                                ProductName = orderItem.ProductName,
+                                Quantity = refundItem.Quantity,
+                                BalanceBefore = currentStock, 
+                                BalanceAfter = newStock,
+                                Reason = refundItem.Reason ?? refundReason
+                            });
+                        }
                     }
 
                     // Build combined reason
@@ -770,20 +780,24 @@ public class OrderService : IOrderService
                     };
                     returnOrder.Items.Add(returnItem);
 
-                    // Restore stock
+                    // Restore stock ONLY if product tracks inventory
                     if (item.ProductId > 0 && item.Quantity > 0)
                     {
-                        var currentStock = await _inventoryService.GetCurrentStockAsync(item.ProductId);
-                        var newStock = await _inventoryService.IncrementStockAsync(item.ProductId, item.Quantity, originalOrder.Id);
-                        
-                        stockChanges.Add(new 
-                        { 
-                            ProductId = item.ProductId, 
-                            ProductName = item.ProductName,
-                            Quantity = item.Quantity, 
-                            BalanceBefore = currentStock, 
-                            BalanceAfter = newStock 
-                        });
+                        var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                        if (product != null && product.TrackInventory)
+                        {
+                            var currentStock = await _inventoryService.GetCurrentStockAsync(item.ProductId);
+                            var newStock = await _inventoryService.IncrementStockAsync(item.ProductId, item.Quantity, originalOrder.Id);
+                            
+                            stockChanges.Add(new 
+                            { 
+                                ProductId = item.ProductId, 
+                                ProductName = item.ProductName,
+                                Quantity = item.Quantity, 
+                                BalanceBefore = currentStock, 
+                                BalanceAfter = newStock 
+                            });
+                        }
                     }
                 }
 

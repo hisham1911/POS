@@ -5,8 +5,9 @@ import { CategoryTabs } from "@/components/pos/CategoryTabs";
 import { Cart } from "@/components/pos/Cart";
 import { PaymentModal } from "@/components/pos/PaymentModal";
 import { LowStockAlert } from "@/components/pos/LowStockAlert";
+import { ProductQuickCreateModal } from "@/components/pos/ProductQuickCreateModal";
 import { Loading } from "@/components/common/Loading";
-import { Menu, ScanBarcode, PackageCheck, AlertCircle } from "lucide-react";
+import { Menu, ScanBarcode, PackageCheck, AlertCircle, PlusCircle } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useShift } from "@/hooks/useShift";
 import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
@@ -22,6 +23,7 @@ export const POSPage = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
@@ -207,6 +209,16 @@ export const POSPage = () => {
               <PackageCheck className="w-4 h-4" />
               <span className="hidden sm:inline">المتاح فقط</span>
             </button>
+
+            {/* Quick Create Product */}
+            <button
+              onClick={() => setShowQuickCreate(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700"
+              title="إضافة منتج سريع"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">منتج جديد</span>
+            </button>
           </div>
 
           {/* Mobile cart toggle */}
@@ -264,6 +276,17 @@ export const POSPage = () => {
           onClose={() => setShowPayment(false)}
           selectedCustomer={selectedCustomer}
           onOrderComplete={() => setSelectedCustomer(null)}
+        />
+      )}
+
+      {/* Quick Create Product Modal */}
+      {showQuickCreate && (
+        <ProductQuickCreateModal
+          onClose={() => setShowQuickCreate(false)}
+          onSuccess={(productId) => {
+            toast.success("تم إضافة المنتج بنجاح");
+            // Optionally add to cart immediately
+          }}
         />
       )}
     </div>

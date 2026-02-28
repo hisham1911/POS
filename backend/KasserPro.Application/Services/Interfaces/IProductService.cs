@@ -11,4 +11,5 @@ public interface IProductService
     Task<ApiResponse<ProductDto>> UpdateAsync(int id, UpdateProductRequest request);
     Task<ApiResponse<bool>> DeleteAsync(int id);
     Task<ApiResponse<StockAdjustResultDto>> AdjustStockAsync(int id, AdjustStockRequest request);
+    Task<ApiResponse<ProductDto>> QuickCreateAsync(QuickCreateProductRequest request);
 }

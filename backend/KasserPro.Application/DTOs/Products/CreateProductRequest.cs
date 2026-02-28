@@ -17,6 +17,7 @@ public class CreateProductRequest
     public bool TaxInclusive { get; set; } = true;
     
     // Inventory fields
+    public bool TrackInventory { get; set; } = true;
     public int StockQuantity { get; set; } = 0;
     public int LowStockThreshold { get; set; } = 5;
     public int? ReorderPoint { get; set; }

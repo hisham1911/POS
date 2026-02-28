@@ -145,8 +145,8 @@ public class ProductService : IProductService
             // Tax settings
             TaxRate = request.TaxRate,
             TaxInclusive = request.TaxInclusive,
-            // Inventory fields - always track inventory
-            TrackInventory = true,
+            // Inventory fields - use request value
+            TrackInventory = request.TrackInventory,
             StockQuantity = 0, // Set to 0, actual stock will be in BranchInventory
             LowStockThreshold = request.LowStockThreshold,
             ReorderPoint = request.ReorderPoint,
@@ -156,32 +156,35 @@ public class ProductService : IProductService
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
-        // Create BranchInventory records for all branches of this tenant
-        var branches = await _unitOfWork.Branches.Query()
-            .Where(b => b.TenantId == _currentUser.TenantId)
-            .ToListAsync();
-
-        foreach (var branch in branches)
+        // Create BranchInventory records ONLY if TrackInventory is enabled
+        if (product.TrackInventory)
         {
-            // Use branch-specific quantity if provided, otherwise use default
-            var quantity = request.BranchStockQuantities?.ContainsKey(branch.Id) == true
-                ? request.BranchStockQuantities[branch.Id]
-                : request.StockQuantity;
+            var branches = await _unitOfWork.Branches.Query()
+                .Where(b => b.TenantId == _currentUser.TenantId)
+                .ToListAsync();
 
-            var branchInventory = new BranchInventory
+            foreach (var branch in branches)
             {
-                TenantId = _currentUser.TenantId,
-                BranchId = branch.Id,
-                ProductId = product.Id,
-                Quantity = quantity,
-                ReorderLevel = request.LowStockThreshold,
-                LastUpdatedAt = DateTime.UtcNow
-            };
+                // Use branch-specific quantity if provided, otherwise use default
+                var quantity = request.BranchStockQuantities?.ContainsKey(branch.Id) == true
+                    ? request.BranchStockQuantities[branch.Id]
+                    : request.StockQuantity;
 
-            await _unitOfWork.BranchInventories.AddAsync(branchInventory);
+                var branchInventory = new BranchInventory
+                {
+                    TenantId = _currentUser.TenantId,
+                    BranchId = branch.Id,
+                    ProductId = product.Id,
+                    Quantity = quantity,
+                    ReorderLevel = request.LowStockThreshold,
+                    LastUpdatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.BranchInventories.AddAsync(branchInventory);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
-
-        await _unitOfWork.SaveChangesAsync();
 
         return ApiResponse<ProductDto>.Ok(new ProductDto
         {
@@ -229,8 +232,8 @@ public class ProductService : IProductService
         // Tax settings
         product.TaxRate = request.TaxRate;
         product.TaxInclusive = request.TaxInclusive;
-        // Inventory fields
-        product.TrackInventory = true;
+        // Inventory fields - use request value
+        product.TrackInventory = request.TrackInventory;
         product.StockQuantity = 0; // Keep at 0, use BranchInventory
         product.LowStockThreshold = request.LowStockThreshold;
         product.ReorderPoint = request.ReorderPoint;
@@ -296,5 +299,97 @@ public class ProductService : IProductService
             PreviousBalance = previousBalance,
             Change = request.Quantity
         }, "تم تعديل المخزون بنجاح");
+    }
+
+    public async Task<ApiResponse<ProductDto>> QuickCreateAsync(QuickCreateProductRequest request)
+    {
+        // Use transaction for atomicity
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        
+        try
+        {
+            // Validation: Name is required
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return ApiResponse<ProductDto>.Fail("اسم المنتج مطلوب");
+            
+            if (request.Name.Length > 200)
+                return ApiResponse<ProductDto>.Fail("اسم المنتج يجب ألا يتجاوز 200 حرف");
+
+            // Validation: Price must be non-negative
+            if (request.Price < 0)
+                return ApiResponse<ProductDto>.Fail("السعر يجب أن يكون أكبر من أو يساوي صفر");
+            
+            // Validation: InitialStock must be non-negative
+            if (request.InitialStock < 0)
+                return ApiResponse<ProductDto>.Fail("الكمية الأولية يجب أن تكون أكبر من أو تساوي صفر");
+
+            // Validation: Category must exist
+            var category = await _unitOfWork.Categories.GetByIdAsync(request.CategoryId);
+            if (category == null)
+                return ApiResponse<ProductDto>.Fail("التصنيف غير موجود");
+
+            var product = new Product
+            {
+                TenantId = _currentUser.TenantId,
+                Name = request.Name,
+                Sku = request.Sku,
+                Barcode = request.Barcode,
+                Price = request.Price,
+                CategoryId = request.CategoryId,
+                // Quick create defaults
+                IsActive = true,
+                TrackInventory = request.TrackInventory,
+                StockQuantity = 0,
+                LowStockThreshold = 5,
+                TaxInclusive = false, // Default to tax exclusive
+                LastStockUpdate = DateTime.UtcNow
+            };
+
+            await _unitOfWork.Products.AddAsync(product);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Create BranchInventory records ONLY if TrackInventory is enabled
+            if (product.TrackInventory)
+            {
+                var branches = await _unitOfWork.Branches.Query()
+                    .Where(b => b.TenantId == _currentUser.TenantId)
+                    .ToListAsync();
+
+                foreach (var branch in branches)
+                {
+                    var branchInventory = new BranchInventory
+                    {
+                        TenantId = _currentUser.TenantId,
+                        BranchId = branch.Id,
+                        ProductId = product.Id,
+                        Quantity = request.InitialStock,
+                        ReorderLevel = 5,
+                        LastUpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _unitOfWork.BranchInventories.AddAsync(branchInventory);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            return ApiResponse<ProductDto>.Ok(new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                TrackInventory = product.TrackInventory,
+                IsActive = product.IsActive,
+                CategoryId = product.CategoryId,
+                StockQuantity = request.InitialStock
+            }, "تم إنشاء المنتج بنجاح");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return ApiResponse<ProductDto>.Fail($"حدث خطأ أثناء إنشاء المنتج: {ex.Message}");
+        }
     }
 }

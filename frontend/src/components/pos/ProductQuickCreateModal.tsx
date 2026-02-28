@@ -1,0 +1,244 @@
+import { useState } from "react";
+import { X, Package, DollarSign, Tag, Hash, Barcode } from "lucide-react";
+import { useQuickCreateProductMutation } from "@/api/productsApi";
+import { useCategories } from "@/hooks/useProducts";
+import { toast } from "sonner";
+import { QuickCreateProductRequest } from "@/types/product.types";
+
+interface ProductQuickCreateModalProps {
+  onClose: () => void;
+  onSuccess?: (productId: number) => void;
+  initialName?: string;
+}
+
+export const ProductQuickCreateModal = ({
+  onClose,
+  onSuccess,
+  initialName = "",
+}: ProductQuickCreateModalProps) => {
+  const [formData, setFormData] = useState<QuickCreateProductRequest>({
+    name: initialName,
+    price: 0,
+    categoryId: 0,
+    trackInventory: false,
+    initialStock: 0,
+    sku: "",
+    barcode: "",
+  });
+
+  const [quickCreate, { isLoading }] = useQuickCreateProductMutation();
+  const { categories } = useCategories();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      toast.error("الرجاء إدخال اسم المنتج");
+      return;
+    }
+
+    if (formData.price <= 0) {
+      toast.error("الرجاء إدخال سعر صحيح");
+      return;
+    }
+
+    if (!formData.categoryId) {
+      toast.error("الرجاء اختيار التصنيف");
+      return;
+    }
+
+    try {
+      const result = await quickCreate(formData).unwrap();
+      
+      if (result.success && result.data) {
+        toast.success(`تم إضافة المنتج: ${result.data.name}`);
+        onSuccess?.(result.data.id);
+        onClose();
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "فشل في إضافة المنتج");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+              <Package className="w-5 h-5 text-primary-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">إضافة منتج سريع</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              اسم المنتج *
+            </label>
+            <div className="relative">
+              <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="مثال: قهوة تركي"
+                required
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {/* Price */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              السعر *
+            </label>
+            <div className="relative">
+              <DollarSign className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.price || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })
+                }
+                className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              التصنيف *
+            </label>
+            <select
+              value={formData.categoryId}
+              onChange={(e) =>
+                setFormData({ ...formData, categoryId: parseInt(e.target.value) })
+              }
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              required
+            >
+              <option value="">اختر التصنيف</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Track Inventory */}
+          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+            <input
+              type="checkbox"
+              id="trackInventory"
+              checked={formData.trackInventory}
+              onChange={(e) =>
+                setFormData({ ...formData, trackInventory: e.target.checked })
+              }
+              className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="trackInventory" className="text-sm text-gray-700 cursor-pointer">
+              تتبع المخزون (إذا كان منتج مادي)
+            </label>
+          </div>
+
+          {/* Initial Stock (only if tracking) */}
+          {formData.trackInventory && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                الكمية الأولية
+              </label>
+              <div className="relative">
+                <Hash className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.initialStock || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, initialStock: parseInt(e.target.value) || 0 })
+                  }
+                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* SKU (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              SKU (اختياري)
+            </label>
+            <input
+              type="text"
+              value={formData.sku || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, sku: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="مثال: COFFEE-001"
+            />
+          </div>
+
+          {/* Barcode (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              الباركود (اختياري)
+            </label>
+            <div className="relative">
+              <Barcode className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={formData.barcode || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, barcode: e.target.value })
+                }
+                className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="مثال: 1234567890123"
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+              disabled={isLoading}
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? "جاري الإضافة..." : "إضافة المنتج"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};

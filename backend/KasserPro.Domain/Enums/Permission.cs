@@ -17,6 +17,7 @@ public enum Permission
     // Products
     ProductsView       = 300,
     ProductsManage     = 301,
+    ProductsCreateFromPOS = 302,
 
     // Categories
     CategoriesView     = 400,

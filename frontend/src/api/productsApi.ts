@@ -4,6 +4,7 @@ import {
   CreateProductRequest,
   UpdateProductRequest,
   ProductsQueryParams,
+  QuickCreateProductRequest,
 } from "../types/product.types";
 import { ApiResponse } from "../types/api.types";
 
@@ -93,6 +94,16 @@ export const productsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Products", id: "LIST" }],
     }),
+
+    // إنشاء سريع من POS
+    quickCreateProduct: builder.mutation<ApiResponse<Product>, QuickCreateProductRequest>({
+      query: (product) => ({
+        url: "/products/quick-create",
+        method: "POST",
+        body: product,
+      }),
+      invalidatesTags: [{ type: "Products", id: "LIST" }],
+    }),
   }),
 });
 
@@ -102,4 +113,5 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useQuickCreateProductMutation,
 } = productsApi;
