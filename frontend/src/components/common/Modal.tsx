@@ -51,7 +51,7 @@ export const Modal = ({
       <div
         className={clsx(
           "bg-white rounded-2xl shadow-xl w-full mx-4 animate-scale-in max-h-[90vh] overflow-auto",
-          sizes[size]
+          sizes[size],
         )}
         onClick={(e) => e.stopPropagation()}
       >

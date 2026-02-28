@@ -23,7 +23,7 @@ public class BackupService : IBackupService
         IWebHostEnvironment environment)
     {
         _logger = logger;
-        _connectionString = configuration.GetConnectionString("DefaultConnection") 
+        _connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection not configured");
         _backupDirectory = Path.Combine(environment.ContentRootPath, "backups");
 
@@ -41,7 +41,7 @@ public class BackupService : IBackupService
     public async Task<BackupResult> CreateBackupAsync(string reason)
     {
         var timestamp = DateTime.UtcNow;
-        
+
         // P2: Include reason in filename for easy identification
         var fileName = reason switch
         {
@@ -50,7 +50,7 @@ public class BackupService : IBackupService
             "daily-scheduled" => $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}-daily-scheduled.db",
             _ => $"kasserpro-backup-{timestamp:yyyyMMdd-HHmmss}.db"
         };
-        
+
         var backupPath = Path.Combine(_backupDirectory, fileName);
 
         try
@@ -84,7 +84,7 @@ public class BackupService : IBackupService
             if (!integrityCheckPassed)
             {
                 _logger.LogError("Backup integrity check FAILED: {FileName}", fileName);
-                
+
                 // Delete corrupt backup
                 if (File.Exists(backupPath))
                 {
@@ -123,7 +123,7 @@ public class BackupService : IBackupService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Backup failed: {FileName}", fileName);
-            
+
             // Clean up partial backup
             if (File.Exists(backupPath))
             {
@@ -160,7 +160,7 @@ public class BackupService : IBackupService
 
             using var command = connection.CreateCommand();
             command.CommandText = "PRAGMA integrity_check;";
-            
+
             var result = await command.ExecuteScalarAsync();
             var integrityResult = result?.ToString() ?? string.Empty;
 
@@ -171,7 +171,7 @@ public class BackupService : IBackupService
             }
             else
             {
-                _logger.LogError("Backup integrity check FAILED: {BackupPath}, Result: {Result}", 
+                _logger.LogError("Backup integrity check FAILED: {BackupPath}, Result: {Result}",
                     backupPath, integrityResult);
                 return false;
             }
@@ -280,16 +280,16 @@ public class BackupService : IBackupService
         // kasserpro-backup-20260214-143045-pre-migration.db -> "pre-migration"
         // kasserpro-backup-20260214-143045-pre-restore.db -> "pre-restore"
         // kasserpro-backup-20260214-020000-daily-scheduled.db -> "daily-scheduled"
-        
+
         if (fileName.Contains("pre-migration", StringComparison.OrdinalIgnoreCase))
             return "pre-migration";
-        
+
         if (fileName.Contains("pre-restore", StringComparison.OrdinalIgnoreCase))
             return "pre-restore";
-        
+
         if (fileName.Contains("daily-scheduled", StringComparison.OrdinalIgnoreCase))
             return "daily-scheduled";
-        
+
         return "manual";
     }
 

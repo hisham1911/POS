@@ -158,7 +158,7 @@ export const BackupPage = () => {
       if (result.success) {
         setShowConfirmRestore(false);
         setSelectedBackup(null);
-        
+
         // Show detailed success modal with migration & restart info
         setRestoreDetails({
           migrationsApplied: result.migrationsApplied || 0,
@@ -166,7 +166,7 @@ export const BackupPage = () => {
           dataValidationIssuesFound: result.dataValidationIssuesFound || 0,
         });
         setShowRestoreSuccess(true);
-        
+
         if (result.migrationsApplied > 0) {
           toast.success(
             `تم استعادة النسخة الاحتياطية بنجاح وتطبيق ${result.migrationsApplied} تحديث على قاعدة البيانات`
@@ -174,7 +174,7 @@ export const BackupPage = () => {
         } else {
           toast.success("تم استعادة النسخة الاحتياطية بنجاح");
         }
-        
+
         refetch();
       } else {
         toast.error(

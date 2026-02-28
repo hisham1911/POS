@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Clock, DollarSign, ShoppingBag, CreditCard, Banknote, Play, Square, Users } from "lucide-react";
+import {
+  Clock,
+  DollarSign,
+  ShoppingBag,
+  CreditCard,
+  Banknote,
+  Play,
+  Square,
+  Users,
+} from "lucide-react";
 import { useShift } from "@/hooks/useShift";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
@@ -23,7 +32,8 @@ export const ShiftPage = () => {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showHandoverModal, setShowHandoverModal] = useState(false);
   const [showForceCloseModal, setShowForceCloseModal] = useState(false);
-  const [selectedShiftForForceClose, setSelectedShiftForForceClose] = useState<any>(null);
+  const [selectedShiftForForceClose, setSelectedShiftForForceClose] =
+    useState<any>(null);
   const [openingBalance, setOpeningBalance] = useState("");
   const [closingBalance, setClosingBalance] = useState("");
   const [notes, setNotes] = useState("");
@@ -86,7 +96,9 @@ export const ShiftPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">إدارة الوردية</h1>
-          <p className="text-gray-500 mt-1">فتح وإغلاق الورديات ومتابعة المبيعات</p>
+          <p className="text-gray-500 mt-1">
+            فتح وإغلاق الورديات ومتابعة المبيعات
+          </p>
         </div>
         <div className="flex gap-3">
           {!hasActiveShift ? (
@@ -123,13 +135,13 @@ export const ShiftPage = () => {
         <div
           className={clsx(
             "w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center",
-            hasActiveShift ? "bg-success-50" : "bg-gray-100"
+            hasActiveShift ? "bg-success-50" : "bg-gray-100",
           )}
         >
           <Clock
             className={clsx(
               "w-10 h-10",
-              hasActiveShift ? "text-success-500" : "text-gray-400"
+              hasActiveShift ? "text-success-500" : "text-gray-400",
             )}
           />
         </div>
@@ -149,7 +161,8 @@ export const ShiftPage = () => {
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
             <p className="text-sm text-blue-800">
-              <strong>تم التسليم</strong> من {currentShift.handedOverFromUserName} في{" "}
+              <strong>تم التسليم</strong> من{" "}
+              {currentShift.handedOverFromUserName} في{" "}
               {formatDateTime(currentShift.handedOverAt || "")}
             </p>
           </div>
@@ -196,7 +209,9 @@ export const ShiftPage = () => {
                 <div>
                   <p className="text-sm text-gray-500">إجمالي المبيعات</p>
                   <p className="text-xl font-bold text-gray-800">
-                    {formatCurrency(currentShift.totalCash + currentShift.totalCard)}
+                    {formatCurrency(
+                      currentShift.totalCash + currentShift.totalCard,
+                    )}
                   </p>
                 </div>
               </div>
@@ -326,16 +341,24 @@ export const ShiftPage = () => {
             <div className="p-4 bg-gray-50 rounded-xl space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">رصيد الافتتاح:</span>
-                <span className="font-medium">{formatCurrency(currentShift.openingBalance)}</span>
+                <span className="font-medium">
+                  {formatCurrency(currentShift.openingBalance)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">المبيعات النقدية:</span>
-                <span className="font-medium">{formatCurrency(currentShift.totalCash)}</span>
+                <span className="font-medium">
+                  {formatCurrency(currentShift.totalCash)}
+                </span>
               </div>
               <div className="flex justify-between border-t pt-2">
-                <span className="text-gray-700 font-medium">الرصيد المتوقع:</span>
+                <span className="text-gray-700 font-medium">
+                  الرصيد المتوقع:
+                </span>
                 <span className="font-bold text-primary-600">
-                  {formatCurrency(currentShift.openingBalance + currentShift.totalCash)}
+                  {formatCurrency(
+                    currentShift.openingBalance + currentShift.totalCash,
+                  )}
                 </span>
               </div>
             </div>

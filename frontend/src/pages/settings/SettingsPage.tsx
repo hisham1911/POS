@@ -46,10 +46,10 @@ export const SettingsPage = () => {
   const [updateTenant, { isLoading: isUpdating }] =
     useUpdateCurrentTenantMutation();
   const [uploadLogo, { isLoading: isUploading }] = useUploadLogoMutation();
-  
+
   // POS Mode
   const { mode, setMode } = usePOSMode();
-  
+
   // System Info & Network Status
   const { data: systemData } = useGetSystemInfoQuery();
   const { data: healthData, isError: isHealthError } = useHealthQuery();
@@ -69,15 +69,18 @@ export const SettingsPage = () => {
   // Receipt settings state
   const [receiptPaperSize, setReceiptPaperSize] = useState<string>("80mm");
   const [receiptCustomWidth, setReceiptCustomWidth] = useState<number>(280);
-  const [receiptHeaderFontSize, setReceiptHeaderFontSize] = useState<number>(12);
+  const [receiptHeaderFontSize, setReceiptHeaderFontSize] =
+    useState<number>(12);
   const [receiptBodyFontSize, setReceiptBodyFontSize] = useState<number>(9);
   const [receiptTotalFontSize, setReceiptTotalFontSize] = useState<number>(11);
-  const [receiptShowBranchName, setReceiptShowBranchName] = useState<boolean>(true);
+  const [receiptShowBranchName, setReceiptShowBranchName] =
+    useState<boolean>(true);
   const [receiptShowCashier, setReceiptShowCashier] = useState<boolean>(true);
   const [receiptShowThankYou, setReceiptShowThankYou] = useState<boolean>(true);
   const [receiptFooterMessage, setReceiptFooterMessage] = useState<string>("");
   const [receiptPhoneNumber, setReceiptPhoneNumber] = useState<string>("");
-  const [receiptShowCustomerName, setReceiptShowCustomerName] = useState<boolean>(true);
+  const [receiptShowCustomerName, setReceiptShowCustomerName] =
+    useState<boolean>(true);
   const [receiptShowLogo, setReceiptShowLogo] = useState<boolean>(true);
   const [logoUrl, setLogoUrl] = useState<string>("");
 
@@ -204,7 +207,7 @@ export const SettingsPage = () => {
                   "px-3 py-1 rounded-full text-sm font-medium",
                   isOnline
                     ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+                    : "bg-red-100 text-red-700",
                 )}
               >
                 {isOnline ? "متصل" : "غير متصل"}
@@ -214,7 +217,9 @@ export const SettingsPage = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="text-sm text-gray-500">عنوان للأجهزة الأخرى</div>
+                  <div className="text-sm text-gray-500">
+                    عنوان للأجهزة الأخرى
+                  </div>
                   <div className="font-mono text-sm font-medium mt-1" dir="ltr">
                     {systemData.data.url}
                   </div>
@@ -273,8 +278,12 @@ export const SettingsPage = () => {
                 <Shield className="w-6 h-6 text-blue-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold">إدارة صلاحيات الكاشيرين</h3>
-                <p className="text-sm text-gray-500">تحكم في صلاحيات كل كاشير بشكل منفصل</p>
+                <h3 className="text-lg font-semibold">
+                  إدارة صلاحيات الكاشيرين
+                </h3>
+                <p className="text-sm text-gray-500">
+                  تحكم في صلاحيات كل كاشير بشكل منفصل
+                </p>
               </div>
               <ChevronLeft className="w-5 h-5 text-gray-400" />
             </div>
@@ -303,20 +312,20 @@ export const SettingsPage = () => {
                 "p-6 rounded-xl border-2 transition-all text-right",
                 mode === "cashier"
                   ? "border-primary-500 bg-primary-50 shadow-md"
-                  : "border-gray-200 hover:border-gray-300 bg-white"
+                  : "border-gray-200 hover:border-gray-300 bg-white",
               )}
             >
               <div className="flex items-start gap-3 mb-3">
                 <div
                   className={clsx(
                     "p-3 rounded-lg",
-                    mode === "cashier" ? "bg-primary-100" : "bg-gray-100"
+                    mode === "cashier" ? "bg-primary-100" : "bg-gray-100",
                   )}
                 >
                   <ShoppingCart
                     className={clsx(
                       "w-6 h-6",
-                      mode === "cashier" ? "text-primary-600" : "text-gray-600"
+                      mode === "cashier" ? "text-primary-600" : "text-gray-600",
                     )}
                   />
                 </div>
@@ -359,20 +368,20 @@ export const SettingsPage = () => {
                 "p-6 rounded-xl border-2 transition-all text-right",
                 mode === "standard"
                   ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 hover:border-gray-300 bg-white"
+                  : "border-gray-200 hover:border-gray-300 bg-white",
               )}
             >
               <div className="flex items-start gap-3 mb-3">
                 <div
                   className={clsx(
                     "p-3 rounded-lg",
-                    mode === "standard" ? "bg-blue-100" : "bg-gray-100"
+                    mode === "standard" ? "bg-blue-100" : "bg-gray-100",
                   )}
                 >
                   <Sparkles
                     className={clsx(
                       "w-6 h-6",
-                      mode === "standard" ? "text-blue-600" : "text-gray-600"
+                      mode === "standard" ? "text-blue-600" : "text-gray-600",
                     )}
                   />
                 </div>
@@ -410,8 +419,8 @@ export const SettingsPage = () => {
             <div className="flex items-start gap-2 text-sm text-blue-800">
               <Sparkles className="w-5 h-5 mt-0.5 shrink-0" />
               <p>
-                <strong>نصيحة:</strong> جرب كلا الوضعين واختر الأنسب لك. التغيير فوري
-                ويظهر مباشرة في صفحة نقطة البيع.
+                <strong>نصيحة:</strong> جرب كلا الوضعين واختر الأنسب لك. التغيير
+                فوري ويظهر مباشرة في صفحة نقطة البيع.
               </p>
             </div>
           </div>
@@ -508,7 +517,7 @@ export const SettingsPage = () => {
                 "p-2 rounded-lg transition-colors",
                 isTaxEnabled
                   ? "bg-success-100 text-success-600"
-                  : "bg-gray-200 text-gray-500"
+                  : "bg-gray-200 text-gray-500",
               )}
             >
               {isTaxEnabled ? (
@@ -593,7 +602,7 @@ export const SettingsPage = () => {
                 "p-2 rounded-lg transition-colors",
                 allowNegativeStock
                   ? "bg-success-100 text-success-600"
-                  : "bg-gray-200 text-gray-500"
+                  : "bg-gray-200 text-gray-500",
               )}
             >
               {allowNegativeStock ? (
@@ -642,7 +651,7 @@ export const SettingsPage = () => {
                     "flex-1 py-3 px-4 rounded-lg border-2 font-medium transition-all",
                     receiptPaperSize === option.value
                       ? "border-primary-500 bg-primary-50 text-primary-700"
-                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                      : "border-gray-200 hover:border-gray-300 text-gray-600",
                   )}
                 >
                   {option.label}
@@ -660,7 +669,9 @@ export const SettingsPage = () => {
                   min="200"
                   max="400"
                   value={receiptCustomWidth}
-                  onChange={(e) => setReceiptCustomWidth(parseInt(e.target.value) || 280)}
+                  onChange={(e) =>
+                    setReceiptCustomWidth(parseInt(e.target.value) || 280)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="280"
                 />
@@ -681,14 +692,18 @@ export const SettingsPage = () => {
             </label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">خط العنوان</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  خط العنوان
+                </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
                     min="8"
                     max="18"
                     value={receiptHeaderFontSize}
-                    onChange={(e) => setReceiptHeaderFontSize(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      setReceiptHeaderFontSize(parseInt(e.target.value))
+                    }
                     className="flex-1"
                   />
                   <span className="text-sm font-mono bg-gray-100 rounded px-2 py-1 min-w-[40px] text-center">
@@ -697,14 +712,18 @@ export const SettingsPage = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">خط النص</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  خط النص
+                </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
                     min="6"
                     max="14"
                     value={receiptBodyFontSize}
-                    onChange={(e) => setReceiptBodyFontSize(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      setReceiptBodyFontSize(parseInt(e.target.value))
+                    }
                     className="flex-1"
                   />
                   <span className="text-sm font-mono bg-gray-100 rounded px-2 py-1 min-w-[40px] text-center">
@@ -713,14 +732,18 @@ export const SettingsPage = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">خط الإجمالي</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  خط الإجمالي
+                </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
                     min="8"
                     max="16"
                     value={receiptTotalFontSize}
-                    onChange={(e) => setReceiptTotalFontSize(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      setReceiptTotalFontSize(parseInt(e.target.value))
+                    }
                     className="flex-1"
                   />
                   <span className="text-sm font-mono bg-gray-100 rounded px-2 py-1 min-w-[40px] text-center">
@@ -734,11 +757,31 @@ export const SettingsPage = () => {
           {/* Toggles */}
           <div className="space-y-3">
             {[
-              { label: "إظهار اسم الفرع", value: receiptShowBranchName, setter: setReceiptShowBranchName },
-              { label: "إظهار اسم الكاشير", value: receiptShowCashier, setter: setReceiptShowCashier },
-              { label: "إظهار اسم العميل", value: receiptShowCustomerName, setter: setReceiptShowCustomerName },
-              { label: "إظهار لوجو الشركة", value: receiptShowLogo, setter: setReceiptShowLogo },
-              { label: "إظهار رسالة شكراً في النهاية", value: receiptShowThankYou, setter: setReceiptShowThankYou },
+              {
+                label: "إظهار اسم الفرع",
+                value: receiptShowBranchName,
+                setter: setReceiptShowBranchName,
+              },
+              {
+                label: "إظهار اسم الكاشير",
+                value: receiptShowCashier,
+                setter: setReceiptShowCashier,
+              },
+              {
+                label: "إظهار اسم العميل",
+                value: receiptShowCustomerName,
+                setter: setReceiptShowCustomerName,
+              },
+              {
+                label: "إظهار لوجو الشركة",
+                value: receiptShowLogo,
+                setter: setReceiptShowLogo,
+              },
+              {
+                label: "إظهار رسالة شكراً في النهاية",
+                value: receiptShowThankYou,
+                setter: setReceiptShowThankYou,
+              },
             ].map((toggle) => (
               <div
                 key={toggle.label}
@@ -751,7 +794,7 @@ export const SettingsPage = () => {
                     "p-1 rounded-lg transition-colors",
                     toggle.value
                       ? "bg-success-100 text-success-600"
-                      : "bg-gray-200 text-gray-500"
+                      : "bg-gray-200 text-gray-500",
                   )}
                 >
                   {toggle.value ? (
@@ -823,13 +866,19 @@ export const SettingsPage = () => {
                   src={logoUrl}
                   alt="Logo Preview"
                   className="h-12 object-contain rounded"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block'; }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                  onLoad={(e) => {
+                    (e.target as HTMLImageElement).style.display = "block";
+                  }}
                 />
                 <span className="text-xs text-gray-500">معاينة اللوجو</span>
               </div>
             )}
-            <p className="mt-1 text-xs text-gray-400">PNG, JPG, GIF, WebP, SVG — حد أقصى 2 ميجابايت</p>
+            <p className="mt-1 text-xs text-gray-400">
+              PNG, JPG, GIF, WebP, SVG — حد أقصى 2 ميجابايت
+            </p>
           </div>
 
           {/* Footer Message & Phone */}
@@ -869,7 +918,9 @@ export const SettingsPage = () => {
 
           {/* Preview */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-xs text-gray-500 mb-3 font-medium">معاينة الفاتورة:</p>
+            <p className="text-xs text-gray-500 mb-3 font-medium">
+              معاينة الفاتورة:
+            </p>
             <div
               className="mx-auto bg-white border border-dashed border-gray-300 p-4 space-y-2"
               style={{
@@ -877,8 +928,8 @@ export const SettingsPage = () => {
                   receiptPaperSize === "80mm"
                     ? "302px"
                     : receiptPaperSize === "58mm"
-                    ? "219px"
-                    : `${receiptCustomWidth}px`,
+                      ? "219px"
+                      : `${receiptCustomWidth}px`,
                 fontFamily: "Arial, sans-serif",
                 direction: "rtl",
               }}
@@ -890,7 +941,9 @@ export const SettingsPage = () => {
                     src={logoUrl}
                     alt="Logo"
                     className="h-10 mx-auto object-contain"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
                   />
                 </div>
               )}
@@ -902,68 +955,124 @@ export const SettingsPage = () => {
                   {name || "اسم المتجر"}
                 </p>
               )}
-              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+              <div
+                className="flex justify-between"
+                style={{ fontSize: `${receiptBodyFontSize}px` }}
+              >
                 <span>فاتورة رقم</span>
                 <span>ORD-001</span>
               </div>
-              <p className="text-center" style={{ fontSize: `${receiptBodyFontSize}px` }}>
-                {new Date().toLocaleDateString("ar-EG", { timeZone: "Africa/Cairo" })}
+              <p
+                className="text-center"
+                style={{ fontSize: `${receiptBodyFontSize}px` }}
+              >
+                {new Date().toLocaleDateString("ar-EG", {
+                  timeZone: "Africa/Cairo",
+                })}
               </p>
               <div className="border-t border-dashed border-gray-400 my-1" />
               {receiptShowCashier && (
-                <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <div
+                  className="flex justify-between"
+                  style={{ fontSize: `${receiptBodyFontSize}px` }}
+                >
                   <span>الكاشير: أحمد</span>
                   <span>الدفع: كاش</span>
                 </div>
               )}
               {!receiptShowCashier && (
-                <p style={{ fontSize: `${receiptBodyFontSize}px` }}>الدفع: كاش</p>
+                <p style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                  الدفع: كاش
+                </p>
               )}
               {receiptShowCustomerName && (
-                <p style={{ fontSize: `${receiptBodyFontSize}px` }}>العميل: محمد علي</p>
+                <p style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                  العميل: محمد علي
+                </p>
               )}
               <div className="border-t border-dashed border-gray-400 my-1" />
-              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+              <div
+                className="flex justify-between"
+                style={{ fontSize: `${receiptBodyFontSize}px` }}
+              >
                 <span>منتج تجريبي × 2</span>
                 <span>100 ج.م</span>
               </div>
               <div className="border-t border-dashed border-gray-400 my-1" />
-              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+              <div
+                className="flex justify-between"
+                style={{ fontSize: `${receiptBodyFontSize}px` }}
+              >
                 <span>المجموع</span>
                 <span>100.00 ج.م</span>
               </div>
               {isTaxEnabled && (
-                <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <div
+                  className="flex justify-between"
+                  style={{ fontSize: `${receiptBodyFontSize}px` }}
+                >
                   <span>الضريبة ({taxRate}%)</span>
-                  <span>{(100 * taxRate / 100).toFixed(2)} ج.م</span>
+                  <span>{((100 * taxRate) / 100).toFixed(2)} ج.م</span>
                 </div>
               )}
               <div className="border-t border-dashed border-gray-400 my-1" />
-              <div className="flex justify-between font-bold" style={{ fontSize: `${receiptTotalFontSize}px` }}>
+              <div
+                className="flex justify-between font-bold"
+                style={{ fontSize: `${receiptTotalFontSize}px` }}
+              >
                 <span>الإجمالي</span>
-                <span>{isTaxEnabled ? (100 + 100 * taxRate / 100).toFixed(2) : "100.00"} ج.م</span>
+                <span>
+                  {isTaxEnabled
+                    ? (100 + (100 * taxRate) / 100).toFixed(2)
+                    : "100.00"}{" "}
+                  ج.م
+                </span>
               </div>
               <div className="border-t border-dashed border-gray-400 my-1" />
-              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+              <div
+                className="flex justify-between"
+                style={{ fontSize: `${receiptBodyFontSize}px` }}
+              >
                 <span>المبلغ المدفوع</span>
                 <span>200.00 ج.م</span>
               </div>
-              <div className="flex justify-between" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+              <div
+                className="flex justify-between"
+                style={{ fontSize: `${receiptBodyFontSize}px` }}
+              >
                 <span>الباقي</span>
-                <span>{isTaxEnabled ? (200 - (100 + 100 * taxRate / 100)).toFixed(2) : "50.00"} ج.م</span>
+                <span>
+                  {isTaxEnabled
+                    ? (200 - (100 + (100 * taxRate) / 100)).toFixed(2)
+                    : "50.00"}{" "}
+                  ج.م
+                </span>
               </div>
               {receiptShowThankYou && (
-                <p className="text-center font-bold" style={{ fontSize: `${receiptBodyFontSize}px` }}>
+                <p
+                  className="text-center font-bold"
+                  style={{ fontSize: `${receiptBodyFontSize}px` }}
+                >
                   شكراً لزيارتكم ✨
                 </p>
               )}
               {receiptFooterMessage && (
-                <p className="text-center" style={{ fontSize: `${Math.max(receiptBodyFontSize - 1, 7)}px` }}>
+                <p
+                  className="text-center"
+                  style={{
+                    fontSize: `${Math.max(receiptBodyFontSize - 1, 7)}px`,
+                  }}
+                >
                   {receiptFooterMessage}
                 </p>
               )}
               {receiptPhoneNumber && (
-                <p className="text-center" style={{ fontSize: `${Math.max(receiptBodyFontSize - 1, 7)}px` }}>
+                <p
+                  className="text-center"
+                  style={{
+                    fontSize: `${Math.max(receiptBodyFontSize - 1, 7)}px`,
+                  }}
+                >
                   {receiptPhoneNumber}
                 </p>
               )}

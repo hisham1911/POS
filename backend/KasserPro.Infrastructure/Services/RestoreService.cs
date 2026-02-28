@@ -12,7 +12,7 @@ using KasserPro.Infrastructure.Data;
 
 /// <summary>
 /// P2: Restore service for database recovery
-/// Handles: maintenance mode, integrity check, pre-restore backup, 
+/// Handles: maintenance mode, integrity check, pre-restore backup,
 ///          file replacement, migration application, and restart notification
 /// </summary>
 public class RestoreService : IRestoreService
@@ -49,7 +49,7 @@ public class RestoreService : IRestoreService
 
     /// <summary>
     /// P2: Restores database from backup with full safety checks
-    /// Flow: Validate → Integrity Check → Maintenance Mode ON → Pre-Restore Backup → 
+    /// Flow: Validate → Integrity Check → Maintenance Mode ON → Pre-Restore Backup →
     ///       Replace DB → Apply Migrations → Maintenance Mode OFF → Return result
     /// </summary>
     public async Task<RestoreResult> RestoreFromBackupAsync(string backupFileName)
@@ -133,9 +133,9 @@ public class RestoreService : IRestoreService
             await Task.Delay(2000); // Wait for connections to fully close
 
             // Step 6: Replace database file
-            var connectionString = _configuration.GetConnectionString("DefaultConnection") 
+            var connectionString = _configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("DefaultConnection not configured");
-            
+
             var builder = new SqliteConnectionStringBuilder(connectionString);
             var dbPath = builder.DataSource;
 
@@ -185,7 +185,7 @@ public class RestoreService : IRestoreService
             // Step 7b: Validate data integrity after migrations
             _logger.LogInformation("Validating data integrity after restore and migrations...");
             var validationIssues = await _dataValidationService.ValidateRestoredDataAsync(dbPath);
-            
+
             if (validationIssues.Count > 0)
             {
                 var errorIssues = validationIssues.Where(i => i.Severity == "ERROR").ToList();
@@ -341,7 +341,7 @@ public class RestoreService : IRestoreService
 
             using var command = connection.CreateCommand();
             command.CommandText = "PRAGMA integrity_check;";
-            
+
             var result = await command.ExecuteScalarAsync();
             var integrityResult = result?.ToString() ?? string.Empty;
 
@@ -352,7 +352,7 @@ public class RestoreService : IRestoreService
             }
             else
             {
-                _logger.LogError("Integrity check FAILED: {BackupPath}, Result: {Result}", 
+                _logger.LogError("Integrity check FAILED: {BackupPath}, Result: {Result}",
                     backupPath, integrityResult);
                 return false;
             }

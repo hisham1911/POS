@@ -36,7 +36,7 @@ public class AdminController : ControllerBase
     public async Task<ActionResult<BackupResult>> CreateBackup()
     {
         var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        
+
         if (userRole != "Admin" && userRole != "SystemOwner")
         {
             return Forbid();
@@ -65,7 +65,7 @@ public class AdminController : ControllerBase
     public async Task<ActionResult<List<BackupInfo>>> ListBackups()
     {
         var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        
+
         if (userRole != "Admin" && userRole != "SystemOwner")
         {
             return Forbid();
@@ -83,7 +83,7 @@ public class AdminController : ControllerBase
     public async Task<ActionResult<RestoreResult>> RestoreBackup([FromBody] RestoreRequest request)
     {
         var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        
+
         // Only Admin or SystemOwner can restore
         if (userRole != "Admin" && userRole != "SystemOwner")
         {
@@ -91,7 +91,7 @@ public class AdminController : ControllerBase
         }
 
         var userId = User.FindFirst("userId")?.Value;
-        _logger.LogWarning("Database restore requested by user {UserId}, backup: {BackupFileName}", 
+        _logger.LogWarning("Database restore requested by user {UserId}, backup: {BackupFileName}",
             userId, request.BackupFileName);
 
         var result = await _restoreService.RestoreFromBackupAsync(request.BackupFileName);
