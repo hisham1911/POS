@@ -305,7 +305,9 @@ export const SettingsPage = () => {
             {/* Cashier Mode */}
             <button
               onClick={() => {
+                console.log('🎯 Switching to cashier mode...');
                 setMode("cashier");
+                console.log('✅ Mode set to:', localStorage.getItem('pos_mode'));
                 toast.success("تم التبديل إلى وضع الكاشير");
               }}
               className={clsx(
@@ -361,7 +363,9 @@ export const SettingsPage = () => {
             {/* Standard Mode */}
             <button
               onClick={() => {
+                console.log('🎯 Switching to standard mode...');
                 setMode("standard");
+                console.log('✅ Mode set to:', localStorage.getItem('pos_mode'));
                 toast.success("تم التبديل إلى الوضع الأساسي");
               }}
               className={clsx(

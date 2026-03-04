@@ -1,6 +1,7 @@
 namespace KasserPro.Domain.Entities;
 
 using KasserPro.Domain.Common;
+using KasserPro.Domain.Enums;
 
 public class Product : BaseEntity
 {
@@ -17,7 +18,19 @@ public class Product : BaseEntity
     public bool TaxInclusive { get; set; } = true; // Egypt VAT is inclusive
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; } = true;
-    public bool TrackInventory { get; set; } = false;
+    
+    /// <summary>
+    /// Product type determines inventory behavior:
+    /// - Physical: TrackInventory = true (automatic)
+    /// - Service: TrackInventory = false (automatic)
+    /// </summary>
+    public ProductType Type { get; set; } = ProductType.Physical;
+    
+    /// <summary>
+    /// Automatically set based on Type. Not user-controlled.
+    /// Physical products always track inventory, Service products never do.
+    /// </summary>
+    public bool TrackInventory { get; set; } = true;
     public int? StockQuantity { get; set; }
     
     /// <summary>

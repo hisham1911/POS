@@ -64,7 +64,13 @@ public class OrderDto
 public class OrderItemDto
 {
     public int Id { get; set; }
-    public int ProductId { get; set; }
+    public int? ProductId { get; set; }
+    
+    // Custom Item Fields
+    public bool IsCustomItem { get; set; }
+    public string? CustomName { get; set; }
+    public decimal? CustomUnitPrice { get; set; }
+    public decimal? CustomTaxRate { get; set; }
     
     // Product Snapshot
     public string ProductName { get; set; } = string.Empty;

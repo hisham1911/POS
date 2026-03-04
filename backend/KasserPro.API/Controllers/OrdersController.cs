@@ -86,6 +86,16 @@ public class OrdersController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
+    /// <summary>
+    /// Add a custom POS item (not from product catalog) to an order
+    /// </summary>
+    [HttpPost("{id}/items/custom")]
+    public async Task<IActionResult> AddCustomItem(int id, [FromBody] AddCustomItemRequest request)
+    {
+        var result = await _orderService.AddCustomItemAsync(id, request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
     [HttpDelete("{id}/items/{itemId}")]
     public async Task<IActionResult> RemoveItem(int id, int itemId)
     {

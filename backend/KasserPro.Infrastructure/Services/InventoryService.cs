@@ -282,6 +282,16 @@ public class InventoryService : IInventoryService
 
         foreach (var (productId, quantity) in items)
         {
+            // GUARD: Check if product tracks inventory
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null || !product.TrackInventory)
+            {
+                _logger.LogInformation(
+                    "Skipping stock decrement for Product={ProductId} (not found or TrackInventory=false)",
+                    productId);
+                continue; // Skip inventory operations for service products
+            }
+            
             var inventory = await _context.BranchInventories
                 .FirstOrDefaultAsync(i => i.ProductId == productId && i.BranchId == branchId);
 
@@ -335,19 +345,28 @@ public class InventoryService : IInventoryService
     {
         var branchId = _currentUserService.BranchId;
 
+        // GUARD: Check if product tracks inventory
+        var product = await _context.Products.FindAsync(productId);
+        if (product == null || !product.TrackInventory)
+        {
+            _logger.LogInformation(
+                "Skipping stock increment for Product={ProductId} (not found or TrackInventory=false)",
+                productId);
+            return 0; // Return 0 for service products
+        }
+
         var inventory = await _context.BranchInventories
             .FirstOrDefaultAsync(i => i.ProductId == productId && i.BranchId == branchId);
 
         if (inventory == null)
         {
-            var product = await _context.Products.FindAsync(productId);
             inventory = new BranchInventory
             {
                 TenantId = _currentUserService.TenantId,
                 BranchId = branchId,
                 ProductId = productId,
                 Quantity = 0,
-                ReorderLevel = product?.ReorderPoint ?? 10,
+                ReorderLevel = product.ReorderPoint ?? 10,
                 LastUpdatedAt = DateTime.UtcNow
             };
             _context.BranchInventories.Add(inventory);

@@ -21,13 +21,16 @@ import {
   type BackupInfo,
 } from "@/api/backupApi";
 import clsx from "clsx";
+import { Portal } from "@/components/common/Portal";
 
 export const BackupPage = () => {
   const { data: backupsData, isLoading, refetch } = useListBackupsQuery();
   const [createBackup, { isLoading: isCreating }] = useCreateBackupMutation();
-  const [restoreBackup, { isLoading: isRestoring }] = useRestoreBackupMutation();
+  const [restoreBackup, { isLoading: isRestoring }] =
+    useRestoreBackupMutation();
   const [downloadBackup] = useDownloadBackupMutation();
-  const [restoreFromUpload, { isLoading: isUploadRestoring }] = useRestoreFromUploadMutation();
+  const [restoreFromUpload, { isLoading: isUploadRestoring }] =
+    useRestoreFromUploadMutation();
 
   const [selectedBackup, setSelectedBackup] = useState<string | null>(null);
   const [showConfirmRestore, setShowConfirmRestore] = useState(false);
@@ -41,7 +44,8 @@ export const BackupPage = () => {
 
   // Upload / Import state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [showConfirmUploadRestore, setShowConfirmUploadRestore] = useState(false);
+  const [showConfirmUploadRestore, setShowConfirmUploadRestore] =
+    useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const backups = backupsData || [];
@@ -124,14 +128,16 @@ export const BackupPage = () => {
 
         if (result.migrationsApplied > 0) {
           toast.success(
-            `تم استعادة الملف المرفوع بنجاح وتطبيق ${result.migrationsApplied} تحديث على قاعدة البيانات`
+            `تم استعادة الملف المرفوع بنجاح وتطبيق ${result.migrationsApplied} تحديث على قاعدة البيانات`,
           );
         } else {
           toast.success("تم استعادة الملف المرفوع بنجاح");
         }
         refetch();
       } else {
-        toast.error(result.errorMessage || "فشلت عملية الاستعادة من الملف المرفوع");
+        toast.error(
+          result.errorMessage || "فشلت عملية الاستعادة من الملف المرفوع",
+        );
         if (result.maintenanceModeEnabled) {
           toast.error("النظام في وضع الصيانة - يرجى إعادة تشغيل التطبيق");
         }
@@ -169,7 +175,7 @@ export const BackupPage = () => {
 
         if (result.migrationsApplied > 0) {
           toast.success(
-            `تم استعادة النسخة الاحتياطية بنجاح وتطبيق ${result.migrationsApplied} تحديث على قاعدة البيانات`
+            `تم استعادة النسخة الاحتياطية بنجاح وتطبيق ${result.migrationsApplied} تحديث على قاعدة البيانات`,
           );
         } else {
           toast.success("تم استعادة النسخة الاحتياطية بنجاح");
@@ -177,16 +183,16 @@ export const BackupPage = () => {
 
         refetch();
       } else {
-        toast.error(
-          result.errorMessage || "فشلت عملية الاستعادة"
-        );
+        toast.error(result.errorMessage || "فشلت عملية الاستعادة");
         if (result.maintenanceModeEnabled) {
           toast.error("النظام في وضع الصيانة - يرجى إعادة تشغيل التطبيق");
         }
         setShowConfirmRestore(false);
       }
     } catch (error) {
-      toast.error("خطأ في استعادة النسخة الاحتياطية - يرجى إعادة تشغيل التطبيق");
+      toast.error(
+        "خطأ في استعادة النسخة الاحتياطية - يرجى إعادة تشغيل التطبيق",
+      );
       console.error(error);
       setShowConfirmRestore(false);
     }
@@ -246,7 +252,8 @@ export const BackupPage = () => {
                 إدارة النسخ الاحتياطية
               </h1>
               <p className="text-sm md:text-base text-gray-600 leading-7">
-                قم بإنشاء النسخ الاحتياطية أو استعادة نسخة محفوظة مع عرض حالة العملية بشكل واضح.
+                قم بإنشاء النسخ الاحتياطية أو استعادة نسخة محفوظة مع عرض حالة
+                العملية بشكل واضح.
               </p>
             </div>
           </div>
@@ -259,7 +266,9 @@ export const BackupPage = () => {
               <Download className="w-4 h-4 text-blue-600" />
               إنشاء نسخة جديدة
             </p>
-            <p className="text-xs text-gray-500 mb-3">أنشئ نسخة احتياطية فورية من قاعدة البيانات الحالية.</p>
+            <p className="text-xs text-gray-500 mb-3">
+              أنشئ نسخة احتياطية فورية من قاعدة البيانات الحالية.
+            </p>
             <Button
               onClick={handleCreateBackup}
               disabled={isCreating}
@@ -284,7 +293,9 @@ export const BackupPage = () => {
               <FolderOpen className="w-4 h-4 text-indigo-600" />
               استيراد نسخة احتياطية من جهازك
             </p>
-            <p className="text-xs text-gray-500 mb-3">اختر ملف بصيغة .db ثم أكمل الاستعادة بعد التأكيد.</p>
+            <p className="text-xs text-gray-500 mb-3">
+              اختر ملف بصيغة .db ثم أكمل الاستعادة بعد التأكيد.
+            </p>
 
             <input
               ref={fileInputRef}
@@ -297,7 +308,9 @@ export const BackupPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center">
               <div
                 className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 text-xs text-gray-700 flex items-center truncate"
-                title={uploadedFile ? uploadedFile.name : "لم يتم اختيار ملف بعد"}
+                title={
+                  uploadedFile ? uploadedFile.name : "لم يتم اختيار ملف بعد"
+                }
               >
                 {uploadedFile
                   ? `${uploadedFile.name} (${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)`
@@ -345,7 +358,8 @@ export const BackupPage = () => {
               قائمة النسخ الاحتياطية
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              إجمالي النسخ: <span className="font-semibold">{backups.length}</span>
+              إجمالي النسخ:{" "}
+              <span className="font-semibold">{backups.length}</span>
             </p>
           </div>
 
@@ -382,7 +396,7 @@ export const BackupPage = () => {
                       key={backup.fileName || index}
                       className={clsx(
                         "border-b border-gray-200 hover:bg-gray-50 transition-colors",
-                        selectedBackup === backup.fileName && "bg-blue-50/70"
+                        selectedBackup === backup.fileName && "bg-blue-50/70",
                       )}
                     >
                       <td className="px-6 py-4 text-sm text-gray-900 font-mono max-w-[320px]">
@@ -394,24 +408,30 @@ export const BackupPage = () => {
                             setSelectedBackup(
                               selectedBackup === backup.fileName
                                 ? null
-                                : backup.fileName
+                                : backup.fileName,
                             )
                           }
                         >
                           {backup.fileName}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap text-left" dir="ltr">
+                      <td
+                        className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap text-left"
+                        dir="ltr"
+                      >
                         {formatFileSize(backup.sizeBytes)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap text-left" dir="ltr">
+                      <td
+                        className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap text-left"
+                        dir="ltr"
+                      >
                         {formatDate(backup.createdAt)}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
                           className={clsx(
                             "inline-block px-3 py-1 rounded-full text-xs font-semibold",
-                            getReasonBadgeColor(backup.reason)
+                            getReasonBadgeColor(backup.reason),
                           )}
                         >
                           {getReasonLabel(backup.reason)}
@@ -420,7 +440,9 @@ export const BackupPage = () => {
                       <td className="px-6 py-4 text-sm whitespace-nowrap">
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
-                            onClick={() => handleDownloadBackup(backup.fileName)}
+                            onClick={() =>
+                              handleDownloadBackup(backup.fileName)
+                            }
                             disabled={downloadingFile === backup.fileName}
                             className="inline-flex items-center gap-1 px-3 py-1.5 border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-lg transition disabled:opacity-50 min-w-[90px] justify-center"
                             title="تنزيل النسخة إلى جهازك"
@@ -456,210 +478,228 @@ export const BackupPage = () => {
 
         {/* Confirmation Modal - restore from server backup */}
         {showConfirmRestore && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100 text-right">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="w-6 h-6 text-orange-600" />
-                <h3 className="text-lg font-bold text-gray-900">
-                  تأكيد الاستعادة
-                </h3>
-              </div>
+          <Portal>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4 z-[100]">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100 text-right">
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertTriangle className="w-6 h-6 text-orange-600" />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    تأكيد الاستعادة
+                  </h3>
+                </div>
 
-              <p className="text-gray-600 mb-4">
-                هل أنت متأكد من رغبتك في استعادة النسخة الاحتياطية؟
-              </p>
+                <p className="text-gray-600 mb-4">
+                  هل أنت متأكد من رغبتك في استعادة النسخة الاحتياطية؟
+                </p>
 
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-6">
-                <p className="text-sm font-semibold text-orange-900 mb-1">
-                  ملف النسخة:
-                </p>
-                <p className="text-xs text-orange-700 font-mono break-all">
-                  {selectedBackup}
-                </p>
-                <p className="text-xs text-orange-700 mt-2">
-                  ⚠️ سيتم إنشاء نسخة احتياطية من حالة النظام الحالية قبل الاستعادة
-                </p>
-              </div>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-6">
+                  <p className="text-sm font-semibold text-orange-900 mb-1">
+                    ملف النسخة:
+                  </p>
+                  <p className="text-xs text-orange-700 font-mono break-all">
+                    {selectedBackup}
+                  </p>
+                  <p className="text-xs text-orange-700 mt-2">
+                    ⚠️ سيتم إنشاء نسخة احتياطية من حالة النظام الحالية قبل
+                    الاستعادة
+                  </p>
+                </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowConfirmRestore(false);
-                    setSelectedBackup(null);
-                  }}
-                  disabled={isRestoring}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
-                >
-                  إلغاء
-                </button>
-                <button
-                  onClick={handleRestoreBackup}
-                  disabled={isRestoring}
-                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isRestoring ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      جاري...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      نعم، استعادة الآن
-                    </>
-                  )}
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowConfirmRestore(false);
+                      setSelectedBackup(null);
+                    }}
+                    disabled={isRestoring}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    onClick={handleRestoreBackup}
+                    disabled={isRestoring}
+                    className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isRestoring ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        جاري...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        نعم، استعادة الآن
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </Portal>
         )}
 
         {/* Confirmation Modal - restore from uploaded file */}
         {showConfirmUploadRestore && uploadedFile && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100 text-right">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="w-6 h-6 text-indigo-600" />
-                <h3 className="text-lg font-bold text-gray-900">
-                  تأكيد الاستعادة من ملف خارجي
-                </h3>
-              </div>
+          <Portal>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4 z-[100]">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100 text-right">
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertTriangle className="w-6 h-6 text-indigo-600" />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    تأكيد الاستعادة من ملف خارجي
+                  </h3>
+                </div>
 
-              <p className="text-gray-600 mb-4">
-                هل أنت متأكد من رغبتك في استعادة قاعدة البيانات من الملف الذي اخترته؟
-              </p>
-
-              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-6">
-                <p className="text-sm font-semibold text-indigo-900 mb-1">الملف المختار:</p>
-                <p className="text-xs text-indigo-700 font-mono break-all">{uploadedFile.name}</p>
-                <p className="text-xs text-indigo-600 mt-1">
-                  الحجم: {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                <p className="text-gray-600 mb-4">
+                  هل أنت متأكد من رغبتك في استعادة قاعدة البيانات من الملف الذي
+                  اخترته؟
                 </p>
-                <p className="text-xs text-orange-700 mt-2">
-                  ⚠️ سيتم إنشاء نسخة احتياطية من حالة النظام الحالية قبل الاستعادة
-                </p>
-              </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowConfirmUploadRestore(false);
-                    setUploadedFile(null);
-                    if (fileInputRef.current) fileInputRef.current.value = "";
-                  }}
-                  disabled={isUploadRestoring}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
-                >
-                  إلغاء
-                </button>
-                <button
-                  onClick={handleRestoreFromUpload}
-                  disabled={isUploadRestoring}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUploadRestoring ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      جاري الاستعادة...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      نعم، استعادة الآن
-                    </>
-                  )}
-                </button>
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-6">
+                  <p className="text-sm font-semibold text-indigo-900 mb-1">
+                    الملف المختار:
+                  </p>
+                  <p className="text-xs text-indigo-700 font-mono break-all">
+                    {uploadedFile.name}
+                  </p>
+                  <p className="text-xs text-indigo-600 mt-1">
+                    الحجم: {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                  <p className="text-xs text-orange-700 mt-2">
+                    ⚠️ سيتم إنشاء نسخة احتياطية من حالة النظام الحالية قبل
+                    الاستعادة
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowConfirmUploadRestore(false);
+                      setUploadedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    disabled={isUploadRestoring}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    onClick={handleRestoreFromUpload}
+                    disabled={isUploadRestoring}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isUploadRestoring ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        جاري الاستعادة...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        نعم، استعادة الآن
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </Portal>
         )}
 
         {/* Restore Success Modal */}
         {showRestoreSuccess && restoreDetails && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100 text-right">
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-                <h3 className="text-lg font-bold text-gray-900">
-                  تمت الاستعادة بنجاح
-                </h3>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {restoreDetails.migrationsApplied > 0 && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-blue-900 mb-1">
-                      تحديث قاعدة البيانات:
-                    </p>
-                    <p className="text-sm text-blue-700">
-                      تم تطبيق{" "}
-                      <span className="font-bold">
-                        {restoreDetails.migrationsApplied}
-                      </span>{" "}
-                      تحديث على الجداول تلقائياً.
-                      <br />
-                      النسخة الاحتياطية كانت من إصدار أقدم وتم ترقيتها بنجاح.
-                    </p>
-                  </div>
-                )}
-
-                {restoreDetails.migrationsApplied === 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-sm text-green-700">
-                      النسخة الاحتياطية من نفس إصدار قاعدة البيانات - لا يوجد تحديثات مطلوبة.
-                    </p>
-                  </div>
-                )}
-
-                {restoreDetails.dataValidationIssuesFound > 0 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-yellow-900 mb-1">
-                      ⚠️ تنبيه: تم اكتشاف {restoreDetails.dataValidationIssuesFound} مشكلة أثناء التحقق
-                    </p>
-                    <p className="text-sm text-yellow-700">
-                      قد تكون هناك بيانات قديمة لم تتطابق مع الإصدار الجديد.
-                      <br />
-                      تحقق من السجلات للمزيد من التفاصيل.
-                    </p>
-                  </div>
-                )}
-
-                {restoreDetails.dataValidationIssuesFound === 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-sm text-green-700">
-                      ✓ تم التحقق من سلامة البيانات بنجاح - لا توجد مشاكل
-                    </p>
-                  </div>
-                )}
-
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                  <p className="text-sm font-semibold text-orange-900 mb-1">
-                    ⚠️ يُنصح بإعادة تشغيل التطبيق
-                  </p>
-                  <p className="text-sm text-orange-700">
-                    لضمان عمل التطبيق بشكل صحيح بعد الاستعادة، يُفضل إعادة تشغيل الخدمة.
-                  </p>
+          <Portal>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4 z-[100]">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100 text-right">
+                <div className="flex items-center gap-3 mb-4">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    تمت الاستعادة بنجاح
+                  </h3>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  <p className="text-sm text-gray-600">
-                    تم إنشاء نسخة احتياطية من حالة النظام قبل الاستعادة (نسخة أمان).
-                  </p>
-                </div>
-              </div>
+                <div className="space-y-3 mb-6">
+                  {restoreDetails.migrationsApplied > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-blue-900 mb-1">
+                        تحديث قاعدة البيانات:
+                      </p>
+                      <p className="text-sm text-blue-700">
+                        تم تطبيق{" "}
+                        <span className="font-bold">
+                          {restoreDetails.migrationsApplied}
+                        </span>{" "}
+                        تحديث على الجداول تلقائياً.
+                        <br />
+                        النسخة الاحتياطية كانت من إصدار أقدم وتم ترقيتها بنجاح.
+                      </p>
+                    </div>
+                  )}
 
-              <button
-                onClick={() => {
-                  setShowRestoreSuccess(false);
-                  setRestoreDetails(null);
-                }}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                حسناً، فهمت
-              </button>
+                  {restoreDetails.migrationsApplied === 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm text-green-700">
+                        النسخة الاحتياطية من نفس إصدار قاعدة البيانات - لا يوجد
+                        تحديثات مطلوبة.
+                      </p>
+                    </div>
+                  )}
+
+                  {restoreDetails.dataValidationIssuesFound > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-yellow-900 mb-1">
+                        ⚠️ تنبيه: تم اكتشاف{" "}
+                        {restoreDetails.dataValidationIssuesFound} مشكلة أثناء
+                        التحقق
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        قد تكون هناك بيانات قديمة لم تتطابق مع الإصدار الجديد.
+                        <br />
+                        تحقق من السجلات للمزيد من التفاصيل.
+                      </p>
+                    </div>
+                  )}
+
+                  {restoreDetails.dataValidationIssuesFound === 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm text-green-700">
+                        ✓ تم التحقق من سلامة البيانات بنجاح - لا توجد مشاكل
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <p className="text-sm font-semibold text-orange-900 mb-1">
+                      ⚠️ يُنصح بإعادة تشغيل التطبيق
+                    </p>
+                    <p className="text-sm text-orange-700">
+                      لضمان عمل التطبيق بشكل صحيح بعد الاستعادة، يُفضل إعادة
+                      تشغيل الخدمة.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <p className="text-sm text-gray-600">
+                      تم إنشاء نسخة احتياطية من حالة النظام قبل الاستعادة (نسخة
+                      أمان).
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowRestoreSuccess(false);
+                    setRestoreDetails(null);
+                  }}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  حسناً، فهمت
+                </button>
+              </div>
             </div>
-          </div>
+          </Portal>
         )}
 
         {/* Info Section */}

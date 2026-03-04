@@ -1,3 +1,9 @@
+// نوع المنتج: مادي أو خدمة
+export enum ProductType {
+  Physical = 1, // منتج مادي - يتتبع المخزون
+  Service = 2,  // خدمة - لا يتتبع المخزون
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -13,6 +19,9 @@ export interface Product {
   isActive: boolean;
   categoryId: number;
   categoryName?: string;
+  // نوع المنتج (مادي أو خدمة)
+  type: ProductType;
+  // يتم تحديده تلقائياً بناءً على النوع
   trackInventory: boolean;
   stockQuantity?: number;
   lowStockThreshold?: number;
@@ -34,7 +43,8 @@ export interface CreateProductRequest {
   taxInclusive?: boolean;
   imageUrl?: string;
   categoryId: number;
-  trackInventory?: boolean;
+  // نوع المنتج (مادي أو خدمة) - بدلاً من trackInventory
+  type?: ProductType;
   stockQuantity?: number;
   lowStockThreshold?: number;
   reorderPoint?: number;
@@ -53,7 +63,8 @@ export interface UpdateProductRequest {
   taxInclusive?: boolean;
   imageUrl?: string;
   categoryId: number;
-  trackInventory?: boolean;
+  // نوع المنتج (مادي أو خدمة) - بدلاً من trackInventory
+  type?: ProductType;
   stockQuantity?: number;
   lowStockThreshold?: number;
   reorderPoint?: number;
@@ -71,7 +82,8 @@ export interface QuickCreateProductRequest {
   name: string;
   price: number;
   categoryId: number;
-  trackInventory?: boolean;
+  // نوع المنتج - افتراضياً خدمة للإنشاء السريع
+  type?: ProductType;
   initialStock?: number;
   sku?: string;
   barcode?: string;

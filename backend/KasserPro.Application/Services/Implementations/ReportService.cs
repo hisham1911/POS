@@ -104,9 +104,10 @@ public class ReportService : IReportService
         Console.WriteLine($"Total items from completed orders: {allSalesItems.Count}");
         Console.WriteLine($"Total items from return orders: {allReturnItems.Count}");
         
-        // Group sales items
+        // Group sales items (تجاهل المنتجات المخصصة)
         var salesByProduct = allSalesItems
-            .GroupBy(i => new { i.ProductId, i.ProductName })
+            .Where(i => i.ProductId.HasValue) // فقط المنتجات من الكتالوج
+            .GroupBy(i => new { ProductId = i.ProductId!.Value, i.ProductName })
             .Select(g => new
             {
                 g.Key.ProductId,
@@ -118,11 +119,11 @@ public class ReportService : IReportService
         
         // Group return items
         var returnsByProduct = allReturnItems
-            .GroupBy(i => new { i.ProductId, i.ProductName })
+            .Where(i => i.ProductId.HasValue) // تجاهل المنتجات المخصصة
+            .GroupBy(i => i.ProductId!.Value) // Group by ProductId value directly
             .Select(g => new
             {
-                g.Key.ProductId,
-                g.Key.ProductName,
+                ProductId = g.Key,
                 QuantityReturned = Math.Abs(g.Sum(i => i.Quantity)), // Make positive
                 TotalReturns = Math.Abs(g.Sum(i => i.Total)) // Make positive
             })

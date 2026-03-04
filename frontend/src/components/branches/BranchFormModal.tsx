@@ -8,6 +8,7 @@ import {
 } from "@/api/branchesApi";
 import { Branch } from "@/types/branch.types";
 import { toast } from "react-hot-toast";
+import { Portal } from "@/components/common/Portal";
 
 interface BranchFormModalProps {
   branch?: Branch;
@@ -81,12 +82,12 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
   };
 
   return (
-    <>
+    <Portal>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-[100]" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div
           className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
@@ -113,7 +114,9 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Basic Info */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800">المعلومات الأساسية</h3>
+              <h3 className="font-semibold text-gray-800">
+                المعلومات الأساسية
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Name */}
@@ -237,13 +240,13 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
                 {isLoading
                   ? "جاري الحفظ..."
                   : isEditMode
-                  ? "حفظ التعديلات"
-                  : "إضافة الفرع"}
+                    ? "حفظ التعديلات"
+                    : "إضافة الفرع"}
               </Button>
             </div>
           </form>
         </div>
       </div>
-    </>
+    </Portal>
   );
 };

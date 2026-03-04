@@ -5,6 +5,7 @@ import {
   CompleteOrderRequest,
   OrdersQueryParams,
   PagedOrders,
+  AddCustomItemRequest,
 } from "../types/order.types";
 import { ApiResponse } from "../types/api.types";
 
@@ -111,6 +112,24 @@ export const ordersApi = baseApi.injectEndpoints({
       ],
     }),
 
+    // إضافة منتج مخصص للطلب (ليس من الكتالوج)
+    addCustomItem: builder.mutation<
+      ApiResponse<Order>,
+      {
+        orderId: number;
+        item: AddCustomItemRequest;
+      }
+    >({
+      query: ({ orderId, item }) => ({
+        url: `/orders/${orderId}/items/custom`,
+        method: "POST",
+        body: item,
+      }),
+      invalidatesTags: (_result, _error, { orderId }) => [
+        { type: "Orders", id: orderId },
+      ],
+    }),
+
     // حذف عنصر من الطلب
     removeOrderItem: builder.mutation<
       ApiResponse<Order>,
@@ -199,6 +218,7 @@ export const {
   useGetCustomerOrdersQuery,
   useCreateOrderMutation,
   useAddOrderItemMutation,
+  useAddCustomItemMutation,
   useRemoveOrderItemMutation,
   useCompleteOrderMutation,
   useCancelOrderMutation,

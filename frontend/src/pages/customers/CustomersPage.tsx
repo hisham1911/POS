@@ -23,6 +23,7 @@ import { Loading } from "@/components/common/Loading";
 import { formatDateTime, formatCurrency } from "@/utils/formatters";
 import { toast } from "sonner";
 import clsx from "clsx";
+import { Portal } from "@/components/common/Portal";
 
 export const CustomersPage = () => {
   const [page, setPage] = useState(1);
@@ -354,43 +355,45 @@ export const CustomersPage = () => {
         )}
 
         {deletingCustomer && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trash2 className="w-8 h-8 text-danger-600" />
+          <Portal>
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in p-6">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Trash2 className="w-8 h-8 text-danger-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">
+                    حذف العميل
+                  </h3>
+                  <p className="text-gray-500">
+                    هل أنت متأكد من حذف العميل "
+                    {deletingCustomer.name || deletingCustomer.phone}"؟
+                  </p>
+                  <p className="text-sm text-danger-500 mt-2">
+                    لا يمكن التراجع عن هذا الإجراء
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
-                  حذف العميل
-                </h3>
-                <p className="text-gray-500">
-                  هل أنت متأكد من حذف العميل "
-                  {deletingCustomer.name || deletingCustomer.phone}"؟
-                </p>
-                <p className="text-sm text-danger-500 mt-2">
-                  لا يمكن التراجع عن هذا الإجراء
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => setDeletingCustomer(null)}
-                  className="flex-1"
-                  disabled={isDeleting}
-                >
-                  إلغاء
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={handleDelete}
-                  isLoading={isDeleting}
-                  className="flex-1"
-                >
-                  حذف
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setDeletingCustomer(null)}
+                    className="flex-1"
+                    disabled={isDeleting}
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={handleDelete}
+                    isLoading={isDeleting}
+                    className="flex-1"
+                  >
+                    حذف
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          </Portal>
         )}
 
         {/* Help Section */}

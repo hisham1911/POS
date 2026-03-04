@@ -7,6 +7,7 @@ import {
   useRedeemLoyaltyPointsMutation,
 } from "@/api/customersApi";
 import { toast } from "react-hot-toast";
+import { Portal } from "@/components/common/Portal";
 
 interface LoyaltyPointsModalProps {
   customerId: number;
@@ -76,9 +77,7 @@ export const LoyaltyPointsModal = ({
     } catch (error: any) {
       const errorMessage =
         error?.data?.message ||
-        (mode === "add"
-          ? "فشل في إضافة النقاط"
-          : "فشل في استبدال النقاط");
+        (mode === "add" ? "فشل في إضافة النقاط" : "فشل في استبدال النقاط");
       toast.error(errorMessage);
     }
   };
@@ -95,12 +94,12 @@ export const LoyaltyPointsModal = ({
   const buttonColor = isAddMode ? "primary" : "secondary";
 
   return (
-    <>
+    <Portal>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-[100]" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div
           className="bg-white rounded-2xl shadow-xl w-full max-w-md"
           onClick={(e) => e.stopPropagation()}
@@ -180,15 +179,21 @@ export const LoyaltyPointsModal = ({
               <Button
                 type="submit"
                 variant={buttonColor}
-                disabled={isLoading || (mode === "redeem" && currentPoints === 0)}
+                disabled={
+                  isLoading || (mode === "redeem" && currentPoints === 0)
+                }
                 className="flex-1"
               >
-                {isLoading ? "جاري المعالجة..." : isAddMode ? "إضافة" : "استبدال"}
+                {isLoading
+                  ? "جاري المعالجة..."
+                  : isAddMode
+                    ? "إضافة"
+                    : "استبدال"}
               </Button>
             </div>
           </form>
         </div>
       </div>
-    </>
+    </Portal>
   );
 };

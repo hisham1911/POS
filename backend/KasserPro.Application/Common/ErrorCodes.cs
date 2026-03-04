@@ -32,6 +32,7 @@ public static class ErrorCodes
     public const string PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND";
     public const string PRODUCT_INACTIVE = "PRODUCT_INACTIVE";
     public const string PRODUCT_OUT_OF_STOCK = "PRODUCT_OUT_OF_STOCK";
+    public const string PRODUCT_INVALID_PRICE = "PRODUCT_INVALID_PRICE";
     public const string INSUFFICIENT_STOCK = "INSUFFICIENT_STOCK";
 
     // Category Errors (1500-1599)
@@ -46,6 +47,7 @@ public static class ErrorCodes
     public const string ORDER_EMPTY = "ORDER_EMPTY";
     public const string ORDER_ITEM_NOT_FOUND = "ORDER_ITEM_NOT_FOUND";
     public const string ORDER_CANNOT_MODIFY = "ORDER_CANNOT_MODIFY";
+    public const string ORDER_INVALID_QUANTITY = "ORDER_INVALID_QUANTITY";
 
     // Payment Errors (1700-1799)
     public const string PAYMENT_NOT_FOUND = "PAYMENT_NOT_FOUND";
@@ -180,6 +182,7 @@ public static class ErrorMessages
         { ErrorCodes.PRODUCT_NOT_FOUND, "المنتج غير موجود" },
         { ErrorCodes.PRODUCT_INACTIVE, "المنتج غير نشط" },
         { ErrorCodes.PRODUCT_OUT_OF_STOCK, "المنتج غير متوفر" },
+        { ErrorCodes.PRODUCT_INVALID_PRICE, "سعر المنتج غير صحيح" },
         { ErrorCodes.INSUFFICIENT_STOCK, "الكمية المطلوبة غير متوفرة" },
 
         // Category
@@ -194,6 +197,7 @@ public static class ErrorMessages
         { ErrorCodes.ORDER_EMPTY, "الطلب فارغ" },
         { ErrorCodes.ORDER_ITEM_NOT_FOUND, "عنصر الطلب غير موجود" },
         { ErrorCodes.ORDER_CANNOT_MODIFY, "لا يمكن تعديل الطلب" },
+        { ErrorCodes.ORDER_INVALID_QUANTITY, "الكمية غير صحيحة" },
 
         // Payment
         { ErrorCodes.PAYMENT_NOT_FOUND, "الدفعة غير موجودة" },

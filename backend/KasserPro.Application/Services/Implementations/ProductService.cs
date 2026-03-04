@@ -70,6 +70,7 @@ public class ProductService : IProductService
                 TaxInclusive = p.TaxInclusive,
                 ImageUrl = p.ImageUrl,
                 IsActive = p.IsActive,
+                Type = p.Type,
                 TrackInventory = p.TrackInventory,
                 StockQuantity = p.StockQuantity,
                 CategoryId = p.CategoryId,
@@ -108,6 +109,7 @@ public class ProductService : IProductService
             TaxInclusive = product.TaxInclusive,
             ImageUrl = product.ImageUrl,
             IsActive = product.IsActive,
+            Type = product.Type,
             TrackInventory = product.TrackInventory,
             StockQuantity = product.StockQuantity,
             CategoryId = product.CategoryId,
@@ -145,8 +147,10 @@ public class ProductService : IProductService
             // Tax settings
             TaxRate = request.TaxRate,
             TaxInclusive = request.TaxInclusive,
-            // Inventory fields - use request value
-            TrackInventory = request.TrackInventory,
+            // Product Type determines inventory behavior
+            Type = request.Type,
+            // TrackInventory is automatically set based on Type
+            TrackInventory = request.Type == Domain.Enums.ProductType.Physical,
             StockQuantity = 0, // Set to 0, actual stock will be in BranchInventory
             LowStockThreshold = request.LowStockThreshold,
             ReorderPoint = request.ReorderPoint,
@@ -156,7 +160,7 @@ public class ProductService : IProductService
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
-        // Create BranchInventory records ONLY if TrackInventory is enabled
+        // Create BranchInventory records ONLY if TrackInventory is enabled (Physical products)
         if (product.TrackInventory)
         {
             var branches = await _unitOfWork.Branches.Query()
@@ -196,6 +200,7 @@ public class ProductService : IProductService
             TaxRate = product.TaxRate,
             TaxInclusive = product.TaxInclusive,
             IsActive = product.IsActive,
+            Type = product.Type,
             TrackInventory = product.TrackInventory,
             StockQuantity = request.StockQuantity, // Return requested quantity for consistency
             CategoryId = product.CategoryId
@@ -232,8 +237,10 @@ public class ProductService : IProductService
         // Tax settings
         product.TaxRate = request.TaxRate;
         product.TaxInclusive = request.TaxInclusive;
-        // Inventory fields - use request value
-        product.TrackInventory = request.TrackInventory;
+        // Product Type determines inventory behavior
+        product.Type = request.Type;
+        // TrackInventory is automatically set based on Type
+        product.TrackInventory = request.Type == Domain.Enums.ProductType.Physical;
         product.StockQuantity = 0; // Keep at 0, use BranchInventory
         product.LowStockThreshold = request.LowStockThreshold;
         product.ReorderPoint = request.ReorderPoint;
@@ -252,6 +259,7 @@ public class ProductService : IProductService
             TaxRate = product.TaxRate,
             TaxInclusive = product.TaxInclusive,
             IsActive = product.IsActive,
+            Type = product.Type,
             TrackInventory = product.TrackInventory,
             StockQuantity = product.StockQuantity,
             CategoryId = product.CategoryId
@@ -338,7 +346,9 @@ public class ProductService : IProductService
                 CategoryId = request.CategoryId,
                 // Quick create defaults
                 IsActive = true,
-                TrackInventory = request.TrackInventory,
+                Type = request.Type,
+                // TrackInventory is automatically set based on Type
+                TrackInventory = request.Type == Domain.Enums.ProductType.Physical,
                 StockQuantity = 0,
                 LowStockThreshold = 5,
                 TaxInclusive = false, // Default to tax exclusive
@@ -348,7 +358,7 @@ public class ProductService : IProductService
             await _unitOfWork.Products.AddAsync(product);
             await _unitOfWork.SaveChangesAsync();
 
-            // Create BranchInventory records ONLY if TrackInventory is enabled
+            // Create BranchInventory records ONLY if TrackInventory is enabled (Physical products)
             if (product.TrackInventory)
             {
                 var branches = await _unitOfWork.Branches.Query()
@@ -380,6 +390,7 @@ public class ProductService : IProductService
                 Id = product.Id,
                 Name = product.Name,
                 Price = product.Price,
+                Type = product.Type,
                 TrackInventory = product.TrackInventory,
                 IsActive = product.IsActive,
                 CategoryId = product.CategoryId,

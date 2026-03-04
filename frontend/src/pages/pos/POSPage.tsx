@@ -6,24 +6,41 @@ import { Cart } from "@/components/pos/Cart";
 import { PaymentModal } from "@/components/pos/PaymentModal";
 import { LowStockAlert } from "@/components/pos/LowStockAlert";
 import { ProductQuickCreateModal } from "@/components/pos/ProductQuickCreateModal";
+import { CustomItemModal } from "@/components/pos/CustomItemModal";
 import { Loading } from "@/components/common/Loading";
-import { Menu, ScanBarcode, PackageCheck, AlertCircle, PlusCircle } from "lucide-react";
+import { Menu, ScanBarcode, PackageCheck, AlertCircle, PlusCircle, FileText } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useShift } from "@/hooks/useShift";
 import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
 import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
+import { usePOSMode } from "@/hooks/usePOSMode";
 import { Customer } from "@/types/customer.types";
 import { toast } from "sonner";
 import clsx from "clsx";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { ShiftWarningBanner } from "@/components/shifts";
 
 export const POSPage = () => {
+  const { mode } = usePOSMode();
+
+  // Debug logging
+  console.log('🔍 POSPage - Current mode:', mode);
+  console.log('🔍 POSPage - localStorage:', localStorage.getItem('pos_mode'));
+
+  // Redirect to workspace if mode is standard
+  if (mode === "standard") {
+    console.log('🔄 Redirecting to workspace...');
+    return <Navigate to="/pos-workspace" replace />;
+  }
+
+  console.log('✅ Staying in cashier mode');
+
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [showCustomItem, setShowCustomItem] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
@@ -219,6 +236,16 @@ export const POSPage = () => {
               <PlusCircle className="w-4 h-4" />
               <span className="hidden sm:inline">منتج جديد</span>
             </button>
+
+            {/* Custom Item */}
+            <button
+              onClick={() => setShowCustomItem(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-secondary-600 text-white hover:bg-secondary-700"
+              title="إضافة منتج مخصص للطلب الحالي"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">منتج مخصص</span>
+            </button>
           </div>
 
           {/* Mobile cart toggle */}
@@ -287,6 +314,13 @@ export const POSPage = () => {
             toast.success("تم إضافة المنتج بنجاح");
             // Optionally add to cart immediately
           }}
+        />
+      )}
+
+      {/* Custom Item Modal */}
+      {showCustomItem && (
+        <CustomItemModal
+          onClose={() => setShowCustomItem(false)}
         />
       )}
     </div>

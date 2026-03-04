@@ -4,7 +4,32 @@ using KasserPro.Domain.Common;
 
 public class OrderItem : BaseEntity
 {
-    public int ProductId { get; set; }
+    /// <summary>
+    /// Product ID - nullable to support custom POS items
+    /// If null, this is a custom item (IsCustomItem = true)
+    /// </summary>
+    public int? ProductId { get; set; }
+    
+    /// <summary>
+    /// Indicates if this is a custom POS item (not from product catalog)
+    /// Custom items skip product validation and inventory tracking
+    /// </summary>
+    public bool IsCustomItem { get; set; } = false;
+    
+    /// <summary>
+    /// Custom item name (used when IsCustomItem = true)
+    /// </summary>
+    public string? CustomName { get; set; }
+    
+    /// <summary>
+    /// Custom item unit price (used when IsCustomItem = true)
+    /// </summary>
+    public decimal? CustomUnitPrice { get; set; }
+    
+    /// <summary>
+    /// Custom item tax rate (used when IsCustomItem = true)
+    /// </summary>
+    public decimal? CustomTaxRate { get; set; }
     
     // Product Snapshot (immutable at order time)
     public string ProductName { get; set; } = string.Empty;
@@ -37,5 +62,9 @@ public class OrderItem : BaseEntity
 
     public int OrderId { get; set; }
     public Order Order { get; set; } = null!;
-    public Product Product { get; set; } = null!;
+    
+    /// <summary>
+    /// Navigation to Product - nullable for custom items
+    /// </summary>
+    public Product? Product { get; set; }
 }

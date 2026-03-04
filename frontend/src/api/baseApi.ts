@@ -167,6 +167,7 @@ export const baseApi = createApi({
     "Orders",
     "Shifts",
     "User",
+    "Users",
     "Branches",
     "Tenant",
     "AuditLogs",

@@ -18,6 +18,7 @@ import { shiftPersistence } from "./utils/shiftPersistence";
 import { usePermission } from "./hooks/usePermission";
 import LoginPage from "./pages/auth/LoginPage";
 import POSPage from "./pages/pos/POSPage";
+import POSWorkspacePage from "./pages/pos/POSWorkspacePage";
 import ProductsPage from "./pages/products/ProductsPage";
 import CategoriesPage from "./pages/categories/CategoriesPage";
 import OrdersPage from "./pages/orders/OrdersPage";
@@ -30,6 +31,7 @@ import DailyReportPage from "./pages/reports/DailyReportPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
 import PermissionsPage from "./pages/settings/PermissionsPage";
+import UserManagementPage from "./pages/users/UserManagementPage";
 import { PurchaseInvoicesPage } from "./pages/purchase-invoices/PurchaseInvoicesPage";
 import { PurchaseInvoiceFormPage } from "./pages/purchase-invoices/PurchaseInvoiceFormPage";
 import { PurchaseInvoiceDetailsPage } from "./pages/purchase-invoices/PurchaseInvoiceDetailsPage";
@@ -123,6 +125,14 @@ const AppRoutes = () => (
         element={
           <NonSystemOwnerRoute>
             <POSPage />
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/pos-workspace"
+        element={
+          <NonSystemOwnerRoute>
+            <POSWorkspacePage />
           </NonSystemOwnerRoute>
         }
       />
@@ -278,6 +288,16 @@ const AppRoutes = () => (
           <NonSystemOwnerRoute>
             <AdminRoute>
               <PermissionsPage />
+            </AdminRoute>
+          </NonSystemOwnerRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <NonSystemOwnerRoute>
+            <AdminRoute>
+              <UserManagementPage />
             </AdminRoute>
           </NonSystemOwnerRoute>
         }

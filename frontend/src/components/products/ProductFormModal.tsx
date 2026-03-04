@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { X, Image as ImageIcon, Package } from "lucide-react";
+import { X, Image as ImageIcon, Package, Wrench } from "lucide-react";
 import {
   Product,
   CreateProductRequest,
   UpdateProductRequest,
+  ProductType,
 } from "@/types/product.types";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import { useGetBranchesQuery } from "@/api/branchesApi";
@@ -48,6 +49,7 @@ export const ProductFormModal = ({
     taxInclusive: product?.taxInclusive ?? true,
     imageUrl: product?.imageUrl || "",
     categoryId: product?.categoryId || categories[0]?.id || 0,
+    type: product?.type || ProductType.Physical,
     stockQuantity: product?.stockQuantity ?? 0,
     lowStockThreshold: product?.lowStockThreshold ?? 5,
     reorderPoint: product?.reorderPoint ?? null,
@@ -86,7 +88,7 @@ export const ProductFormModal = ({
         taxInclusive: formData.taxInclusive,
         imageUrl: formData.imageUrl,
         categoryId: formData.categoryId,
-        trackInventory: true,
+        type: formData.type,
         stockQuantity: formData.stockQuantity,
         lowStockThreshold: formData.lowStockThreshold,
         reorderPoint: formData.reorderPoint ?? undefined,
@@ -107,7 +109,7 @@ export const ProductFormModal = ({
         taxInclusive: formData.taxInclusive,
         imageUrl: formData.imageUrl,
         categoryId: formData.categoryId,
-        trackInventory: true,
+        type: formData.type,
         stockQuantity: formData.stockQuantity,
         lowStockThreshold: formData.lowStockThreshold,
         reorderPoint: formData.reorderPoint ?? undefined,
@@ -181,6 +183,52 @@ export const ProductFormModal = ({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              نوع المنتج *
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, type: ProductType.Physical })}
+                className={clsx(
+                  "flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all",
+                  formData.type === ProductType.Physical
+                    ? "border-primary-500 bg-primary-50 text-primary-700"
+                    : "border-gray-200 hover:border-gray-300 text-gray-700"
+                )}
+              >
+                <Package className="w-5 h-5" />
+                <div className="text-right">
+                  <div className="font-medium">منتج مادي</div>
+                  <div className="text-xs opacity-75">يتم تتبع المخزون</div>
+                </div>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, type: ProductType.Service })}
+                className={clsx(
+                  "flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all",
+                  formData.type === ProductType.Service
+                    ? "border-secondary-500 bg-secondary-50 text-secondary-700"
+                    : "border-gray-200 hover:border-gray-300 text-gray-700"
+                )}
+              >
+                <Wrench className="w-5 h-5" />
+                <div className="text-right">
+                  <div className="font-medium">خدمة</div>
+                  <div className="text-xs opacity-75">بدون مخزون</div>
+                </div>
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {formData.type === ProductType.Physical 
+                ? "المنتجات المادية يتم تتبع مخزونها تلقائياً" 
+                : "الخدمات لا تحتاج لتتبع مخزون"}
+            </p>
           </div>
         </div>
 
@@ -351,98 +399,100 @@ export const ProductFormModal = ({
           </div>
         </div>
 
-        {/* Inventory */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-gray-700 border-b pb-2 flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            المخزون
-          </h3>
-          
-          {!isEditing && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-              <input
-                type="checkbox"
-                id="branchSpecific"
-                checked={useBranchSpecificStock}
-                onChange={(e) => setUseBranchSpecificStock(e.target.checked)}
-                className="w-4 h-4 text-primary-600 rounded"
-              />
-              <label htmlFor="branchSpecific" className="text-sm text-gray-700 cursor-pointer">
-                تحديد كمية مختلفة لكل فرع
-              </label>
-            </div>
-          )}
-
-          {!useBranchSpecificStock ? (
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                label="الكمية المتاحة *"
-                type="number"
-                min="0"
-                value={formData.stockQuantity}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    stockQuantity: parseInt(e.target.value) || 0,
-                  })
-                }
-                required
-              />
-              <Input
-                label="حد التنبيه"
-                type="number"
-                min="0"
-                value={formData.lowStockThreshold}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    lowStockThreshold: parseInt(e.target.value) || 5,
-                  })
-                }
-              />
-              <Input
-                label="نقطة إعادة الطلب"
-                type="number"
-                min="0"
-                value={formData.reorderPoint ?? ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    reorderPoint: e.target.value ? parseInt(e.target.value) : null,
-                  })
-                }
-                placeholder="اختياري"
-              />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600">
-                حدد الكمية المبدئية لكل فرع:
-              </p>
-              <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto p-3 bg-gray-50 rounded-lg">
-                {branches?.data?.map((branch) => (
-                  <div key={branch.id} className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-700 flex-1">
-                      {branch.name}
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={branchStocks[branch.id] || 0}
-                      onChange={(e) =>
-                        setBranchStocks({
-                          ...branchStocks,
-                          [branch.id]: parseInt(e.target.value) || 0,
-                        })
-                      }
-                      className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                ))}
+        {/* Inventory - Only for Physical Products */}
+        {formData.type === ProductType.Physical && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-700 border-b pb-2 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              المخزون
+            </h3>
+            
+            {!isEditing && (
+              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="branchSpecific"
+                  checked={useBranchSpecificStock}
+                  onChange={(e) => setUseBranchSpecificStock(e.target.checked)}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <label htmlFor="branchSpecific" className="text-sm text-gray-700 cursor-pointer">
+                  تحديد كمية مختلفة لكل فرع
+                </label>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+
+            {!useBranchSpecificStock ? (
+              <div className="grid grid-cols-3 gap-4">
+                <Input
+                  label="الكمية المتاحة *"
+                  type="number"
+                  min="0"
+                  value={formData.stockQuantity}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      stockQuantity: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  required
+                />
+                <Input
+                  label="حد التنبيه"
+                  type="number"
+                  min="0"
+                  value={formData.lowStockThreshold}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      lowStockThreshold: parseInt(e.target.value) || 5,
+                    })
+                  }
+                />
+                <Input
+                  label="نقطة إعادة الطلب"
+                  type="number"
+                  min="0"
+                  value={formData.reorderPoint ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      reorderPoint: e.target.value ? parseInt(e.target.value) : null,
+                    })
+                  }
+                  placeholder="اختياري"
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  حدد الكمية المبدئية لكل فرع:
+                </p>
+                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto p-3 bg-gray-50 rounded-lg">
+                  {branches?.data?.map((branch) => (
+                    <div key={branch.id} className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700 flex-1">
+                        {branch.name}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={branchStocks[branch.id] || 0}
+                        onChange={(e) =>
+                          setBranchStocks({
+                            ...branchStocks,
+                            [branch.id]: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t">

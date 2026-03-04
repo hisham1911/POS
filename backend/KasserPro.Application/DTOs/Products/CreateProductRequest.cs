@@ -1,5 +1,7 @@
 namespace KasserPro.Application.DTOs.Products;
 
+using KasserPro.Domain.Enums;
+
 public class CreateProductRequest
 {
     public string Name { get; set; } = string.Empty;
@@ -16,8 +18,14 @@ public class CreateProductRequest
     public decimal? TaxRate { get; set; } // null = use branch default
     public bool TaxInclusive { get; set; } = true;
     
-    // Inventory fields
-    public bool TrackInventory { get; set; } = true;
+    /// <summary>
+    /// Product type determines inventory behavior:
+    /// - Physical: Inventory tracking enabled automatically
+    /// - Service: Inventory tracking disabled automatically
+    /// </summary>
+    public ProductType Type { get; set; } = ProductType.Physical;
+    
+    // Inventory fields (only used for Physical products)
     public int StockQuantity { get; set; } = 0;
     public int LowStockThreshold { get; set; } = 5;
     public int? ReorderPoint { get; set; }

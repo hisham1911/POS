@@ -139,7 +139,7 @@ public class OrderService : IOrderService
             if (!product.IsActive)
                 return ApiResponse<OrderDto>.Fail(ErrorCodes.PRODUCT_INACTIVE, $"المنتج غير متاح للبيع: {product.Name}");
 
-            // STOCK VALIDATION: Check if sufficient stock is available
+            // STOCK VALIDATION: Check if sufficient stock is available (only for Physical products)
             if (product.TrackInventory)
             {
                 // P0-3: Read from BranchInventory (same table that gets decremented).
@@ -380,6 +380,79 @@ public class OrderService : IOrderService
         return ApiResponse<OrderDto>.Ok(MapToDto(order));
     }
 
+    public async Task<ApiResponse<OrderDto>> AddCustomItemAsync(int orderId, AddCustomItemRequest request)
+    {
+        // VALIDATION: Quantity must be positive
+        if (request.Quantity <= 0)
+            return ApiResponse<OrderDto>.Fail(ErrorCodes.ORDER_INVALID_QUANTITY, "الكمية يجب أن تكون أكبر من صفر");
+
+        // VALIDATION: Name is required
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return ApiResponse<OrderDto>.Fail(ErrorCodes.VALIDATION_ERROR, "اسم المنتج مطلوب");
+
+        // VALIDATION: Price must be non-negative
+        if (request.UnitPrice < 0)
+            return ApiResponse<OrderDto>.Fail(ErrorCodes.PRODUCT_INVALID_PRICE, "السعر يجب أن يكون أكبر من أو يساوي صفر");
+
+        var order = await _unitOfWork.Orders.Query()
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order == null)
+            return ApiResponse<OrderDto>.Fail(ErrorCodes.ORDER_NOT_FOUND, ErrorMessages.Get(ErrorCodes.ORDER_NOT_FOUND));
+
+        if (order.Status != OrderStatus.Draft)
+            return ApiResponse<OrderDto>.Fail(ErrorCodes.ORDER_CANNOT_MODIFY, ErrorMessages.Get(ErrorCodes.ORDER_CANNOT_MODIFY));
+
+        // Get Tenant for dynamic tax settings
+        var tenant = await _unitOfWork.Tenants.GetByIdAsync(order.TenantId);
+        var tenantTaxRate = tenant?.IsTaxEnabled == true ? tenant.TaxRate : 0m;
+
+        // Use custom tax rate if provided, otherwise use tenant default
+        var taxRate = request.TaxRate ?? tenantTaxRate;
+        
+        // If tax is disabled at tenant level, override to 0
+        if (tenant?.IsTaxEnabled != true)
+            taxRate = 0m;
+
+        // Create custom order item
+        var orderItem = new OrderItem
+        {
+            // Custom item fields
+            IsCustomItem = true,
+            ProductId = null, // No product reference
+            CustomName = request.Name,
+            CustomUnitPrice = request.UnitPrice,
+            CustomTaxRate = taxRate,
+            
+            // Snapshot fields (populated from custom data)
+            ProductName = request.Name,
+            ProductNameEn = null,
+            ProductSku = null,
+            ProductBarcode = null,
+            
+            // Price Snapshot
+            UnitPrice = request.UnitPrice,
+            UnitCost = null,
+            OriginalPrice = request.UnitPrice,
+            Quantity = request.Quantity,
+            
+            // Tax Snapshot
+            TaxRate = taxRate,
+            TaxInclusive = false, // Always Tax Exclusive (Additive)
+            Notes = request.Notes
+        };
+        
+        // Calculate tax amount and totals with proper rounding
+        CalculateItemTotals(orderItem);
+
+        order.Items.Add(orderItem);
+        CalculateOrderTotals(order);
+        await _unitOfWork.SaveChangesAsync();
+
+        return ApiResponse<OrderDto>.Ok(MapToDto(order), "تم إضافة المنتج المخصص بنجاح");
+    }
+
     public async Task<ApiResponse<OrderDto>> RemoveItemAsync(int orderId, int itemId)
     {
         var order = await _unitOfWork.Orders.Query()
@@ -497,16 +570,17 @@ public class OrderService : IOrderService
             // This is the authoritative check. The CreateAsync check is just a UX hint.
             // SQLite's write lock guarantees no other writer can change stock between
             // this read and the decrement below.
+            // ONLY validate for items with ProductId (skip custom items)
             var tenant = await _unitOfWork.Tenants.GetByIdAsync(_currentUser.TenantId);
             if (tenant != null && !tenant.AllowNegativeStock)
             {
-                foreach (var item in order.Items.Where(i => i.ProductId > 0))
+                foreach (var item in order.Items.Where(i => i.ProductId.HasValue && !i.IsCustomItem))
                 {
-                    var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                    var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId.Value);
                     if (product != null && product.TrackInventory)
                     {
                         var branchStock = await _inventoryService.GetAvailableQuantityAsync(
-                            item.ProductId, _currentUser.BranchId);
+                            item.ProductId.Value, _currentUser.BranchId);
                         if (branchStock < item.Quantity)
                         {
                             await transaction.RollbackAsync();
@@ -518,16 +592,24 @@ public class OrderService : IOrderService
                 }
             }
             
-            // Decrement stock ONLY for products that track inventory
+            // Decrement stock ONLY for products that track inventory (skip custom items)
             // Fetch all products in one query for performance
-            var productIds = order.Items.Where(i => i.ProductId > 0).Select(i => i.ProductId).Distinct().ToList();
+            var productIds = order.Items
+                .Where(i => i.ProductId.HasValue && !i.IsCustomItem)
+                .Select(i => i.ProductId!.Value)
+                .Distinct()
+                .ToList();
+            
             var products = await _unitOfWork.Products.Query()
                 .Where(p => productIds.Contains(p.Id))
                 .ToDictionaryAsync(p => p.Id, p => p);
             
             var stockItems = order.Items
-                .Where(i => i.ProductId > 0 && products.ContainsKey(i.ProductId) && products[i.ProductId].TrackInventory)
-                .Select(i => (i.ProductId, i.Quantity))
+                .Where(i => i.ProductId.HasValue 
+                         && !i.IsCustomItem 
+                         && products.ContainsKey(i.ProductId.Value) 
+                         && products[i.ProductId.Value].TrackInventory)
+                .Select(i => (i.ProductId!.Value, i.Quantity))
                 .ToList();
             
             if (stockItems.Any())
@@ -718,18 +800,18 @@ public class OrderService : IOrderService
                     };
                     returnOrder.Items.Add(returnItem);
 
-                    // Restore stock ONLY if product tracks inventory
-                    if (orderItem.ProductId > 0)
+                    // Restore stock ONLY if product tracks inventory (skip custom items)
+                    if (orderItem.ProductId.HasValue && !orderItem.IsCustomItem)
                     {
-                        var product = await _unitOfWork.Products.GetByIdAsync(orderItem.ProductId);
+                        var product = await _unitOfWork.Products.GetByIdAsync(orderItem.ProductId.Value);
                         if (product != null && product.TrackInventory)
                         {
-                            var currentStock = await _inventoryService.GetCurrentStockAsync(orderItem.ProductId);
-                            var newStock = await _inventoryService.IncrementStockAsync(orderItem.ProductId, refundItem.Quantity, originalOrder.Id);
+                            var currentStock = await _inventoryService.GetCurrentStockAsync(orderItem.ProductId.Value);
+                            var newStock = await _inventoryService.IncrementStockAsync(orderItem.ProductId.Value, refundItem.Quantity, originalOrder.Id);
                             
                             stockChanges.Add(new 
                             { 
-                                ProductId = orderItem.ProductId, 
+                                ProductId = orderItem.ProductId.Value, 
                                 ProductName = orderItem.ProductName,
                                 Quantity = refundItem.Quantity,
                                 BalanceBefore = currentStock, 
@@ -780,18 +862,18 @@ public class OrderService : IOrderService
                     };
                     returnOrder.Items.Add(returnItem);
 
-                    // Restore stock ONLY if product tracks inventory
-                    if (item.ProductId > 0 && item.Quantity > 0)
+                    // Restore stock ONLY if product tracks inventory (skip custom items)
+                    if (item.ProductId.HasValue && !item.IsCustomItem && item.Quantity > 0)
                     {
-                        var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                        var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId.Value);
                         if (product != null && product.TrackInventory)
                         {
-                            var currentStock = await _inventoryService.GetCurrentStockAsync(item.ProductId);
-                            var newStock = await _inventoryService.IncrementStockAsync(item.ProductId, item.Quantity, originalOrder.Id);
+                            var currentStock = await _inventoryService.GetCurrentStockAsync(item.ProductId.Value);
+                            var newStock = await _inventoryService.IncrementStockAsync(item.ProductId.Value, item.Quantity, originalOrder.Id);
                             
                             stockChanges.Add(new 
                             { 
-                                ProductId = item.ProductId, 
+                                ProductId = item.ProductId.Value, 
                                 ProductName = item.ProductName,
                                 Quantity = item.Quantity, 
                                 BalanceBefore = currentStock, 
@@ -1052,7 +1134,13 @@ public class OrderService : IOrderService
         Items = order.Items.Select(i => new OrderItemDto
         {
             Id = i.Id,
-            ProductId = i.ProductId,
+            ProductId = i.ProductId, // Now nullable in both Entity and DTO
+            // Custom Item Fields
+            IsCustomItem = i.IsCustomItem,
+            CustomName = i.CustomName,
+            CustomUnitPrice = i.CustomUnitPrice,
+            CustomTaxRate = i.CustomTaxRate,
+            // Product Snapshot
             ProductName = i.ProductName,
             ProductNameEn = i.ProductNameEn,
             ProductSku = i.ProductSku,

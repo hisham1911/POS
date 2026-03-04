@@ -1,5 +1,7 @@
 namespace KasserPro.Application.DTOs.Products;
 
+using KasserPro.Domain.Enums;
+
 public class ProductDto
 {
     public int Id { get; set; }
@@ -14,7 +16,17 @@ public class ProductDto
     public bool TaxInclusive { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
+    
+    /// <summary>
+    /// Product type (Physical or Service)
+    /// </summary>
+    public ProductType Type { get; set; }
+    
+    /// <summary>
+    /// Automatically determined by Type
+    /// </summary>
     public bool TrackInventory { get; set; }
+    
     public int? StockQuantity { get; set; }
     public int CategoryId { get; set; }
     public string? CategoryName { get; set; }

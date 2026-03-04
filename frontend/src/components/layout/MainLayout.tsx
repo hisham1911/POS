@@ -22,6 +22,7 @@ import {
   Wallet,
   Boxes,
   HardDrive,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
@@ -91,6 +92,12 @@ const navItems = [
     permission: "CashRegisterView",
   },
   { path: "/branches", label: "الفروع", icon: Building2, adminOnly: true },
+  {
+    path: "/users",
+    label: "إدارة المستخدمين",
+    icon: Shield,
+    adminOnly: true,
+  },
   {
     path: "/reports",
     label: "التقارير",
@@ -269,7 +276,7 @@ export const MainLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
+        <header className="bg-white border-b px-4 py-3 flex items-center justify-between relative">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}

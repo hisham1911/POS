@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { X } from "lucide-react";
 import clsx from "clsx";
+import { Portal } from "./Portal";
 
 interface ModalProps {
   isOpen: boolean;
@@ -44,30 +45,32 @@ export const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in"
-      onClick={onClose}
-    >
+    <Portal>
       <div
-        className={clsx(
-          "bg-white rounded-2xl shadow-xl w-full mx-4 animate-scale-in max-h-[90vh] overflow-auto",
-          sizes[size],
-        )}
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-fade-in"
+        onClick={onClose}
       >
-        {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-xl font-bold">{title}</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        )}
-        <div className="p-6">{children}</div>
+        <div
+          className={clsx(
+            "bg-white rounded-2xl shadow-xl w-full mx-4 animate-scale-in max-h-[90vh] overflow-auto",
+            sizes[size],
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {title && (
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h2 className="text-xl font-bold">{title}</h2>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+          <div className="p-6">{children}</div>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 };

@@ -24,6 +24,7 @@ import { formatDateTime, formatCurrency } from "@/utils/formatters";
 import { CustomerFormModal } from "./CustomerFormModal";
 import { LoyaltyPointsModal } from "./LoyaltyPointsModal";
 import clsx from "clsx";
+import { Portal } from "@/components/common/Portal";
 
 interface CustomerDetailsModalProps {
   customer: Customer;
@@ -44,7 +45,7 @@ export const CustomerDetailsModal = ({
 
   // Fetch customer data to get latest loyalty points
   const { data: customerData, refetch: refetchCustomer } = useGetCustomerQuery(
-    initialCustomer.id
+    initialCustomer.id,
   );
   const customer = customerData?.data || initialCustomer;
 
@@ -107,12 +108,12 @@ export const CustomerDetailsModal = ({
   };
 
   return (
-    <>
+    <Portal>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-[100]" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div
           className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
@@ -195,7 +196,9 @@ export const CustomerDetailsModal = ({
                 المبلغ المستحق
               </div>
               <p className="font-bold text-lg text-orange-600">
-                {customer.totalDue > 0 ? formatCurrency(customer.totalDue) : "—"}
+                {customer.totalDue > 0
+                  ? formatCurrency(customer.totalDue)
+                  : "—"}
               </p>
               {customer.creditLimit > 0 && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -224,7 +227,7 @@ export const CustomerDetailsModal = ({
                 "flex-1 py-3 text-sm font-medium transition-colors",
                 activeTab === "orders"
                   ? "text-primary-600 border-b-2 border-primary-600"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-500 hover:text-gray-700",
               )}
             >
               سجل الطلبات ({ordersTotalCount})
@@ -235,7 +238,7 @@ export const CustomerDetailsModal = ({
                 "flex-1 py-3 text-sm font-medium transition-colors",
                 activeTab === "details"
                   ? "text-primary-600 border-b-2 border-primary-600"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-500 hover:text-gray-700",
               )}
             >
               تفاصيل العميل
@@ -285,7 +288,7 @@ export const CustomerDetailsModal = ({
                               key={order.id}
                               className={clsx(
                                 "hover:bg-gray-50 transition-colors",
-                                order.orderType === "Return" && "bg-orange-50"
+                                order.orderType === "Return" && "bg-orange-50",
                               )}
                             >
                               <td className="py-3 px-3">
@@ -307,7 +310,7 @@ export const CustomerDetailsModal = ({
                                   "py-3 px-3 font-semibold",
                                   order.total < 0
                                     ? "text-orange-600"
-                                    : "text-gray-800"
+                                    : "text-gray-800",
                                 )}
                               >
                                 {formatCurrency(order.total)}
@@ -340,7 +343,7 @@ export const CustomerDetailsModal = ({
                           size="sm"
                           onClick={() =>
                             setOrdersPage((p) =>
-                              Math.min(ordersTotalPages, p + 1)
+                              Math.min(ordersTotalPages, p + 1),
                             )
                           }
                           disabled={ordersPage === ordersTotalPages}
@@ -421,7 +424,7 @@ export const CustomerDetailsModal = ({
                       <p
                         className={clsx(
                           "font-medium",
-                          customer.isActive ? "text-green-600" : "text-red-600"
+                          customer.isActive ? "text-green-600" : "text-red-600",
                         )}
                       >
                         {customer.isActive ? "نشط" : "غير نشط"}
@@ -454,7 +457,9 @@ export const CustomerDetailsModal = ({
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">المتاح:</span>
                             <span className="font-semibold text-green-600">
-                              {formatCurrency(customer.creditLimit - customer.totalDue)}
+                              {formatCurrency(
+                                customer.creditLimit - customer.totalDue,
+                              )}
                             </span>
                           </div>
                           {/* Progress Bar */}
@@ -462,23 +467,29 @@ export const CustomerDetailsModal = ({
                             <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                               <span>استخدام الائتمان</span>
                               <span>
-                                {((customer.totalDue / customer.creditLimit) * 100).toFixed(0)}%
+                                {(
+                                  (customer.totalDue / customer.creditLimit) *
+                                  100
+                                ).toFixed(0)}
+                                %
                               </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                               <div
                                 className={clsx(
                                   "h-2 rounded-full transition-all",
-                                  (customer.totalDue / customer.creditLimit) > 0.8
+                                  customer.totalDue / customer.creditLimit > 0.8
                                     ? "bg-red-500"
-                                    : (customer.totalDue / customer.creditLimit) > 0.5
-                                    ? "bg-orange-500"
-                                    : "bg-green-500"
+                                    : customer.totalDue / customer.creditLimit >
+                                        0.5
+                                      ? "bg-orange-500"
+                                      : "bg-green-500",
                                 )}
                                 style={{
                                   width: `${Math.min(
-                                    (customer.totalDue / customer.creditLimit) * 100,
-                                    100
+                                    (customer.totalDue / customer.creditLimit) *
+                                      100,
+                                    100,
                                   )}%`,
                                 }}
                               />
@@ -526,6 +537,6 @@ export const CustomerDetailsModal = ({
           }}
         />
       )}
-    </>
+    </Portal>
   );
 };

@@ -11,6 +11,7 @@ import {
 } from "@/api/customersApi";
 import { Button } from "@/components/common/Button";
 import { toast } from "sonner";
+import { Portal } from "@/components/common/Portal";
 
 interface CustomerFormModalProps {
   customer?: Customer | null;
@@ -50,7 +51,8 @@ export const CustomerFormModal = ({
         email: customer.email || "",
         address: customer.address || "",
         notes: customer.notes || "",
-        creditLimit: customer.creditLimit > 0 ? customer.creditLimit.toString() : "",
+        creditLimit:
+          customer.creditLimit > 0 ? customer.creditLimit.toString() : "",
       });
     }
   }, [customer]);
@@ -84,7 +86,9 @@ export const CustomerFormModal = ({
           email: formData.email || undefined,
           address: formData.address || undefined,
           notes: formData.notes || undefined,
-          creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : 0,
+          creditLimit: formData.creditLimit
+            ? parseFloat(formData.creditLimit)
+            : 0,
         };
 
         const result = await updateCustomer({
@@ -122,170 +126,172 @@ export const CustomerFormModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
-              {isEditing ? (
-                <Edit className="w-5 h-5 text-primary-600" />
-              ) : (
-                <UserPlus className="w-5 h-5 text-primary-600" />
-              )}
+    <Portal>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                {isEditing ? (
+                  <Edit className="w-5 h-5 text-primary-600" />
+                ) : (
+                  <UserPlus className="w-5 h-5 text-primary-600" />
+                )}
+              </div>
+              <h2 className="text-lg font-bold">
+                {isEditing ? "تعديل العميل" : "إضافة عميل جديد"}
+              </h2>
             </div>
-            <h2 className="text-lg font-bold">
-              {isEditing ? "تعديل العميل" : "إضافة عميل جديد"}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-danger-50 hover:text-danger-500 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              رقم الهاتف <span className="text-danger-500">*</span>
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              placeholder="01xxxxxxxxx"
-              disabled={isEditing}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                isEditing ? "bg-gray-100 cursor-not-allowed" : ""
-              } ${errors.phone ? "border-danger-500" : "border-gray-200"}`}
-              dir="ltr"
-            />
-            {errors.phone && (
-              <p className="text-danger-500 text-sm mt-1">{errors.phone}</p>
-            )}
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-danger-50 hover:text-danger-500 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              الاسم
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="اسم العميل"
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              البريد الإلكتروني
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              placeholder="email@example.com"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                errors.email ? "border-danger-500" : "border-gray-200"
-              }`}
-              dir="ltr"
-            />
-            {errors.email && (
-              <p className="text-danger-500 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              العنوان
-            </label>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-              placeholder="عنوان العميل"
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ملاحظات
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              placeholder="ملاحظات إضافية..."
-              rows={2}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
-            />
-          </div>
-
-          {/* Credit Limit */}
-          {isEditing && (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                حد الائتمان (ج.م)
+                رقم الهاتف <span className="text-danger-500">*</span>
               </label>
               <input
-                type="number"
-                value={formData.creditLimit}
+                type="tel"
+                value={formData.phone}
                 onChange={(e) =>
-                  setFormData({ ...formData, creditLimit: e.target.value })
+                  setFormData({ ...formData, phone: e.target.value })
                 }
-                placeholder="0 = بدون حد"
-                min="0"
-                step="0.01"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="01xxxxxxxxx"
+                disabled={isEditing}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  isEditing ? "bg-gray-100 cursor-not-allowed" : ""
+                } ${errors.phone ? "border-danger-500" : "border-gray-200"}`}
                 dir="ltr"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                اترك 0 للسماح بائتمان غير محدود
-              </p>
+              {errors.phone && (
+                <p className="text-danger-500 text-sm mt-1">{errors.phone}</p>
+              )}
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              className="flex-1"
-              disabled={isLoading}
-            >
-              إلغاء
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={isLoading}
-              className="flex-1"
-            >
-              {isEditing ? "حفظ التعديلات" : "إضافة العميل"}
-            </Button>
-          </div>
-        </form>
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                الاسم
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="اسم العميل"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                البريد الإلكتروني
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                placeholder="email@example.com"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  errors.email ? "border-danger-500" : "border-gray-200"
+                }`}
+                dir="ltr"
+              />
+              {errors.email && (
+                <p className="text-danger-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                العنوان
+              </label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                placeholder="عنوان العميل"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ملاحظات
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+                placeholder="ملاحظات إضافية..."
+                rows={2}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+              />
+            </div>
+
+            {/* Credit Limit */}
+            {isEditing && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  حد الائتمان (ج.م)
+                </label>
+                <input
+                  type="number"
+                  value={formData.creditLimit}
+                  onChange={(e) =>
+                    setFormData({ ...formData, creditLimit: e.target.value })
+                  }
+                  placeholder="0 = بدون حد"
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  dir="ltr"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  اترك 0 للسماح بائتمان غير محدود
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+                className="flex-1"
+                disabled={isLoading}
+              >
+                إلغاء
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                isLoading={isLoading}
+                className="flex-1"
+              >
+                {isEditing ? "حفظ التعديلات" : "إضافة العميل"}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 };

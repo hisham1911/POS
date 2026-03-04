@@ -39,7 +39,10 @@ export interface RefundItemRequest {
 
 export interface OrderItem {
   id: number;
-  productId: number;
+  // ProductId يمكن أن يكون null للمنتجات المخصصة
+  productId: number | null;
+  // هل هذا منتج مخصص (ليس من الكتالوج)
+  isCustomItem?: boolean;
   // Product Snapshot
   productName: string;
   productNameEn?: string;
@@ -143,4 +146,13 @@ export interface CompleteOrderRequest {
     amount: number;
     reference?: string;
   }[];
+}
+
+// طلب إضافة منتج مخصص (ليس من الكتالوج)
+export interface AddCustomItemRequest {
+  name: string;
+  unitPrice: number;
+  quantity?: number;
+  taxRate?: number;
+  notes?: string;
 }
