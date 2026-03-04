@@ -14,24 +14,29 @@ import {
   Eye,
   Plus,
   Minus,
+  DollarSign,
+  Receipt,
+  Printer,
 } from "lucide-react";
 import { Customer } from "@/types/customer.types";
 import { useGetCustomerOrdersQuery } from "@/api/ordersApi";
-import { useGetCustomerQuery } from "@/api/customersApi";
+import { useGetCustomerQuery, useGetDebtHistoryQuery, usePrintDebtPaymentReceiptMutation } from "@/api/customersApi";
 import { Button } from "@/components/common/Button";
 import { Loading } from "@/components/common/Loading";
 import { formatDateTime, formatCurrency } from "@/utils/formatters";
 import { CustomerFormModal } from "./CustomerFormModal";
 import { LoyaltyPointsModal } from "./LoyaltyPointsModal";
+import { DebtPaymentModal } from "./DebtPaymentModal";
 import clsx from "clsx";
 import { Portal } from "@/components/common/Portal";
+import { toast } from "sonner";
 
 interface CustomerDetailsModalProps {
   customer: Customer;
   onClose: () => void;
 }
 
-type TabType = "details" | "orders";
+type TabType = "details" | "orders" | "payments";
 
 export const CustomerDetailsModal = ({
   customer: initialCustomer,
@@ -41,6 +46,7 @@ export const CustomerDetailsModal = ({
   const [ordersPage, setOrdersPage] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showLoyaltyModal, setShowLoyaltyModal] = useState(false);
+  const [showDebtPaymentModal, setShowDebtPaymentModal] = useState(false);
   const [loyaltyMode, setLoyaltyMode] = useState<"add" | "redeem">("add");
 
   // Fetch customer data to get latest loyalty points
@@ -48,6 +54,13 @@ export const CustomerDetailsModal = ({
     initialCustomer.id,
   );
   const customer = customerData?.data || initialCustomer;
+
+  // Fetch debt payment history
+  const { data: debtHistoryData, isLoadingDebtHistory } =
+    useGetDebtHistoryQuery(customer.id);
+
+  const [printDebtPaymentReceipt, { isLoading: isPrinting }] =
+    usePrintDebtPaymentReceiptMutation();
 
   const ordersPageSize = 5;
   const { data: ordersData, isLoading: isLoadingOrders } =
@@ -233,6 +246,17 @@ export const CustomerDetailsModal = ({
               سجل الطلبات ({ordersTotalCount})
             </button>
             <button
+              onClick={() => setActiveTab("payments")}
+              className={clsx(
+                "flex-1 py-3 text-sm font-medium transition-colors",
+                activeTab === "payments"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-500 hover:text-gray-700",
+              )}
+            >
+              سجل الدفعات ({debtHistoryData?.data?.length || 0})
+            </button>
+            <button
               onClick={() => setActiveTab("details")}
               className={clsx(
                 "flex-1 py-3 text-sm font-medium transition-colors",
@@ -354,6 +378,107 @@ export const CustomerDetailsModal = ({
                       </div>
                     )}
                   </>
+                )}
+              </div>
+            )}
+
+            {/* Payments Tab */}
+            {activeTab === "payments" && (
+              <div>
+                {isLoadingDebtHistory ? (
+                  <div className="flex justify-center py-8">
+                    <Loading />
+                  </div>
+                ) : !debtHistoryData?.data || debtHistoryData.data.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Receipt className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>لا توجد دفعات لهذا العميل</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {debtHistoryData.data.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                              <DollarSign className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-800">
+                                {formatCurrency(payment.amount)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatDateTime(payment.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await printDebtPaymentReceipt(payment.id).unwrap();
+                                toast.success("تم إرسال أمر الطباعة بنجاح");
+                              } catch (error) {
+                                toast.error("فشل إرسال أمر الطباعة");
+                              }
+                            }}
+                            disabled={isPrinting}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                            title="طباعة إيصال"
+                          >
+                            <Printer className="w-4 h-4 text-gray-600" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-gray-500">طريقة الدفع</p>
+                            <p className="font-medium">
+                              {payment.paymentMethod === 'Cash' && '💵 نقدي'}
+                              {payment.paymentMethod === 'Card' && '💳 بطاقة'}
+                              {payment.paymentMethod === 'BankTransfer' && '🏦 تحويل بنكي'}
+                              {payment.paymentMethod === 'Fawry' && '📱 فوري'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">المسجل بواسطة</p>
+                            <p className="font-medium">{payment.recordedByUserName || 'غير معروف'}</p>
+                          </div>
+                        </div>
+
+                        {payment.referenceNumber && (
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs text-gray-500">رقم المرجع</p>
+                            <p className="text-sm font-mono">{payment.referenceNumber}</p>
+                          </div>
+                        )}
+
+                        {payment.notes && (
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs text-gray-500">ملاحظات</p>
+                            <p className="text-sm text-gray-700">{payment.notes}</p>
+                          </div>
+                        )}
+
+                        <div className="mt-3 pt-3 border-t flex items-center justify-between text-xs">
+                          <div>
+                            <span className="text-gray-500">الرصيد قبل: </span>
+                            <span className="font-semibold text-orange-600">
+                              {formatCurrency(payment.balanceBefore)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">الرصيد بعد: </span>
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(payment.balanceAfter)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
@@ -498,6 +623,21 @@ export const CustomerDetailsModal = ({
                         </>
                       )}
                     </div>
+                    
+                    {/* Pay Debt Button */}
+                    {customer.totalDue > 0 && (
+                      <div className="mt-4 pt-4 border-t border-orange-200">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => setShowDebtPaymentModal(true)}
+                          className="w-full bg-orange-600 hover:bg-orange-700"
+                        >
+                          <DollarSign className="w-4 h-4 ml-2" />
+                          تسديد دين
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -534,6 +674,19 @@ export const CustomerDetailsModal = ({
           onClose={() => setShowLoyaltyModal(false)}
           onSuccess={() => {
             refetchCustomer();
+          }}
+        />
+      )}
+
+      {/* Debt Payment Modal */}
+      {showDebtPaymentModal && (
+        <DebtPaymentModal
+          customer={customer}
+          onClose={() => setShowDebtPaymentModal(false)}
+          onSuccess={() => {
+            refetchCustomer();
+            // Switch to payments tab to show the new payment
+            setActiveTab("payments");
           }}
         />
       )}

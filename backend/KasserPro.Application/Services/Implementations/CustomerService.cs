@@ -14,11 +14,13 @@ public class CustomerService : ICustomerService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICashRegisterService _cashRegisterService;
 
-    public CustomerService(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+    public CustomerService(IUnitOfWork unitOfWork, ICurrentUserService currentUser, ICashRegisterService cashRegisterService)
     {
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _cashRegisterService = cashRegisterService;
     }
 
     public async Task<PagedResult<CustomerDto>> GetAllAsync(int page = 1, int pageSize = 20, string? search = null)
@@ -273,6 +275,202 @@ public class CustomerService : ICustomerService
         customer.LoyaltyPoints -= points;
         await _unitOfWork.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<ApiResponse<PayDebtResponse>> PayDebtAsync(int customerId, PayDebtRequest request, int recordedByUserId)
+    {
+        var tenantId = _currentUser.TenantId;
+        var branchId = _currentUser.BranchId;
+        
+        // Validate amount
+        if (request.Amount <= 0)
+            return ApiResponse<PayDebtResponse>.Fail("INVALID_AMOUNT", "المبلغ يجب أن يكون أكبر من صفر");
+        
+        // Get user for snapshot (filter by TenantId for multi-tenancy)
+        var user = await _unitOfWork.Users.Query()
+            .FirstOrDefaultAsync(u => u.Id == recordedByUserId && u.TenantId == tenantId);
+        if (user == null)
+            return ApiResponse<PayDebtResponse>.Fail("USER_NOT_FOUND", "المستخدم غير موجود");
+        
+        // Get current shift (optional)
+        var currentShift = await _unitOfWork.Shifts.Query()
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId 
+                                   && s.BranchId == branchId 
+                                   && s.UserId == recordedByUserId
+                                   && !s.IsClosed);
+        
+        // ✅ BEGIN TRANSACTION - SQLite will acquire EXCLUSIVE lock on first write
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        
+        try
+        {
+            // ✅ FIX: Read customer INSIDE transaction with fresh data protected by lock
+            var customer = await _unitOfWork.Customers.Query()
+                .FirstOrDefaultAsync(c => c.Id == customerId && c.TenantId == tenantId);
+            
+            if (customer == null)
+            {
+                await transaction.RollbackAsync();
+                return ApiResponse<PayDebtResponse>.Fail("CUSTOMER_NOT_FOUND", "العميل غير موجود");
+            }
+            
+            // ✅ FIX: Validate with fresh data inside transaction
+            if (request.Amount > customer.TotalDue)
+            {
+                await transaction.RollbackAsync();
+                return ApiResponse<PayDebtResponse>.Fail("AMOUNT_EXCEEDS_DEBT", 
+                    $"المبلغ ({request.Amount:F2}) أكبر من الدين المستحق ({customer.TotalDue:F2})");
+            }
+            
+            // ✅ Calculate balance with fresh data
+            var balanceBefore = customer.TotalDue;
+            var balanceAfter = balanceBefore - request.Amount;
+            
+            // Create debt payment record
+            var debtPayment = new DebtPayment
+            {
+                TenantId = tenantId,
+                BranchId = branchId,
+                CustomerId = customerId,
+                Amount = request.Amount,
+                PaymentMethod = request.PaymentMethod,
+                ReferenceNumber = request.ReferenceNumber,
+                Notes = request.Notes,
+                RecordedByUserId = recordedByUserId,
+                RecordedByUserName = user.Name,
+                ShiftId = currentShift?.Id,
+                BalanceBefore = balanceBefore,
+                BalanceAfter = balanceAfter
+            };
+            
+            await _unitOfWork.DebtPayments.AddAsync(debtPayment);
+            
+            // Reduce customer's TotalDue
+            customer.TotalDue = balanceAfter;
+            
+            await _unitOfWork.SaveChangesAsync();
+            
+            // ✅ INTEGRATION: Record in cash register if payment method is Cash
+            if (request.PaymentMethod == Domain.Enums.PaymentMethod.Cash)
+            {
+                await _cashRegisterService.RecordTransactionAsync(
+                    type: Domain.Enums.CashRegisterTransactionType.Sale, // Debt payment is income
+                    amount: request.Amount,
+                    description: $"تسديد دين - عميل: {customer.Name ?? customer.Phone}",
+                    referenceType: "DebtPayment",
+                    referenceId: debtPayment.Id,
+                    shiftId: currentShift?.Id
+                );
+            }
+            
+            await transaction.CommitAsync();
+            
+            var response = new PayDebtResponse
+            {
+                PaymentId = debtPayment.Id,
+                AmountPaid = request.Amount,
+                BalanceBefore = balanceBefore,
+                BalanceAfter = balanceAfter,
+                RemainingDebt = balanceAfter,
+                Message = balanceAfter == 0 
+                    ? "تم تسديد الدين بالكامل" 
+                    : $"تم تسديد {request.Amount:F2} ج.م - المتبقي: {balanceAfter:F2} ج.م"
+            };
+            
+            return ApiResponse<PayDebtResponse>.Ok(response, response.Message);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return ApiResponse<PayDebtResponse>.Fail("SYSTEM_ERROR", 
+                $"حدث خطأ أثناء تسجيل الدفع: {ex.Message}");
+        }
+    }
+
+    public async Task<DebtPaymentDto?> GetDebtPaymentByIdAsync(int paymentId, int tenantId)
+    {
+        var payment = await _unitOfWork.DebtPayments.Query()
+            .Include(dp => dp.Customer)
+            .FirstOrDefaultAsync(dp => dp.Id == paymentId && dp.TenantId == tenantId);
+
+        if (payment == null)
+            return null;
+
+        return new DebtPaymentDto
+        {
+            Id = payment.Id,
+            CustomerId = payment.CustomerId,
+            CustomerName = payment.Customer?.Name,
+            CustomerPhone = payment.Customer?.Phone,
+            Amount = payment.Amount,
+            PaymentMethod = payment.PaymentMethod,
+            ReferenceNumber = payment.ReferenceNumber,
+            Notes = payment.Notes,
+            RecordedByUserId = payment.RecordedByUserId,
+            RecordedByUserName = payment.RecordedByUserName,
+            ShiftId = payment.ShiftId,
+            BalanceBefore = payment.BalanceBefore,
+            BalanceAfter = payment.BalanceAfter,
+            CreatedAt = payment.CreatedAt
+        };
+    }
+
+    public async Task<List<DebtPaymentDto>> GetDebtPaymentHistoryAsync(int customerId)
+    {
+        var tenantId = _currentUser.TenantId;
+        
+        var payments = await _unitOfWork.DebtPayments.Query()
+            .Where(dp => dp.CustomerId == customerId && dp.TenantId == tenantId)
+            .OrderByDescending(dp => dp.CreatedAt)
+            .Select(dp => new DebtPaymentDto
+            {
+                Id = dp.Id,
+                CustomerId = dp.CustomerId,
+                Amount = dp.Amount,
+                PaymentMethod = dp.PaymentMethod,
+                ReferenceNumber = dp.ReferenceNumber,
+                Notes = dp.Notes,
+                RecordedByUserId = dp.RecordedByUserId,
+                RecordedByUserName = dp.RecordedByUserName,
+                BalanceBefore = dp.BalanceBefore,
+                BalanceAfter = dp.BalanceAfter,
+                CreatedAt = dp.CreatedAt
+            })
+            .ToListAsync();
+        
+        return payments;
+    }
+
+    public async Task<List<CustomerDto>> GetCustomersWithDebtAsync()
+    {
+        var tenantId = _currentUser.TenantId;
+        
+        var customers = await _unitOfWork.Customers.Query()
+            .Where(c => c.TenantId == tenantId && c.IsActive && c.TotalDue > 0)
+            .OrderByDescending(c => c.TotalDue)
+            .Select(c => MapToDto(c))
+            .ToListAsync();
+        
+        return customers;
+    }
+
+    public async Task ReduceCreditBalanceAsync(int customerId, decimal amountToReduce)
+    {
+        if (amountToReduce <= 0) return;
+        
+        var tenantId = _currentUser.TenantId;
+        
+        var customer = await _unitOfWork.Customers.Query()
+            .FirstOrDefaultAsync(c => c.Id == customerId && c.TenantId == tenantId);
+        
+        if (customer == null) return;
+        
+        // Reduce TotalDue (don't go below zero)
+        customer.TotalDue -= amountToReduce;
+        if (customer.TotalDue < 0)
+            customer.TotalDue = 0;
+        
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(int id)

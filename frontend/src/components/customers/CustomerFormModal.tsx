@@ -127,8 +127,18 @@ export const CustomerFormModal = ({
 
   return (
     <Portal>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/60 z-[110]" 
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div 
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col animate-scale-in"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b">
             <div className="flex items-center gap-3">

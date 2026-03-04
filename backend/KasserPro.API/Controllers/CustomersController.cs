@@ -2,10 +2,12 @@ namespace KasserPro.API.Controllers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using KasserPro.Application.DTOs.Customers;
 using KasserPro.Application.Services.Interfaces;
 using KasserPro.Domain.Enums;
 using KasserPro.API.Middleware;
+using KasserPro.API.Hubs;
 
 /// <summary>
 /// Customer management endpoints
@@ -16,9 +18,21 @@ using KasserPro.API.Middleware;
 public class CustomersController : ControllerBase
 {
     private readonly ICustomerService _customerService;
+    private readonly ITenantService _tenantService;
+    private readonly IHubContext<DeviceHub> _hubContext;
+    private readonly ILogger<CustomersController> _logger;
 
-    public CustomersController(ICustomerService customerService) 
-        => _customerService = customerService;
+    public CustomersController(
+        ICustomerService customerService,
+        ITenantService tenantService,
+        IHubContext<DeviceHub> hubContext,
+        ILogger<CustomersController> logger) 
+    {
+        _customerService = customerService;
+        _tenantService = tenantService;
+        _hubContext = hubContext;
+        _logger = logger;
+    }
 
     /// <summary>
     /// Get all customers with pagination and optional search
@@ -165,6 +179,127 @@ public class CustomersController : ControllerBase
         return success 
             ? Ok(new { Success = true, Message = "Customer deleted" })
             : NotFound(new { Success = false, Message = "Customer not found" });
+    }
+
+    /// <summary>
+    /// Record a debt payment from customer
+    /// </summary>
+    [HttpPost("{id}/pay-debt")]
+    [HasPermission(Permission.CustomersManage)]
+    public async Task<IActionResult> PayDebt(int id, [FromBody] PayDebtRequest request)
+    {
+        var userId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+        var result = await _customerService.PayDebtAsync(id, request, userId);
+        
+        return result.Success 
+            ? Ok(result) 
+            : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Get debt payment history for a customer
+    /// </summary>
+    [HttpGet("{id}/debt-history")]
+    [HasPermission(Permission.CustomersView)]
+    public async Task<IActionResult> GetDebtHistory(int id)
+    {
+        var history = await _customerService.GetDebtPaymentHistoryAsync(id);
+        return Ok(new { Success = true, Data = history });
+    }
+
+    /// <summary>
+    /// Get all customers with outstanding debt
+    /// </summary>
+    [HttpGet("with-debt")]
+    [HasPermission(Permission.CustomersView)]
+    public async Task<IActionResult> GetCustomersWithDebt()
+    {
+        var customers = await _customerService.GetCustomersWithDebtAsync();
+        return Ok(new { Success = true, Data = customers });
+    }
+
+    /// <summary>
+    /// Print debt payment receipt
+    /// </summary>
+    [HttpPost("debt-payments/{paymentId}/print")]
+    [HasPermission(Permission.CustomersView)]
+    public async Task<IActionResult> PrintDebtPaymentReceipt(int paymentId)
+    {
+        try
+        {
+            // Get debt payment details
+            var tenantId = int.Parse(User.FindFirst("tenantId")?.Value ?? "0");
+            var payment = await _customerService.GetDebtPaymentByIdAsync(paymentId, tenantId);
+            
+            if (payment == null)
+                return NotFound(new { Success = false, Message = "الدفعة غير موجودة" });
+
+            var userName = User.FindFirst("name")?.Value ?? "Cashier";
+            var branchId = User.FindFirst("branchId")?.Value ?? "default";
+
+            // Get tenant settings
+            var tenantResult = await _tenantService.GetCurrentTenantAsync();
+            var tenant = tenantResult.Data;
+
+            var printCommand = new
+            {
+                CommandId = Guid.NewGuid().ToString(),
+                Receipt = new
+                {
+                    ReceiptNumber = $"PAY-{payment.Id}",
+                    BranchName = tenant?.Name ?? "KasserPro Store",
+                    Date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    CustomerName = payment.CustomerName ?? "",
+                    CustomerPhone = payment.CustomerPhone ?? "",
+                    Amount = payment.Amount,
+                    PaymentMethod = payment.PaymentMethod.ToString(),
+                    ReferenceNumber = payment.ReferenceNumber ?? "",
+                    Notes = payment.Notes ?? "",
+                    BalanceBefore = payment.BalanceBefore,
+                    BalanceAfter = payment.BalanceAfter,
+                    CashierName = payment.RecordedByUserName ?? userName,
+                    IsDebtPayment = true
+                },
+                Settings = tenant != null ? new
+                {
+                    PaperSize = tenant.ReceiptPaperSize,
+                    CustomWidth = tenant.ReceiptCustomWidth,
+                    HeaderFontSize = tenant.ReceiptHeaderFontSize,
+                    BodyFontSize = tenant.ReceiptBodyFontSize,
+                    TotalFontSize = tenant.ReceiptTotalFontSize,
+                    ShowBranchName = tenant.ReceiptShowBranchName,
+                    ShowCashier = tenant.ReceiptShowCashier,
+                    ShowThankYou = tenant.ReceiptShowThankYou,
+                    ShowCustomerName = tenant.ReceiptShowCustomerName,
+                    ShowLogo = tenant.ReceiptShowLogo,
+                    FooterMessage = tenant.ReceiptFooterMessage,
+                    PhoneNumber = tenant.ReceiptPhoneNumber,
+                    LogoUrl = tenant.LogoUrl
+                } : (object?)null
+            };
+
+            var branchGroup = $"branch-{branchId}";
+
+            // Send to specific branch group
+            await _hubContext.Clients.Group(branchGroup)
+                .SendAsync("PrintDebtPaymentReceipt", printCommand);
+
+            // Also send to default group as fallback
+            if (branchGroup != "branch-default")
+            {
+                await _hubContext.Clients.Group("branch-default")
+                    .SendAsync("PrintDebtPaymentReceipt", printCommand);
+            }
+
+            _logger.LogInformation("Print command sent for debt payment {PaymentId} to branch group {BranchId}", paymentId, branchId);
+
+            return Ok(new { Success = true, Message = "تم إرسال أمر الطباعة بنجاح" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send print command for debt payment {PaymentId}", paymentId);
+            return StatusCode(500, new { Success = false, Message = "فشل إرسال أمر الطباعة" });
+        }
     }
 }
 

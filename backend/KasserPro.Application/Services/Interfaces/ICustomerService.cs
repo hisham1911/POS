@@ -75,6 +75,31 @@ public interface ICustomerService
     Task<bool> RedeemLoyaltyPointsAsync(int customerId, int points);
     
     /// <summary>
+    /// Record a debt payment from customer (reduces TotalDue)
+    /// </summary>
+    Task<ApiResponse<PayDebtResponse>> PayDebtAsync(int customerId, PayDebtRequest request, int recordedByUserId);
+
+    /// <summary>
+    /// Get debt payment by ID
+    /// </summary>
+    Task<DebtPaymentDto?> GetDebtPaymentByIdAsync(int paymentId, int tenantId);
+
+    /// <summary>
+    /// Get debt payment history for a customer
+    /// </summary>
+    Task<List<DebtPaymentDto>> GetDebtPaymentHistoryAsync(int customerId);
+    
+    /// <summary>
+    /// Get all customers with outstanding debt
+    /// </summary>
+    Task<List<CustomerDto>> GetCustomersWithDebtAsync();
+    
+    /// <summary>
+    /// Reduce customer credit balance (used for refunds/cancellations)
+    /// </summary>
+    Task ReduceCreditBalanceAsync(int customerId, decimal amountToReduce);
+    
+    /// <summary>
     /// Soft delete a customer
     /// </summary>
     Task<bool> DeleteAsync(int id);

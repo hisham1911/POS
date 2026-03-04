@@ -77,3 +77,34 @@ export interface CustomersQueryParams {
   pageSize?: number;
   search?: string;
 }
+
+// Debt Payment Types
+export interface PayDebtRequest {
+  amount: number;
+  paymentMethod: 'Cash' | 'Card' | 'BankTransfer' | 'Fawry';
+  referenceNumber?: string;
+  notes?: string;
+}
+
+export interface PayDebtResponse {
+  paymentId: number;
+  amountPaid: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  remainingDebt: number;
+  message: string;
+}
+
+export interface DebtPaymentDto {
+  id: number;
+  customerId: number;
+  amount: number;
+  paymentMethod: 'Cash' | 'Card' | 'BankTransfer' | 'Fawry';
+  referenceNumber?: string;
+  notes?: string;
+  recordedByUserId: number;
+  recordedByUserName?: string;
+  balanceBefore: number;
+  balanceAfter: number;
+  createdAt: string;
+}

@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
     
     // Sellable V1: New entities
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<DebtPayment> DebtPayments => Set<DebtPayment>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<RefundLog> RefundLogs => Set<RefundLog>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
@@ -70,6 +71,7 @@ public class AppDbContext : DbContext
         
         // Sellable V1: Soft delete filters for new entities
         modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<DebtPayment>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<StockMovement>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<RefundLog>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Supplier>().HasQueryFilter(e => !e.IsDeleted);
@@ -214,6 +216,44 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Customer>()
             .HasIndex(c => new { c.TenantId, c.Phone })
             .IsUnique();
+        
+        // DebtPayment relationships
+        modelBuilder.Entity<DebtPayment>()
+            .HasOne(dp => dp.Tenant)
+            .WithMany()
+            .HasForeignKey(dp => dp.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<DebtPayment>()
+            .HasOne(dp => dp.Branch)
+            .WithMany()
+            .HasForeignKey(dp => dp.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<DebtPayment>()
+            .HasOne(dp => dp.Customer)
+            .WithMany()
+            .HasForeignKey(dp => dp.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<DebtPayment>()
+            .HasOne(dp => dp.RecordedByUser)
+            .WithMany()
+            .HasForeignKey(dp => dp.RecordedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<DebtPayment>()
+            .HasOne(dp => dp.Shift)
+            .WithMany()
+            .HasForeignKey(dp => dp.ShiftId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // DebtPayment indexes (customer history queries)
+        modelBuilder.Entity<DebtPayment>()
+            .HasIndex(dp => new { dp.CustomerId, dp.CreatedAt });
+        
+        modelBuilder.Entity<DebtPayment>()
+            .HasIndex(dp => new { dp.TenantId, dp.CreatedAt });
         
         // StockMovement relationships
         modelBuilder.Entity<StockMovement>()

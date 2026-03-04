@@ -8,6 +8,9 @@ import {
   GetOrCreateCustomerRequest,
   GetOrCreateCustomerResponse,
   LoyaltyPointsRequest,
+  PayDebtRequest,
+  PayDebtResponse,
+  DebtPaymentDto,
 } from "../types/customer.types";
 
 export const customersApi = baseApi.injectEndpoints({
@@ -130,6 +133,59 @@ export const customersApi = baseApi.injectEndpoints({
         { type: "Customers", id: "LIST" },
       ],
     }),
+
+    // تسديد دين عميل
+    payDebt: builder.mutation<
+      ApiResponse<PayDebtResponse>,
+      { customerId: number; data: PayDebtRequest }
+    >({
+      query: ({ customerId, data }) => ({
+        url: `/customers/${customerId}/pay-debt`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { customerId }) => [
+        { type: "Customers", id: customerId },
+        { type: "Customers", id: "LIST" },
+      ],
+    }),
+
+    // جلب سجل تسديدات الديون لعميل
+    getDebtHistory: builder.query<
+      ApiResponse<DebtPaymentDto[]>,
+      number
+    >({
+      query: (customerId) => `/customers/${customerId}/debt-history`,
+      providesTags: (_result, _error, customerId) => [
+        { type: "Customers", id: `debt-${customerId}` },
+      ],
+    }),
+
+    // جلب العملاء الذين لديهم ديون
+    getCustomersWithDebt: builder.query<ApiResponse<Customer[]>, void>({
+      query: () => "/customers/with-debt",
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: "Customers" as const,
+                id,
+              })),
+              { type: "Customers", id: "DEBT-LIST" },
+            ]
+          : [{ type: "Customers", id: "DEBT-LIST" }],
+    }),
+
+    // طباعة إيصال تسديد دين
+    printDebtPaymentReceipt: builder.mutation<
+      ApiResponse<{ message: string }>,
+      number
+    >({
+      query: (paymentId) => ({
+        url: `/customers/debt-payments/${paymentId}/print`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -144,4 +200,9 @@ export const {
   useAddLoyaltyPointsMutation,
   useRedeemLoyaltyPointsMutation,
   useDeleteCustomerMutation,
+  usePayDebtMutation,
+  useGetDebtHistoryQuery,
+  useLazyGetDebtHistoryQuery,
+  useGetCustomersWithDebtQuery,
+  usePrintDebtPaymentReceiptMutation,
 } = customersApi;

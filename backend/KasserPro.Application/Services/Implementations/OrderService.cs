@@ -660,7 +660,10 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<bool>> CancelAsync(int orderId, string? reason)
     {
-        var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+        var order = await _unitOfWork.Orders.Query()
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.TenantId == _currentUser.TenantId);
+            
         if (order == null)
             return ApiResponse<bool>.Fail(ErrorCodes.ORDER_NOT_FOUND, ErrorMessages.Get(ErrorCodes.ORDER_NOT_FOUND));
 
@@ -672,6 +675,15 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.Cancelled;
         order.CancelledAt = DateTime.UtcNow;
         order.CancellationReason = reason;
+
+        // ✅ FIX: Reduce customer's TotalDue if order had unpaid amount
+        if (order.CustomerId.HasValue && order.AmountDue > 0)
+        {
+            await _customerService.ReduceCreditBalanceAsync(
+                order.CustomerId.Value, 
+                order.AmountDue
+            );
+        }
 
         await _unitOfWork.SaveChangesAsync();
         return ApiResponse<bool>.Ok(true, "تم إلغاء الطلب");
@@ -930,6 +942,20 @@ public class OrderService : IOrderService
                     totalRefundAmount,
                     pointsToDeduct
                 );
+                
+                // ✅ FIX: Reduce customer's TotalDue if order had unpaid amount
+                if (originalOrder.AmountDue > 0)
+                {
+                    // Calculate proportional debt reduction
+                    var debtToReduce = isPartialRefund 
+                        ? Math.Round((totalRefundAmount / originalOrder.Total) * originalOrder.AmountDue, 2)
+                        : originalOrder.AmountDue;
+                    
+                    await _customerService.ReduceCreditBalanceAsync(
+                        originalOrder.CustomerId.Value, 
+                        debtToReduce
+                    );
+                }
             }
 
             await _unitOfWork.SaveChangesAsync();
