@@ -35,7 +35,7 @@ export const DropdownMenuContent = ({
   <MenuItems
     anchor={anchor}
     className={cn(
-      "z-[140] mt-3 min-w-56 rounded-[1.35rem] border border-white/45 bg-card/96 p-2 shadow-card backdrop-blur-xl outline-none",
+      "z-[140] mt-3 min-w-56 rounded-[1.35rem] border border-[hsl(var(--border)/0.66)] bg-[hsl(var(--card)/0.96)] p-2 shadow-card backdrop-blur-xl outline-none",
       className
     )}
   >
@@ -56,7 +56,7 @@ export const DropdownMenuItem = ({
         type="button"
         className={cn(
           "interactive-ring flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-medium text-foreground transition",
-          focus && "bg-background/80",
+          focus && "bg-[hsl(var(--background)/0.82)]",
           className
         )}
         {...props}
@@ -68,5 +68,5 @@ export const DropdownMenuItem = ({
 );
 
 export const DropdownMenuSeparator = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("my-2 h-px bg-border/70", className)} {...props} />
+  <div className={cn("my-2 h-px bg-[hsl(var(--border)/0.7)]", className)} {...props} />
 );

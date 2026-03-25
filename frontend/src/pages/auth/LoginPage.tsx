@@ -16,24 +16,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div
-          className="absolute inset-0 scale-105 blur-xl"
-          style={{
-            backgroundImage: "var(--wallpaper-image)",
-            backgroundSize: "cover",
-            backgroundPosition: "center"
-          }}
-        />
-      </div>
-
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-6 lg:flex-row lg:items-stretch">
+    <div className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-[1460px] flex-col gap-5 lg:flex-row lg:items-stretch">
         <motion.section
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="glass-panel relative flex flex-1 flex-col justify-between overflow-hidden px-6 py-7 sm:px-8 lg:px-10"
+          className="glass-panel relative flex flex-1 flex-col justify-between overflow-hidden px-6 py-7 sm:px-8 lg:px-12"
         >
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -58,13 +47,13 @@ export default function LoginPage() {
               {t("login.subtitle")}
             </p>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {[
                 { icon: Zap, label: t("login.highlightsSpeed") },
                 { icon: Stars02, label: t("login.highlightsTheme") },
                 { icon: Translate01, label: t("login.highlightsRtl") }
               ].map((item) => (
-                <div key={item.label} className="frost-card rounded-[calc(var(--radius)+0.05rem)] p-4">
+                <div key={item.label} className="surface-outline rounded-[calc(var(--radius)+0.05rem)] p-4">
                   <div className="inline-flex rounded-2xl bg-primary/12 p-2 text-primary">
                     <item.icon className="size-5" />
                   </div>
@@ -74,7 +63,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="frost-card max-w-xl rounded-[calc(var(--radius)+0.15rem)] p-5">
+          <div className="surface-outline max-w-xl rounded-[calc(var(--radius)+0.15rem)] p-5">
             <div className="flex items-start gap-3">
               <div className="rounded-2xl bg-secondary/18 p-2 text-secondary-foreground">
                 <ShieldTick className="size-5" />
@@ -88,7 +77,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.08 }}
-          className="glass-panel relative w-full max-w-xl self-center px-6 py-7 sm:px-8 lg:min-w-[460px]"
+          className="glass-panel relative w-full max-w-xl self-center px-6 py-7 sm:px-8 lg:min-w-[460px] lg:max-w-[34rem]"
         >
           <div className="space-y-2">
             <p className="section-caption">{t("common.appName")}</p>

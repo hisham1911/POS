@@ -38,6 +38,8 @@
   },
   "layout": {
     "workspace": "مساحة العمل",
+    "management": "الإدارة",
+    "ownerSpace": "مساحة المالك",
     "branch": "الفرع",
     "quickActions": "إجراءات سريعة",
     "openPalette": "فتح لوحة الأوامر",

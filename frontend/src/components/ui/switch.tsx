@@ -13,14 +13,14 @@ export const Switch = ({ checked, onCheckedChange, className }: SwitchProps) => 
     checked={checked}
     onChange={onCheckedChange}
     className={cn(
-      "interactive-ring relative inline-flex h-7 w-12 items-center rounded-full border border-white/40 transition",
-      checked ? "bg-primary" : "bg-muted",
+      "interactive-ring relative inline-flex h-7 w-12 items-center rounded-full border border-[hsl(var(--border)/0.66)] transition",
+      checked ? "bg-primary" : "bg-[hsl(var(--muted)/0.88)]",
       className
     )}
   >
     <span
       className={cn(
-        "inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition",
+        "inline-block h-5 w-5 transform rounded-full bg-[hsl(var(--card))] shadow-md transition",
         checked ? "translate-x-6 rtl:-translate-x-6" : "translate-x-1 rtl:-translate-x-1"
       )}
     />

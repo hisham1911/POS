@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export const Avatar = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/60 bg-background shadow-soft",
+      "relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[hsl(var(--border)/0.7)] bg-background shadow-soft",
       className
     )}
     {...props}

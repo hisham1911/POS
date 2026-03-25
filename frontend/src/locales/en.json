@@ -38,6 +38,8 @@
   },
   "layout": {
     "workspace": "Workspace",
+    "management": "Management",
+    "ownerSpace": "Owner space",
     "branch": "Branch",
     "quickActions": "Quick actions",
     "openPalette": "Open command palette",

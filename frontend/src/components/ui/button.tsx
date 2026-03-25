@@ -16,15 +16,15 @@ const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
   secondary:
     "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/90",
   outline:
-    "border border-border bg-background/70 text-foreground hover:bg-background",
+    "border border-[hsl(var(--border)/0.7)] bg-[hsl(var(--card)/0.72)] text-foreground shadow-sm hover:bg-[hsl(var(--card)/0.94)]",
   ghost:
-    "bg-transparent text-muted-foreground hover:bg-background/75 hover:text-foreground",
+    "bg-transparent text-muted-foreground hover:bg-[hsl(var(--muted)/0.7)] hover:text-foreground",
   danger:
     "bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90",
   success:
     "bg-success text-success-foreground shadow-soft hover:bg-success/90",
   glass:
-    "border border-white/55 bg-white/80 text-foreground shadow-soft backdrop-blur-md hover:bg-white"
+    "border border-[hsl(var(--border)/0.7)] bg-[hsl(var(--card)/0.78)] text-foreground shadow-soft backdrop-blur-md hover:bg-[hsl(var(--card)/0.92)]"
 };
 
 const sizes: Record<NonNullable<ButtonProps["size"]>, string> = {

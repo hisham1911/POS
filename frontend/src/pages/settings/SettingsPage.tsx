@@ -56,11 +56,11 @@ const settingsSchema = z.object({
 type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 const themeCards = [
-  { id: "light", labelKey: "settings.appearance.light", preview: "linear-gradient(140deg, #fff9ee 0%, #ffffff 38%, #e9f7ff 100%)" },
-  { id: "dark", labelKey: "settings.appearance.dark", preview: "linear-gradient(140deg, #0f172a 0%, #1f2937 45%, #172554 100%)" },
-  { id: "ocean", labelKey: "settings.appearance.ocean", preview: "linear-gradient(140deg, #effcff 0%, #dff4ff 45%, #ddfff8 100%)" },
-  { id: "desert", labelKey: "settings.appearance.desert", preview: "linear-gradient(140deg, #fff7ee 0%, #f4e2cf 45%, #f2f3e8 100%)" },
-  { id: "custom", labelKey: "settings.appearance.custom", preview: "linear-gradient(140deg, #dcfce7 0%, #fff1d6 45%, #e0f2fe 100%)" }
+  { id: "light", labelKey: "settings.appearance.light", preview: "linear-gradient(145deg, #f8fafc 0%, #ffffff 42%, #eef5ff 100%)" },
+  { id: "dark", labelKey: "settings.appearance.dark", preview: "linear-gradient(145deg, #101827 0%, #182132 42%, #1f3454 100%)" },
+  { id: "ocean", labelKey: "settings.appearance.ocean", preview: "linear-gradient(145deg, #eef8fb 0%, #e6f5f8 42%, #ebf2fb 100%)" },
+  { id: "desert", labelKey: "settings.appearance.desert", preview: "linear-gradient(145deg, #fbf6ef 0%, #f4e6d8 42%, #eef0e7 100%)" },
+  { id: "custom", labelKey: "settings.appearance.custom", preview: "linear-gradient(145deg, #e9f7f0 0%, #f9f2e4 42%, #edf4ff 100%)" }
 ] as const;
 
 const wallpaperLabelMap: Record<string, string> = {

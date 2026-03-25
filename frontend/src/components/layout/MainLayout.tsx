@@ -1,10 +1,9 @@
 import { ChevronRight, LogOut01, Menu01, SearchLg, Settings01, XClose } from "@untitledui/icons";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import { CommandPalette } from "@/components/app/command-palette";
 import { LanguagePill } from "@/components/app/language-pill";
 import { BranchSelector } from "@/components/layout/BranchSelector";
 import {
@@ -28,6 +27,9 @@ import { usePermission } from "@/hooks/usePermission";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_KEY = "tajerpro.sidebar.collapsed";
+const CommandPalette = lazy(async () => ({
+  default: (await import("@/components/app/command-palette")).CommandPalette
+}));
 
 export const MainLayout = () => {
   const navigate = useNavigate();
@@ -89,10 +91,16 @@ export const MainLayout = () => {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, []);
 
+  const sectionLabels: Record<string, string> = {
+    workspace: t("layout.workspace"),
+    manage: t("layout.management"),
+    owner: t("layout.ownerSpace")
+  };
+
   const sidebar = (
     <aside
       className={cn(
-        "glass-panel-dark hidden h-[calc(100vh-2rem)] shrink-0 overflow-hidden border border-white/10 text-white xl:flex",
+        "glass-panel-dark hidden h-[calc(100vh-2rem)] shrink-0 overflow-hidden xl:sticky xl:top-4 xl:flex",
         collapsed ? "w-[96px]" : "w-[308px]"
       )}
       style={{
@@ -101,23 +109,31 @@ export const MainLayout = () => {
         backgroundPosition: "center"
       }}
     >
-      <div className="flex h-full w-full flex-col bg-slate-950/55 backdrop-blur-xl">
-        <div className="border-b border-white/10 px-4 py-5">
+      <div className="flex h-full w-full flex-col bg-[linear-gradient(180deg,hsl(var(--sidebar-background)/0.88),hsl(var(--sidebar-background)/0.76))] backdrop-blur-xl">
+        <div className="border-b border-[hsl(var(--sidebar-border)/0.65)] px-4 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-[1.35rem] bg-gradient-to-br from-secondary via-primary to-accent text-lg font-black text-white shadow-soft">
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-[1.35rem] text-lg font-black text-white shadow-soft"
+              style={{
+                backgroundImage: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))"
+              }}
+            >
               TP
             </div>
             {!collapsed ? (
               <div>
-                <p className="font-display text-xl font-black">{t("common.appName")}</p>
-                <p className="text-sm text-white/70">{t("layout.workspace")}</p>
+                <p className="font-display text-xl font-black text-[hsl(var(--sidebar-foreground))]">{t("common.appName")}</p>
+                <p className="text-sm text-[hsl(var(--sidebar-foreground)/0.68)]">{t("layout.workspace")}</p>
               </div>
             ) : null}
           </div>
 
           <Button
             variant="glass"
-            className={cn("mt-4 w-full justify-center bg-white/10 text-white hover:bg-white/15", collapsed && "px-0")}
+            className={cn(
+              "mt-4 w-full justify-center border-[hsl(var(--sidebar-border)/0.65)] bg-[hsl(var(--sidebar-foreground)/0.08)] text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-foreground)/0.14)]",
+              collapsed && "px-0"
+            )}
             onClick={() => setCollapsed((current) => !current)}
           >
             <Menu01 className="size-4" />
@@ -130,12 +146,8 @@ export const MainLayout = () => {
             {sections.map((section) => (
               <div key={section.key} className="space-y-2">
                 {!collapsed ? (
-                  <p className="px-3 text-[11px] uppercase tracking-[0.28em] text-white/45">
-                    {section.key === "workspace"
-                      ? t("layout.workspace")
-                      : section.key === "manage"
-                        ? t("common.appearance")
-                        : t("roles.SystemOwner")}
+                  <p className="px-3 text-[11px] uppercase tracking-[0.28em] text-[hsl(var(--sidebar-foreground)/0.45)]">
+                    {sectionLabels[section.key] ?? section.key}
                   </p>
                 ) : null}
 
@@ -148,8 +160,8 @@ export const MainLayout = () => {
                         "group flex items-center rounded-[1.35rem] px-3 py-3 text-sm font-medium transition",
                         collapsed ? "justify-center" : "gap-3",
                         isActive
-                          ? "bg-white/18 text-white shadow-soft"
-                          : "text-white/72 hover:bg-white/10 hover:text-white"
+                          ? "bg-[hsl(var(--sidebar-foreground)/0.14)] text-[hsl(var(--sidebar-foreground))] shadow-soft"
+                          : "text-[hsl(var(--sidebar-foreground)/0.72)] hover:bg-[hsl(var(--sidebar-foreground)/0.08)] hover:text-[hsl(var(--sidebar-foreground))]"
                       )
                     }
                     onClick={() => setSidebarOpen(false)}
@@ -159,7 +171,9 @@ export const MainLayout = () => {
                         <span
                           className={cn(
                             "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition",
-                            isActive ? "bg-white/16" : "bg-white/8 group-hover:bg-white/12"
+                            isActive
+                              ? "bg-[hsl(var(--sidebar-foreground)/0.14)]"
+                              : "bg-[hsl(var(--sidebar-foreground)/0.07)] group-hover:bg-[hsl(var(--sidebar-foreground)/0.1)]"
                           )}
                         >
                           <item.icon className="size-5" />
@@ -170,7 +184,8 @@ export const MainLayout = () => {
                             <ChevronRight
                               className={cn(
                                 "size-4 transition",
-                                isActive ? "translate-x-0 opacity-100 rtl:-translate-x-0" : "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 rtl:-translate-x-1 rtl:group-hover:-translate-x-0"
+                                isRtl && "rotate-180",
+                                isActive ? "translate-x-0 opacity-100" : "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
                               )}
                             />
                           </>
@@ -184,21 +199,26 @@ export const MainLayout = () => {
           </div>
         </ScrollArea>
 
-        <div className="border-t border-white/10 p-4">
-          <div className={cn("flex items-center gap-3 rounded-[1.4rem] bg-white/8 p-3", collapsed && "justify-center")}>
-            <Avatar className="h-12 w-12 border-white/15 bg-white/10">
+        <div className="border-t border-[hsl(var(--sidebar-border)/0.65)] p-4">
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-[1.4rem] bg-[hsl(var(--sidebar-foreground)/0.06)] p-3",
+              collapsed && "justify-center"
+            )}
+          >
+            <Avatar className="h-12 w-12 border-[hsl(var(--sidebar-border)/0.55)] bg-[hsl(var(--sidebar-foreground)/0.08)]">
               {preferences.avatarImage ? (
                 <AvatarImage src={preferences.avatarImage} alt={user?.name} />
               ) : (
-                <AvatarFallback className="bg-white/10 text-white">
+                <AvatarFallback className="bg-[hsl(var(--sidebar-foreground)/0.08)] text-[hsl(var(--sidebar-foreground))]">
                   {userInitials || "TP"}
                 </AvatarFallback>
               )}
             </Avatar>
             {!collapsed ? (
               <div className="min-w-0">
-                <p className="truncate font-semibold text-white">{user?.name}</p>
-                <p className="truncate text-xs text-white/65">
+                <p className="truncate font-semibold text-[hsl(var(--sidebar-foreground))]">{user?.name}</p>
+                <p className="truncate text-xs text-[hsl(var(--sidebar-foreground)/0.65)]">
                   {t(`roles.${user?.role}`)}
                 </p>
               </div>
@@ -211,17 +231,6 @@ export const MainLayout = () => {
 
   return (
     <div className="app-shell">
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div
-          className="absolute inset-0 scale-105 blur-xl"
-          style={{
-            backgroundImage: "var(--wallpaper-image)",
-            backgroundSize: "cover",
-            backgroundPosition: "center"
-          }}
-        />
-      </div>
-
       <div className={cn("mx-auto flex min-h-screen max-w-[1600px] gap-4 p-4", isRtl ? "xl:flex-row-reverse" : "xl:flex-row")}>
         {sidebar}
 
@@ -259,7 +268,7 @@ export const MainLayout = () => {
                   {t("layout.openPalette")}
                 </Button>
                 <LanguagePill />
-                <Badge variant="outline" className="rounded-2xl bg-white/70 px-3 py-2 text-foreground">
+                <Badge variant="outline" className="rounded-2xl px-3 py-2 text-foreground">
                   {timeLabel}
                 </Badge>
               </div>
@@ -323,25 +332,25 @@ export const MainLayout = () => {
           >
             <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
             <motion.aside
-              initial={{ x: isRtl ? -32 : 32, opacity: 0 }}
+              initial={{ x: isRtl ? 32 : -32, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: isRtl ? -32 : 32, opacity: 0 }}
+              exit={{ x: isRtl ? 32 : -32, opacity: 0 }}
               transition={{ duration: 0.18 }}
               className={cn(
                 "absolute top-4 h-[calc(100vh-2rem)] w-[88vw] max-w-[320px]",
-                isRtl ? "left-4" : "right-4"
+                isRtl ? "right-4" : "left-4"
               )}
             >
-              <div className="glass-panel-dark flex h-full flex-col overflow-hidden text-white">
-                <div className="flex items-center justify-between border-b border-white/10 px-4 py-4">
+              <div className="glass-panel-dark flex h-full flex-col overflow-hidden">
+                <div className="flex items-center justify-between border-b border-[hsl(var(--sidebar-border)/0.65)] px-4 py-4">
                   <div>
-                    <p className="font-display text-xl font-black">{t("common.appName")}</p>
-                    <p className="text-sm text-white/65">{t("layout.workspace")}</p>
+                    <p className="font-display text-xl font-black text-[hsl(var(--sidebar-foreground))]">{t("common.appName")}</p>
+                    <p className="text-sm text-[hsl(var(--sidebar-foreground)/0.65)]">{t("layout.workspace")}</p>
                   </div>
                   <Button
                     variant="glass"
                     size="icon"
-                    className="bg-white/10 text-white"
+                    className="border-[hsl(var(--sidebar-border)/0.65)] bg-[hsl(var(--sidebar-foreground)/0.08)] text-[hsl(var(--sidebar-foreground))]"
                     onClick={() => setSidebarOpen(false)}
                   >
                     <XClose className="size-4" />
@@ -351,12 +360,8 @@ export const MainLayout = () => {
                   <div className="space-y-6">
                     {sections.map((section) => (
                       <div key={section.key} className="space-y-2">
-                        <p className="px-3 text-[11px] uppercase tracking-[0.28em] text-white/45">
-                          {section.key === "workspace"
-                            ? t("layout.workspace")
-                            : section.key === "manage"
-                              ? t("common.appearance")
-                              : t("roles.SystemOwner")}
+                        <p className="px-3 text-[11px] uppercase tracking-[0.28em] text-[hsl(var(--sidebar-foreground)/0.45)]">
+                          {sectionLabels[section.key] ?? section.key}
                         </p>
                         {section.items.map((item) => (
                           <NavLink
@@ -367,12 +372,12 @@ export const MainLayout = () => {
                               cn(
                                 "flex items-center gap-3 rounded-[1.35rem] px-3 py-3 text-sm font-medium transition",
                                 isActive
-                                  ? "bg-white/18 text-white shadow-soft"
-                                  : "text-white/72 hover:bg-white/10 hover:text-white"
+                                  ? "bg-[hsl(var(--sidebar-foreground)/0.14)] text-[hsl(var(--sidebar-foreground))] shadow-soft"
+                                  : "text-[hsl(var(--sidebar-foreground)/0.72)] hover:bg-[hsl(var(--sidebar-foreground)/0.08)] hover:text-[hsl(var(--sidebar-foreground))]"
                               )
                             }
                           >
-                            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[hsl(var(--sidebar-foreground)/0.08)]">
                               <item.icon className="size-5" />
                             </span>
                             <span>{t(`nav.${item.key}`)}</span>
@@ -388,7 +393,11 @@ export const MainLayout = () => {
         ) : null}
       </AnimatePresence>
 
-      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+      {commandOpen ? (
+        <Suspense fallback={null}>
+          <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+        </Suspense>
+      ) : null}
     </div>
   );
 };

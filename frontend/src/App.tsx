@@ -1,6 +1,6 @@
-import type React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppSelector, useAppDispatch } from "./store/hooks";
 import {
   selectCurrentUser,
@@ -13,67 +13,76 @@ import {
 import { clearBranch } from "./store/slices/branchSlice";
 import { useGetCurrentShiftQuery } from "./api/shiftsApi";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { MainLayout } from "./components/layout/MainLayout";
-import { ShiftRecoveryModal } from "./components/shifts";
 import { shiftPersistence } from "./utils/shiftPersistence";
 import { usePermission } from "./hooks/usePermission";
-import LoginPage from "./pages/auth/LoginPage";
-import DashboardPage from "./pages/dashboard/DashboardPage";
-import POSPage from "./pages/pos/POSPage";
-import POSWorkspacePage from "./pages/pos/POSWorkspacePage";
-import ProductsPage from "./pages/products/ProductsPage";
-import CategoriesPage from "./pages/categories/CategoriesPage";
-import OrdersPage from "./pages/orders/OrdersPage";
-import ShiftPage from "./pages/shifts/ShiftPage";
-import ShiftsManagementPage from "./pages/shifts/ShiftsManagementPage";
-import CustomersPage from "./pages/customers/CustomersPage";
-import SuppliersPage from "./pages/suppliers/SuppliersPage";
-import { BranchesPage } from "./pages/branches/BranchesPage";
-import DailyReportPage from "./pages/reports/DailyReportPage";
-import SalesReportPage from "./pages/reports/SalesReportPage";
-import InventoryReportsPage from "./pages/reports/InventoryReportsPage";
-import ProfitLossReportPage from "./pages/reports/ProfitLossReportPage";
-import ExpensesReportPage from "./pages/reports/ExpensesReportPage";
-import TransferHistoryReportPage from "./pages/reports/TransferHistoryReportPage";
-import TopCustomersReportPage from "./pages/reports/TopCustomersReportPage";
-import CustomerDebtsReportPage from "./pages/reports/CustomerDebtsReportPage";
-import CustomerActivityReportPage from "./pages/reports/CustomerActivityReportPage";
-import ReportsDashboardPage from "./pages/reports/ReportsDashboardPage";
-import CashierPerformanceReportPage from "./pages/reports/CashierPerformanceReportPage";
-import ShiftDetailsReportPage from "./pages/reports/ShiftDetailsReportPage";
-import SalesByEmployeeReportPage from "./pages/reports/SalesByEmployeeReportPage";
-import ProductMovementReportPage from "./pages/reports/ProductMovementReportPage";
-import ProfitableProductsReportPage from "./pages/reports/ProfitableProductsReportPage";
-import SlowMovingProductsReportPage from "./pages/reports/SlowMovingProductsReportPage";
-import CogsReportPage from "./pages/reports/CogsReportPage";
-import SupplierPurchasesReportPage from "./pages/reports/SupplierPurchasesReportPage";
-import SupplierDebtsReportPage from "./pages/reports/SupplierDebtsReportPage";
-import SupplierPerformanceReportPage from "./pages/reports/SupplierPerformanceReportPage";
-import AuditLogPage from "./pages/audit/AuditLogPage";
-import SettingsPage from "./pages/settings/SettingsPage";
-import PermissionsPage from "./pages/settings/PermissionsPage";
-import UserManagementPage from "./pages/users/UserManagementPage";
-import { PurchaseInvoicesPage } from "./pages/purchase-invoices/PurchaseInvoicesPage";
-import { PurchaseInvoiceFormPage } from "./pages/purchase-invoices/PurchaseInvoiceFormPage";
-import { PurchaseInvoiceDetailsPage } from "./pages/purchase-invoices/PurchaseInvoiceDetailsPage";
-import { ExpensesPage } from "./pages/expenses/ExpensesPage";
-import { ExpenseFormPage } from "./pages/expenses/ExpenseFormPage";
-import { ExpenseDetailsPage } from "./pages/expenses/ExpenseDetailsPage";
-import { CashRegisterDashboard } from "./pages/cash-register/CashRegisterDashboard";
-import { CashRegisterTransactionsPage } from "./pages/cash-register/CashRegisterTransactionsPage";
-import InventoryPage from "./pages/inventory/InventoryPage";
-import TenantCreationPage from "./pages/owner/TenantCreationPage";
-import SystemUsersPage from "./pages/system/SystemUsersPage";
-import { BackupPage } from "./pages/backup/BackupPage";
-import NotFound from "./pages/NotFound";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const lazyNamed = <TModule extends Record<string, unknown>>(
+  factory: () => Promise<TModule>,
+  key: keyof TModule
+) =>
+  lazy(async () => {
+    const module = await factory();
+    return { default: module[key] as ComponentType<any> };
+  });
+
+const MainLayout = lazyNamed(() => import("./components/layout/MainLayout"), "MainLayout");
+const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
+const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
+const POSPage = lazy(() => import("./pages/pos/POSPage"));
+const POSWorkspacePage = lazy(() => import("./pages/pos/POSWorkspacePage"));
+const ProductsPage = lazy(() => import("./pages/products/ProductsPage"));
+const CategoriesPage = lazy(() => import("./pages/categories/CategoriesPage"));
+const OrdersPage = lazy(() => import("./pages/orders/OrdersPage"));
+const ShiftPage = lazy(() => import("./pages/shifts/ShiftPage"));
+const ShiftsManagementPage = lazy(() => import("./pages/shifts/ShiftsManagementPage"));
+const CustomersPage = lazy(() => import("./pages/customers/CustomersPage"));
+const SuppliersPage = lazy(() => import("./pages/suppliers/SuppliersPage"));
+const BranchesPage = lazyNamed(() => import("./pages/branches/BranchesPage"), "BranchesPage");
+const DailyReportPage = lazy(() => import("./pages/reports/DailyReportPage"));
+const SalesReportPage = lazy(() => import("./pages/reports/SalesReportPage"));
+const InventoryReportsPage = lazy(() => import("./pages/reports/InventoryReportsPage"));
+const ProfitLossReportPage = lazy(() => import("./pages/reports/ProfitLossReportPage"));
+const ExpensesReportPage = lazy(() => import("./pages/reports/ExpensesReportPage"));
+const TransferHistoryReportPage = lazy(() => import("./pages/reports/TransferHistoryReportPage"));
+const TopCustomersReportPage = lazy(() => import("./pages/reports/TopCustomersReportPage"));
+const CustomerDebtsReportPage = lazy(() => import("./pages/reports/CustomerDebtsReportPage"));
+const CustomerActivityReportPage = lazy(() => import("./pages/reports/CustomerActivityReportPage"));
+const ReportsDashboardPage = lazy(() => import("./pages/reports/ReportsDashboardPage"));
+const CashierPerformanceReportPage = lazy(() => import("./pages/reports/CashierPerformanceReportPage"));
+const ShiftDetailsReportPage = lazy(() => import("./pages/reports/ShiftDetailsReportPage"));
+const SalesByEmployeeReportPage = lazy(() => import("./pages/reports/SalesByEmployeeReportPage"));
+const ProductMovementReportPage = lazy(() => import("./pages/reports/ProductMovementReportPage"));
+const ProfitableProductsReportPage = lazy(() => import("./pages/reports/ProfitableProductsReportPage"));
+const SlowMovingProductsReportPage = lazy(() => import("./pages/reports/SlowMovingProductsReportPage"));
+const CogsReportPage = lazy(() => import("./pages/reports/CogsReportPage"));
+const SupplierPurchasesReportPage = lazy(() => import("./pages/reports/SupplierPurchasesReportPage"));
+const SupplierDebtsReportPage = lazy(() => import("./pages/reports/SupplierDebtsReportPage"));
+const SupplierPerformanceReportPage = lazy(() => import("./pages/reports/SupplierPerformanceReportPage"));
+const AuditLogPage = lazy(() => import("./pages/audit/AuditLogPage"));
+const SettingsPage = lazy(() => import("./pages/settings/SettingsPage"));
+const PermissionsPage = lazy(() => import("./pages/settings/PermissionsPage"));
+const UserManagementPage = lazy(() => import("./pages/users/UserManagementPage"));
+const PurchaseInvoicesPage = lazyNamed(() => import("./pages/purchase-invoices/PurchaseInvoicesPage"), "PurchaseInvoicesPage");
+const PurchaseInvoiceFormPage = lazyNamed(() => import("./pages/purchase-invoices/PurchaseInvoiceFormPage"), "PurchaseInvoiceFormPage");
+const PurchaseInvoiceDetailsPage = lazyNamed(() => import("./pages/purchase-invoices/PurchaseInvoiceDetailsPage"), "PurchaseInvoiceDetailsPage");
+const ExpensesPage = lazyNamed(() => import("./pages/expenses/ExpensesPage"), "ExpensesPage");
+const ExpenseFormPage = lazyNamed(() => import("./pages/expenses/ExpenseFormPage"), "ExpenseFormPage");
+const ExpenseDetailsPage = lazyNamed(() => import("./pages/expenses/ExpenseDetailsPage"), "ExpenseDetailsPage");
+const CashRegisterDashboard = lazyNamed(() => import("./pages/cash-register/CashRegisterDashboard"), "CashRegisterDashboard");
+const CashRegisterTransactionsPage = lazyNamed(() => import("./pages/cash-register/CashRegisterTransactionsPage"), "CashRegisterTransactionsPage");
+const InventoryPage = lazy(() => import("./pages/inventory/InventoryPage"));
+const TenantCreationPage = lazy(() => import("./pages/owner/TenantCreationPage"));
+const SystemUsersPage = lazy(() => import("./pages/system/SystemUsersPage"));
+const BackupPage = lazyNamed(() => import("./pages/backup/BackupPage"), "BackupPage");
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+const AdminRoute = ({ children }: { children: ReactNode }) => {
   const isAdmin = useAppSelector(selectIsAdmin);
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
@@ -83,7 +92,7 @@ const PermissionRoute = ({
   children,
   permission,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   permission: string;
 }) => {
   const { hasPermission } = usePermission();
@@ -91,13 +100,13 @@ const PermissionRoute = ({
   return <>{children}</>;
 };
 
-const SystemOwnerRoute = ({ children }: { children: React.ReactNode }) => {
+const SystemOwnerRoute = ({ children }: { children: ReactNode }) => {
   const isSystemOwner = useAppSelector(selectIsSystemOwner);
   if (!isSystemOwner) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+const PublicRoute = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const user = useAppSelector(selectCurrentUser);
   if (isAuthenticated) {
@@ -111,516 +120,530 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const NonSystemOwnerRoute = ({ children }: { children: React.ReactNode }) => {
+const NonSystemOwnerRoute = ({ children }: { children: ReactNode }) => {
   const isSystemOwner = useAppSelector(selectIsSystemOwner);
   if (isSystemOwner) return <Navigate to="/owner/tenants" replace />;
   return <>{children}</>;
 };
 
+const RouteFallback = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="page-shell">
+      <div className="glass-panel flex min-h-[12rem] items-center justify-center px-6 py-10 text-sm font-medium text-muted-foreground">
+        {t("common.loading")}
+      </div>
+    </div>
+  );
+};
+
 const AppRoutes = () => (
-  <Routes>
-    <Route
-      path="/"
-      element={
-        <PublicRoute>
-          <Navigate to="/login" replace />
-        </PublicRoute>
-      }
-    />
-    <Route
-      path="/login"
-      element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      }
-    />
-    <Route
-      element={
-        <ProtectedRoute>
-          <MainLayout />
-        </ProtectedRoute>
-      }
-    >
+  <Suspense fallback={<RouteFallback />}>
+    <Routes>
       <Route
-        path="/dashboard"
+        path="/"
         element={
-          <NonSystemOwnerRoute>
-            <DashboardPage />
-          </NonSystemOwnerRoute>
+          <PublicRoute>
+            <Navigate to="/login" replace />
+          </PublicRoute>
         }
       />
       <Route
-        path="/pos"
+        path="/login"
         element={
-          <NonSystemOwnerRoute>
-            <POSPage />
-          </NonSystemOwnerRoute>
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
         }
       />
       <Route
-        path="/pos-workspace"
         element={
-          <NonSystemOwnerRoute>
-            <POSWorkspacePage />
-          </NonSystemOwnerRoute>
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
         }
-      />
-      <Route
-        path="/orders"
-        element={
-          <NonSystemOwnerRoute>
-            <OrdersPage />
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/shift"
-        element={
-          <NonSystemOwnerRoute>
-            <ShiftPage />
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/shifts-management"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <ShiftsManagementPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/customers"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="CustomersView">
-              <CustomersPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/products"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ProductsView">
-              <ProductsPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/categories"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="CategoriesView">
-              <CategoriesPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/suppliers"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <SuppliersPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/purchase-invoices"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <PurchaseInvoicesPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/purchase-invoices/new"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <PurchaseInvoiceFormPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/purchase-invoices/:id"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <PurchaseInvoiceDetailsPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/purchase-invoices/:id/edit"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <PurchaseInvoiceFormPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/branches"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <BranchesPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <ReportsDashboardPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/daily"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <DailyReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/sales"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <SalesReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/inventory"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <InventoryReportsPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/profit-loss"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <ProfitLossReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/expenses"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <ExpensesReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/transfer-history"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <TransferHistoryReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/customers/top"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <TopCustomersReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/customers/debts"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <CustomerDebtsReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/customers/activity"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <CustomerActivityReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/employees/cashier-performance"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <CashierPerformanceReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/employees/shifts"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <ShiftDetailsReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/employees/sales"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <SalesByEmployeeReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/products/movement"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <ProductMovementReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/products/profitability"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <ProfitableProductsReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/products/slow"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <SlowMovingProductsReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/products/cogs"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <CogsReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/suppliers/purchases"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <SupplierPurchasesReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/suppliers/debts"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <SupplierDebtsReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/reports/suppliers/performance"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ReportsView">
-              <SupplierPerformanceReportPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/audit"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <AuditLogPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <SettingsPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/settings/permissions"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <PermissionsPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/users"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <UserManagementPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/backup"
-        element={
-          <NonSystemOwnerRoute>
-            <AdminRoute>
-              <BackupPage />
-            </AdminRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/expenses"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ExpensesView">
-              <ExpensesPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/expenses/new"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ExpensesCreate">
-              <ExpenseFormPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/expenses/:id"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ExpensesView">
-              <ExpenseDetailsPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/expenses/:id/edit"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="ExpensesCreate">
-              <ExpenseFormPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/cash-register"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="CashRegisterView">
-              <CashRegisterDashboard />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/cash-register/transactions"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="CashRegisterView">
-              <CashRegisterTransactionsPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/inventory"
-        element={
-          <NonSystemOwnerRoute>
-            <PermissionRoute permission="InventoryView">
-              <InventoryPage />
-            </PermissionRoute>
-          </NonSystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/owner/tenants"
-        element={
-          <SystemOwnerRoute>
-            <TenantCreationPage />
-          </SystemOwnerRoute>
-        }
-      />
-      <Route
-        path="/owner/users"
-        element={
-          <SystemOwnerRoute>
-            <SystemUsersPage />
-          </SystemOwnerRoute>
-        }
-      />
-    </Route>
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+      >
+        <Route
+          path="/dashboard"
+          element={
+            <NonSystemOwnerRoute>
+              <DashboardPage />
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/pos"
+          element={
+            <NonSystemOwnerRoute>
+              <POSPage />
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/pos-workspace"
+          element={
+            <NonSystemOwnerRoute>
+              <POSWorkspacePage />
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <NonSystemOwnerRoute>
+              <OrdersPage />
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/shift"
+          element={
+            <NonSystemOwnerRoute>
+              <ShiftPage />
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/shifts-management"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <ShiftsManagementPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/customers"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="CustomersView">
+                <CustomersPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ProductsView">
+                <ProductsPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/categories"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="CategoriesView">
+                <CategoriesPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/suppliers"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <SuppliersPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/purchase-invoices"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <PurchaseInvoicesPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/purchase-invoices/new"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <PurchaseInvoiceFormPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/purchase-invoices/:id"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <PurchaseInvoiceDetailsPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/purchase-invoices/:id/edit"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <PurchaseInvoiceFormPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/branches"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <BranchesPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <ReportsDashboardPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/daily"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <DailyReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/sales"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <SalesReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/inventory"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <InventoryReportsPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/profit-loss"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <ProfitLossReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/expenses"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <ExpensesReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/transfer-history"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <TransferHistoryReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/customers/top"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <TopCustomersReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/customers/debts"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <CustomerDebtsReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/customers/activity"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <CustomerActivityReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/employees/cashier-performance"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <CashierPerformanceReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/employees/shifts"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <ShiftDetailsReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/employees/sales"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <SalesByEmployeeReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/products/movement"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <ProductMovementReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/products/profitability"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <ProfitableProductsReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/products/slow"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <SlowMovingProductsReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/products/cogs"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <CogsReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/suppliers/purchases"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <SupplierPurchasesReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/suppliers/debts"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <SupplierDebtsReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/reports/suppliers/performance"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ReportsView">
+                <SupplierPerformanceReportPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/audit"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <AuditLogPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <SettingsPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/settings/permissions"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <PermissionsPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <UserManagementPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/backup"
+          element={
+            <NonSystemOwnerRoute>
+              <AdminRoute>
+                <BackupPage />
+              </AdminRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/expenses"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ExpensesView">
+                <ExpensesPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/expenses/new"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ExpensesCreate">
+                <ExpenseFormPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/expenses/:id"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ExpensesView">
+                <ExpenseDetailsPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/expenses/:id/edit"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="ExpensesCreate">
+                <ExpenseFormPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/cash-register"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="CashRegisterView">
+                <CashRegisterDashboard />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/cash-register/transactions"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="CashRegisterView">
+                <CashRegisterTransactionsPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <NonSystemOwnerRoute>
+              <PermissionRoute permission="InventoryView">
+                <InventoryPage />
+              </PermissionRoute>
+            </NonSystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/owner/tenants"
+          element={
+            <SystemOwnerRoute>
+              <TenantCreationPage />
+            </SystemOwnerRoute>
+          }
+        />
+        <Route
+          path="/owner/users"
+          element={
+            <SystemOwnerRoute>
+              <SystemUsersPage />
+            </SystemOwnerRoute>
+          }
+        />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </Suspense>
 );
 
 const App = () => {

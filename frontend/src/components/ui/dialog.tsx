@@ -49,14 +49,14 @@ export const DialogContent = ({
     <>
       <DialogBackdrop
         transition
-        className="fixed inset-0 bg-slate-950/45 backdrop-blur-md duration-200 data-[closed]:opacity-0"
+        className="fixed inset-0 bg-[hsl(var(--foreground)/0.18)] backdrop-blur-md duration-200 data-[closed]:opacity-0"
       />
       <div className="fixed inset-0 overflow-y-auto p-4 sm:p-6">
         <div className="flex min-h-full items-center justify-center">
           <DialogPanel
             transition
             className={cn(
-              "relative w-full overflow-hidden rounded-[calc(var(--radius)+0.55rem)] border border-white/20 bg-card/95 shadow-card backdrop-blur-xl duration-200 data-[closed]:translate-y-4 data-[closed]:opacity-0",
+              "relative w-full overflow-hidden rounded-[calc(var(--radius)+0.55rem)] border border-[hsl(var(--border)/0.62)] bg-[hsl(var(--card)/0.95)] shadow-card backdrop-blur-xl duration-200 data-[closed]:translate-y-4 data-[closed]:opacity-0",
               sizes[size],
               className
             )}
@@ -64,7 +64,7 @@ export const DialogContent = ({
             <button
               type="button"
               onClick={onClose}
-              className="interactive-ring absolute end-4 top-4 rounded-full border border-white/55 bg-white/80 p-2 text-muted-foreground shadow-sm backdrop-blur"
+              className="interactive-ring absolute end-4 top-4 rounded-full border border-[hsl(var(--border)/0.7)] bg-[hsl(var(--card)/0.9)] p-2 text-muted-foreground shadow-sm backdrop-blur"
             >
               <XClose className="size-4" />
             </button>

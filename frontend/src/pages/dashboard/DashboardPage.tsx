@@ -58,7 +58,7 @@ export default function DashboardPage() {
       <section className="page-hero">
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <Badge className="orbit-badge bg-white/70 text-foreground" variant="outline">
+            <Badge className="orbit-badge text-foreground" variant="outline">
               {t("dashboard.heroEyebrow")}
             </Badge>
             <h1 className="mt-4 text-balance text-foreground">
