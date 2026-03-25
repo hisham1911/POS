@@ -1,39 +1,36 @@
-import { ReactNode } from "react";
-import clsx from "clsx";
+import type { HTMLAttributes, ReactNode } from "react";
 
-interface CardProps {
+import { Card as UICard } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  className?: string;
   hover?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
-  onClick?: () => void;
 }
+
+const paddings = {
+  none: "p-0",
+  sm: "p-4",
+  md: "p-5 sm:p-6",
+  lg: "p-6 sm:p-7"
+};
 
 export const Card = ({
   children,
   className,
   hover = false,
   padding = "md",
-  onClick,
-}: CardProps) => {
-  const paddings = {
-    none: "",
-    sm: "p-3",
-    md: "p-4",
-    lg: "p-6",
-  };
-
-  return (
-    <div
-      className={clsx(
-        "bg-white rounded-xl shadow-sm border border-gray-100",
-        hover && "hover:shadow-md hover:border-primary-200 transition-all duration-200 cursor-pointer",
-        paddings[padding],
-        className
-      )}
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  );
-};
+  ...props
+}: CardProps) => (
+  <UICard
+    className={cn(
+      paddings[padding],
+      hover && "frost-card-hover",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </UICard>
+);

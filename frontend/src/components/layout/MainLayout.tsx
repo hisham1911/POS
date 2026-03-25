@@ -1,407 +1,394 @@
-import { Outlet, NavLink } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { usePermission } from "@/hooks/usePermission";
-import {
-  LogOut,
-  User,
-  Clock,
-  Menu,
-  ShoppingCart,
-  Package,
-  FolderOpen,
-  ClipboardList,
-  Timer,
-  BarChart3,
-  X,
-  FileText,
-  Settings,
-  Users,
-  Truck,
-  Building2,
-  Receipt,
-  Wallet,
-  Boxes,
-  HardDrive,
-  Shield,
-  Pin,
-  PinOff,
-  type LucideIcon,
-} from "lucide-react";
-import { useState } from "react";
-import clsx from "clsx";
-import { BranchSelector } from "./BranchSelector";
-import { NavItemWithSubmenu } from "./NavItemWithSubmenu";
+import { ChevronRight, LogOut01, Menu01, SearchLg, Settings01, XClose } from "@untitledui/icons";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
-const navItems: Array<{
-  path: string;
-  label: string;
-  icon: LucideIcon;
-  permission?: string;
-  adminOnly?: boolean;
-  systemOwnerOnly?: boolean;
-  subItems?: Array<{ path: string; label: string }>;
-}> = [
-  {
-    path: "/pos",
-    label: "نقطة البيع",
-    icon: ShoppingCart,
-    permission: "PosSell",
-  },
-  {
-    path: "/orders",
-    label: "الطلبات",
-    icon: ClipboardList,
-    permission: "OrdersView",
-  },
-  { path: "/shift", label: "الوردية", icon: Timer }, // Available to all authenticated users
-  {
-    path: "/shifts-management",
-    label: "إدارة الورديات",
-    icon: Clock,
-    permission: "ShiftsManage",
-  },
-  {
-    path: "/customers",
-    label: "العملاء",
-    icon: Users,
-    permission: "CustomersView",
-  },
-  {
-    path: "/products",
-    label: "المنتجات",
-    icon: Package,
-    permission: "ProductsView",
-  },
-  {
-    path: "/categories",
-    label: "التصنيفات",
-    icon: FolderOpen,
-    permission: "CategoriesView",
-  },
-  { path: "/suppliers", label: "الموردين", icon: Truck, adminOnly: true },
-  {
-    path: "/purchase-invoices",
-    label: "فواتير الشراء",
-    icon: FileText,
-    adminOnly: true,
-  },
-  {
-    path: "/inventory",
-    label: "المخزون",
-    icon: Boxes,
-    permission: "InventoryView",
-  },
-  {
-    path: "/expenses",
-    label: "المصروفات",
-    icon: Receipt,
-    permission: "ExpensesView",
-  },
-  {
-    path: "/cash-register",
-    label: "الخزينة",
-    icon: Wallet,
-    permission: "CashRegisterView",
-  },
-  { path: "/branches", label: "الفروع", icon: Building2, adminOnly: true },
-  {
-    path: "/users",
-    label: "إدارة المستخدمين",
-    icon: Shield,
-    adminOnly: true,
-  },
-  {
-    path: "/reports",
-    label: "التقارير",
-    icon: BarChart3,
-    permission: "ReportsView",
-  },
-  { path: "/audit", label: "سجل التدقيق", icon: FileText, adminOnly: true },
-  {
-    path: "/backup",
-    label: "النسخ الاحتياطية",
-    icon: HardDrive,
-    adminOnly: true,
-  },
-  { path: "/settings", label: "الإعدادات", icon: Settings, adminOnly: true },
-  {
-    path: "/owner/tenants",
-    label: "إدارة الشركات",
-    icon: Building2,
-    systemOwnerOnly: true,
-  },
-  {
-    path: "/owner/users",
-    label: "إدارة المستخدمين",
-    icon: Users,
-    systemOwnerOnly: true,
-  },
-];
+import { CommandPalette } from "@/components/app/command-palette";
+import { LanguagePill } from "@/components/app/language-pill";
+import { BranchSelector } from "@/components/layout/BranchSelector";
+import {
+  getRouteMeta,
+  getVisibleNavSections
+} from "@/components/layout/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/hooks/useAuth";
+import { useAppPreferences } from "@/hooks/useAppPreferences";
+import { usePermission } from "@/hooks/usePermission";
+import { cn } from "@/lib/utils";
+
+const SIDEBAR_KEY = "tajerpro.sidebar.collapsed";
 
 export const MainLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
   const { user, logout, isAdmin, isSystemOwner } = useAuth();
   const { hasPermission } = usePermission();
+  const { preferences } = useAppPreferences();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // الافتراضي مقفول
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
 
-  const currentTime = new Date().toLocaleTimeString("ar-EG", {
+  const isRtl = preferences.language === "ar";
+  const sections = useMemo(
+    () =>
+      getVisibleNavSections({
+        isAdmin,
+        isSystemOwner,
+        hasPermission
+      }),
+    [hasPermission, isAdmin, isSystemOwner]
+  );
+  const route = getRouteMeta(location.pathname);
+  const userInitials = user?.name
+    ?.split(" ")
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  const locale =
+    preferences.language === "ar" && preferences.useArabicNumerals
+      ? "ar-EG-u-nu-arab"
+      : preferences.language === "ar"
+        ? "ar-EG"
+        : "en-US";
+  const timeLabel = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Africa/Cairo",
-  });
+    minute: "2-digit"
+  }).format(new Date());
 
-  const filteredNavItems = navItems.filter((item) => {
-    // System owner only sees system owner items
-    if (isSystemOwner) return !!item.systemOwnerOnly;
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_KEY, String(collapsed));
+  }, [collapsed]);
 
-    // Hide system owner items from non-system owners
-    if (item.systemOwnerOnly) return false;
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen(true);
+      }
+    };
 
-    // Admin-only items (no permission check, just role check)
-    if (item.adminOnly) return isAdmin;
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, []);
 
-    // Permission-based items
-    if (item.permission) return hasPermission(item.permission);
-
-    // Items without permission requirement (like /shift) are available to all
-    return true;
-  });
-
-  return (
-    <div className="h-screen flex w-full overflow-hidden">
-      {/* Sidebar - Desktop */}
-      <aside
-        className={clsx(
-          "hidden lg:flex bg-gray-900 text-white flex-col shrink-0 border-l border-gray-800 overflow-y-auto transition-all duration-300",
-          sidebarCollapsed ? "w-20" : "w-64",
-        )}
-      >
-        {/* Logo */}
-        <div className="p-4 border-b border-gray-800">
+  const sidebar = (
+    <aside
+      className={cn(
+        "glass-panel-dark hidden h-[calc(100vh-2rem)] shrink-0 overflow-hidden border border-white/10 text-white xl:flex",
+        collapsed ? "w-[96px]" : "w-[308px]"
+      )}
+      style={{
+        backgroundImage: "var(--sidebar-image)",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}
+    >
+      <div className="flex h-full w-full flex-col bg-slate-950/55 backdrop-blur-xl">
+        <div className="border-b border-white/10 px-4 py-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-xl">🏪</span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1.35rem] bg-gradient-to-br from-secondary via-primary to-accent text-lg font-black text-white shadow-soft">
+              TP
             </div>
-            {!sidebarCollapsed && (
+            {!collapsed ? (
               <div>
-                <h1 className="font-bold text-lg">TajerPro</h1>
-                <p className="text-xs text-gray-400">نظام نقاط البيع</p>
+                <p className="font-display text-xl font-black">{t("common.appName")}</p>
+                <p className="text-sm text-white/70">{t("layout.workspace")}</p>
               </div>
-            )}
+            ) : null}
           </div>
-        </div>
 
-        {/* Toggle Button */}
-        <div className="px-4 py-2">
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-            title={sidebarCollapsed ? "فتح القائمة" : "إغلاق القائمة"}
+          <Button
+            variant="glass"
+            className={cn("mt-4 w-full justify-center bg-white/10 text-white hover:bg-white/15", collapsed && "px-0")}
+            onClick={() => setCollapsed((current) => !current)}
           >
-            <Menu className="w-5 h-5" />
-            {!sidebarCollapsed && <span className="text-sm">إغلاق</span>}
-          </button>
+            <Menu01 className="size-4" />
+            {!collapsed ? t("layout.quickActions") : null}
+          </Button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {filteredNavItems.map((item) =>
-            item.subItems ? (
-              <NavItemWithSubmenu
-                key={item.path}
-                path={item.path}
-                label={item.label}
-                icon={item.icon}
-                subItems={item.subItems}
-              />
-            ) : (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  clsx(
-                    "flex items-center gap-3 rounded-lg transition-colors",
-                    sidebarCollapsed ? "px-3 py-3 justify-center" : "px-4 py-3",
-                    isActive
-                      ? "bg-primary-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800",
-                  )
-                }
-                title={sidebarCollapsed ? item.label : undefined}
-              >
-                <item.icon className="w-5 h-5 shrink-0" />
-                {!sidebarCollapsed && <span>{item.label}</span>}
-              </NavLink>
-            ),
-          )}
-        </nav>
+        <ScrollArea className="flex-1 px-3 py-4">
+          <div className="space-y-6">
+            {sections.map((section) => (
+              <div key={section.key} className="space-y-2">
+                {!collapsed ? (
+                  <p className="px-3 text-[11px] uppercase tracking-[0.28em] text-white/45">
+                    {section.key === "workspace"
+                      ? t("layout.workspace")
+                      : section.key === "manage"
+                        ? t("common.appearance")
+                        : t("roles.SystemOwner")}
+                  </p>
+                ) : null}
 
-        {/* User Info */}
-        <div className="p-4 border-t border-gray-800">
-          {!sidebarCollapsed && (
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center shrink-0">
-                <User className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-medium">{user?.name}</p>
-                <p className="text-xs text-gray-400">
-                  {user?.role === "SystemOwner"
-                    ? "مالك النظام"
-                    : user?.role === "Admin"
-                      ? "مدير"
-                      : "كاشير"}
-                </p>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={logout}
-            className={clsx(
-              "w-full flex items-center gap-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors",
-              sidebarCollapsed
-                ? "justify-center px-3 py-3"
-                : "justify-center px-4 py-2",
-            )}
-            title={sidebarCollapsed ? "تسجيل الخروج" : undefined}
-          >
-            <LogOut className="w-4 h-4" />
-            {!sidebarCollapsed && <span>تسجيل الخروج</span>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Mobile Sidebar */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <aside className="absolute right-0 top-0 bottom-0 w-64 bg-gray-900 text-white flex flex-col animate-slide-in-right overflow-y-auto">
-            {/* Close Button */}
-            <div className="p-4 flex justify-between items-center border-b border-gray-800">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-xl">🏪</span>
-                </div>
-                <span className="font-bold">TajerPro</span>
-              </div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="p-2 hover:bg-gray-800 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-              {filteredNavItems.map((item) =>
-                item.subItems ? (
-                  <NavItemWithSubmenu
-                    key={item.path}
-                    path={item.path}
-                    label={item.label}
-                    icon={item.icon}
-                    subItems={item.subItems}
-                    onItemClick={() => setSidebarOpen(false)}
-                  />
-                ) : (
+                {section.items.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
-                    onClick={() => setSidebarOpen(false)}
                     className={({ isActive }) =>
-                      clsx(
-                        "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                      cn(
+                        "group flex items-center rounded-[1.35rem] px-3 py-3 text-sm font-medium transition",
+                        collapsed ? "justify-center" : "gap-3",
                         isActive
-                          ? "bg-primary-600 text-white"
-                          : "text-gray-300 hover:bg-gray-800",
+                          ? "bg-white/18 text-white shadow-soft"
+                          : "text-white/72 hover:bg-white/10 hover:text-white"
                       )
                     }
+                    onClick={() => setSidebarOpen(false)}
                   >
-                    <item.icon className="w-5 h-5" />
-                    <span>{item.label}</span>
+                    {({ isActive }) => (
+                      <>
+                        <span
+                          className={cn(
+                            "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition",
+                            isActive ? "bg-white/16" : "bg-white/8 group-hover:bg-white/12"
+                          )}
+                        >
+                          <item.icon className="size-5" />
+                        </span>
+                        {!collapsed ? (
+                          <>
+                            <span className="flex-1">{t(`nav.${item.key}`)}</span>
+                            <ChevronRight
+                              className={cn(
+                                "size-4 transition",
+                                isActive ? "translate-x-0 opacity-100 rtl:-translate-x-0" : "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 rtl:-translate-x-1 rtl:group-hover:-translate-x-0"
+                              )}
+                            />
+                          </>
+                        ) : null}
+                      </>
+                    )}
                   </NavLink>
-                ),
-              )}
-            </nav>
-
-            {/* Logout */}
-            <div className="p-4 border-t border-gray-800">
-              <button
-                onClick={logout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>تسجيل الخروج</span>
-              </button>
-            </div>
-          </aside>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-white border-b px-4 py-3 flex items-center justify-between relative">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            <div className="lg:hidden flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-sm">🏪</span>
+                ))}
               </div>
-              <span className="font-bold text-primary-600">TajerPro</span>
-            </div>
+            ))}
           </div>
+        </ScrollArea>
 
-          <div className="flex items-center gap-4">
-            <BranchSelector />
-
-            <div className="hidden sm:flex items-center gap-2 text-gray-500">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">{currentTime}</span>
-            </div>
-
-            <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium hidden sm:inline">
-                {user?.name}
-              </span>
-              {user?.role === "Admin" && (
-                <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full hidden sm:inline">
-                  مدير
-                </span>
+        <div className="border-t border-white/10 p-4">
+          <div className={cn("flex items-center gap-3 rounded-[1.4rem] bg-white/8 p-3", collapsed && "justify-center")}>
+            <Avatar className="h-12 w-12 border-white/15 bg-white/10">
+              {preferences.avatarImage ? (
+                <AvatarImage src={preferences.avatarImage} alt={user?.name} />
+              ) : (
+                <AvatarFallback className="bg-white/10 text-white">
+                  {userInitials || "TP"}
+                </AvatarFallback>
               )}
-              {user?.role === "SystemOwner" && (
-                <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full hidden sm:inline">
-                  مالك النظام
-                </span>
-              )}
-            </div>
-
-            <button
-              onClick={logout}
-              className="hidden lg:flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>خروج</span>
-            </button>
+            </Avatar>
+            {!collapsed ? (
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-white">{user?.name}</p>
+                <p className="truncate text-xs text-white/65">
+                  {t(`roles.${user?.role}`)}
+                </p>
+              </div>
+            ) : null}
           </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50">
-          <Outlet />
-        </main>
+        </div>
       </div>
+    </aside>
+  );
+
+  return (
+    <div className="app-shell">
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div
+          className="absolute inset-0 scale-105 blur-xl"
+          style={{
+            backgroundImage: "var(--wallpaper-image)",
+            backgroundSize: "cover",
+            backgroundPosition: "center"
+          }}
+        />
+      </div>
+
+      <div className={cn("mx-auto flex min-h-screen max-w-[1600px] gap-4 p-4", isRtl ? "xl:flex-row-reverse" : "xl:flex-row")}>
+        {sidebar}
+
+        <div className="relative flex min-w-0 flex-1 flex-col gap-4">
+          <header className="glass-panel sticky top-4 z-20 flex flex-col gap-4 px-4 py-4 sm:px-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <Button
+                  variant="glass"
+                  size="icon"
+                  className="xl:hidden"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Open navigation"
+                >
+                  <Menu01 className="size-4" />
+                </Button>
+                <div className="min-w-0">
+                  <p className="section-caption">{t("layout.workspace")}</p>
+                  <h2 className="truncate text-2xl font-black">
+                    {t(`nav.${route.navKey}`)}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {t(route.descriptionKey)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="glass"
+                  leftIcon={<SearchLg className="size-4" />}
+                  onClick={() => setCommandOpen(true)}
+                  className="hidden md:inline-flex"
+                >
+                  {t("layout.openPalette")}
+                </Button>
+                <LanguagePill />
+                <Badge variant="outline" className="rounded-2xl bg-white/70 px-3 py-2 text-foreground">
+                  {timeLabel}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <BranchSelector />
+              <DropdownMenu>
+                <DropdownMenuTrigger className="frost-card flex items-center gap-3 rounded-[1.35rem] px-3 py-2">
+                  <Avatar className="h-11 w-11">
+                    {preferences.avatarImage ? (
+                      <AvatarImage src={preferences.avatarImage} alt={user?.name} />
+                    ) : (
+                      <AvatarFallback>{userInitials || "TP"}</AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="hidden text-start sm:block">
+                    <p className="text-sm font-semibold text-foreground">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{t(`roles.${user?.role}`)}</p>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings01 className="size-4" />
+                    {t("nav.settings")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-destructive">
+                    <LogOut01 className="size-4" />
+                    {t("layout.logout")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          <main className="min-w-0 flex-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="min-h-[calc(100vh-9rem)]"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {sidebarOpen ? (
+          <motion.div
+            className="fixed inset-0 z-40 xl:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+            <motion.aside
+              initial={{ x: isRtl ? -32 : 32, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: isRtl ? -32 : 32, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className={cn(
+                "absolute top-4 h-[calc(100vh-2rem)] w-[88vw] max-w-[320px]",
+                isRtl ? "left-4" : "right-4"
+              )}
+            >
+              <div className="glass-panel-dark flex h-full flex-col overflow-hidden text-white">
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-4">
+                  <div>
+                    <p className="font-display text-xl font-black">{t("common.appName")}</p>
+                    <p className="text-sm text-white/65">{t("layout.workspace")}</p>
+                  </div>
+                  <Button
+                    variant="glass"
+                    size="icon"
+                    className="bg-white/10 text-white"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <XClose className="size-4" />
+                  </Button>
+                </div>
+                <ScrollArea className="flex-1 px-3 py-4">
+                  <div className="space-y-6">
+                    {sections.map((section) => (
+                      <div key={section.key} className="space-y-2">
+                        <p className="px-3 text-[11px] uppercase tracking-[0.28em] text-white/45">
+                          {section.key === "workspace"
+                            ? t("layout.workspace")
+                            : section.key === "manage"
+                              ? t("common.appearance")
+                              : t("roles.SystemOwner")}
+                        </p>
+                        {section.items.map((item) => (
+                          <NavLink
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setSidebarOpen(false)}
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-[1.35rem] px-3 py-3 text-sm font-medium transition",
+                                isActive
+                                  ? "bg-white/18 text-white shadow-soft"
+                                  : "text-white/72 hover:bg-white/10 hover:text-white"
+                              )
+                            }
+                          >
+                            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
+                              <item.icon className="size-5" />
+                            </span>
+                            <span>{t(`nav.${item.key}`)}</span>
+                          </NavLink>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </motion.aside>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
     </div>
   );
 };

@@ -18,6 +18,7 @@ import { ShiftRecoveryModal } from "./components/shifts";
 import { shiftPersistence } from "./utils/shiftPersistence";
 import { usePermission } from "./hooks/usePermission";
 import LoginPage from "./pages/auth/LoginPage";
+import DashboardPage from "./pages/dashboard/DashboardPage";
 import POSPage from "./pages/pos/POSPage";
 import POSWorkspacePage from "./pages/pos/POSWorkspacePage";
 import ProductsPage from "./pages/products/ProductsPage";
@@ -74,7 +75,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const isAdmin = useAppSelector(selectIsAdmin);
-  if (!isAdmin) return <Navigate to="/pos" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
@@ -86,13 +87,13 @@ const PermissionRoute = ({
   permission: string;
 }) => {
   const { hasPermission } = usePermission();
-  if (!hasPermission(permission)) return <Navigate to="/pos" replace />;
+  if (!hasPermission(permission)) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
 const SystemOwnerRoute = ({ children }: { children: React.ReactNode }) => {
   const isSystemOwner = useAppSelector(selectIsSystemOwner);
-  if (!isSystemOwner) return <Navigate to="/pos" replace />;
+  if (!isSystemOwner) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
@@ -102,7 +103,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (isAuthenticated) {
     return (
       <Navigate
-        to={user?.role === "SystemOwner" ? "/owner/tenants" : "/pos"}
+        to={user?.role === "SystemOwner" ? "/owner/tenants" : "/dashboard"}
         replace
       />
     );
@@ -141,6 +142,14 @@ const AppRoutes = () => (
         </ProtectedRoute>
       }
     >
+      <Route
+        path="/dashboard"
+        element={
+          <NonSystemOwnerRoute>
+            <DashboardPage />
+          </NonSystemOwnerRoute>
+        }
+      />
       <Route
         path="/pos"
         element={

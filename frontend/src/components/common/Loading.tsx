@@ -1,40 +1,49 @@
-import clsx from "clsx";
+import { useTranslation } from "react-i18next";
+
 import { Portal } from "./Portal";
 
-export const Loading = () => (
-  <div className="flex items-center justify-center h-full">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-      <p className="text-gray-500">جاري التحميل...</p>
+export const Loading = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex h-full min-h-[16rem] items-center justify-center">
+      <div className="frost-card flex min-w-[15rem] flex-col items-center gap-4 px-8 py-7 text-center">
+        <div className="relative h-12 w-12">
+          <span className="absolute inset-0 rounded-full bg-primary/15" />
+          <span className="absolute inset-2 animate-ping rounded-full bg-secondary/45" />
+          <span className="absolute inset-0 rounded-full border-4 border-primary/20 border-r-primary animate-spin" />
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">{t("common.loading")}</p>
+          <p className="text-sm text-muted-foreground">TajerPro UI Refresh</p>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const LoadingOverlay = () => (
   <Portal>
-    <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-[100]">
+    <div className="fixed inset-0 z-[130] bg-slate-950/20 backdrop-blur-sm">
       <Loading />
     </div>
   </Portal>
 );
 
 export const LoadingSpinner = ({
-  size = "md",
+  size = "md"
 }: {
   size?: "sm" | "md" | "lg";
 }) => {
   const sizes = {
-    sm: "w-4 h-4 border-2",
-    md: "w-8 h-8 border-3",
-    lg: "w-12 h-12 border-4",
+    sm: "h-4 w-4 border-2",
+    md: "h-6 w-6 border-2",
+    lg: "h-10 w-10 border-[3px]"
   };
 
   return (
-    <div
-      className={clsx(
-        sizes[size],
-        "border-primary-200 border-t-primary-600 rounded-full animate-spin",
-      )}
+    <span
+      className={`${sizes[size]} inline-flex animate-spin rounded-full border-primary/25 border-r-primary`}
     />
   );
 };

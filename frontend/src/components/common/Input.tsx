@@ -1,5 +1,8 @@
-import { InputHTMLAttributes, forwardRef } from "react";
-import clsx from "clsx";
+import { forwardRef, type InputHTMLAttributes } from "react";
+
+import { Input as UIInput } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,28 +11,21 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, className, ...props }, ref) => {
+  ({ label, error, hint, className, id, ...props }, ref) => {
+    const inputId = id ?? props.name ?? label ?? "field";
+
     return (
       <div className="w-full">
-        {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {label}
-          </label>
-        )}
-        <input
+        {label ? <Label htmlFor={inputId}>{label}</Label> : null}
+        <UIInput
           ref={ref}
-          className={clsx(
-            "w-full px-4 py-2.5 border rounded-lg",
-            "focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-            "outline-none transition-all duration-200",
-            "placeholder:text-gray-400",
-            error ? "border-danger-500 focus:ring-danger-500" : "border-gray-300",
-            className
-          )}
+          id={inputId}
+          className={cn(error && "border-destructive focus:border-destructive", className)}
+          aria-invalid={Boolean(error)}
           {...props}
         />
-        {hint && !error && <p className="mt-1 text-sm text-gray-500">{hint}</p>}
-        {error && <p className="mt-1 text-sm text-danger-500">{error}</p>}
+        {hint && !error ? <p className="mt-2 text-xs text-muted-foreground">{hint}</p> : null}
+        {error ? <p className="mt-2 text-xs font-medium text-destructive">{error}</p> : null}
       </div>
     );
   }

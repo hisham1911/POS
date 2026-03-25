@@ -1,0 +1,1 @@
+export { Dialog as Sheet, DialogBody as SheetBody, DialogContent as SheetContent, DialogDescription as SheetDescription, DialogFooter as SheetFooter, DialogHeader as SheetHeader, DialogTitleText as SheetTitle } from "@/components/ui/dialog";

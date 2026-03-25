@@ -1,18 +1,20 @@
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useLoginMutation } from "../api/authApi";
+import { baseApi } from "../api/baseApi";
+import i18n from "../i18n";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
-  setCredentials,
-  logout as logoutAction,
   selectCurrentUser,
-  selectIsAuthenticated,
   selectIsAdmin,
+  selectIsAuthenticated,
   selectIsSystemOwner,
+  setCredentials,
+  logout as logoutAction
 } from "../store/slices/authSlice";
 import { clearBranch } from "../store/slices/branchSlice";
-import { useLoginMutation } from "../api/authApi";
-import { LoginRequest } from "../types/auth.types";
-import { toast } from "sonner";
-import { baseApi } from "../api/baseApi";
+import type { LoginRequest } from "../types/auth.types";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -25,39 +27,33 @@ export const useAuth = () => {
 
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
 
-  // Login function using RTK Query
   const login = async (credentials: LoginRequest) => {
     try {
       const result = await loginMutation(credentials).unwrap();
 
       if (result.success && result.data) {
-        // CRITICAL: Clear persisted branch state from localStorage BEFORE setting new credentials
-        // This prevents redux-persist from rehydrating old branch data for the new user
         try {
           localStorage.removeItem("persist:branch");
-        } catch (e) {
-          // ignore localStorage errors
+        } catch {
+          // Ignore localStorage edge cases.
         }
-        
-        // Clear branch state in Redux
+
         dispatch(clearBranch());
-        
         dispatch(
           setCredentials({
             user: result.data.user,
-            token: result.data.accessToken,
-          }),
+            token: result.data.accessToken
+          })
         );
-        toast.success("تم تسجيل الدخول بنجاح");
-        navigate(
-          result.data.user.role === "SystemOwner" ? "/owner/tenants" : "/pos",
-        );
+
+        toast.success(i18n.t("login.submit"));
+        navigate(result.data.user.role === "SystemOwner" ? "/owner/tenants" : "/dashboard");
       } else {
-        toast.error(result.message || "فشل تسجيل الدخول");
+        toast.error(result.message || i18n.t("login.passwordLabel"));
       }
     } catch (error: unknown) {
-      const errorMessage = (error as any)?.data?.message || "فشل تسجيل الدخول";
-      toast.error(errorMessage);
+      const errorMessage = (error as { data?: { message?: string } })?.data?.message;
+      toast.error(errorMessage || i18n.t("login.passwordLabel"));
     }
   };
 
@@ -66,7 +62,7 @@ export const useAuth = () => {
     dispatch(clearBranch());
     dispatch(baseApi.util.resetApiState());
     navigate("/login");
-    toast.success("تم تسجيل الخروج");
+    toast.success(i18n.t("layout.logout"));
   };
 
   return {
@@ -76,6 +72,6 @@ export const useAuth = () => {
     isSystemOwner,
     login,
     isLoggingIn,
-    logout,
+    logout
   };
 };
