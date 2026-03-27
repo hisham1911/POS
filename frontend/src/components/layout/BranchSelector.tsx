@@ -65,7 +65,7 @@ export const BranchSelector = () => {
 
   if (isLoading) {
     return (
-      <div className="frost-card flex h-11 items-center gap-3 rounded-2xl px-4 py-0">
+      <div className="frost-card flex h-11 w-full items-center gap-3 rounded-2xl px-4 py-0 sm:w-auto">
         <Building05 className="size-4 text-muted-foreground" />
         <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
       </div>
@@ -74,13 +74,13 @@ export const BranchSelector = () => {
 
   if (!canSwitch) {
     return (
-      <div className="frost-card flex h-11 items-center gap-3 rounded-2xl px-4 py-0">
+      <div className="frost-card flex h-11 w-full items-center gap-3 rounded-2xl px-4 py-0 sm:w-auto">
         <Building05 className="size-4 text-muted-foreground" />
-        <div className="flex flex-col">
+        <div className="min-w-0 flex flex-col">
           <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             {t("layout.branch")}
           </span>
-          <span className="text-sm font-semibold text-foreground">
+          <span className="truncate text-sm font-semibold text-foreground">
             {currentBranch?.name || t("layout.workspace")}
           </span>
         </div>
@@ -89,14 +89,14 @@ export const BranchSelector = () => {
   }
 
   return (
-    <div className="frost-card flex items-center gap-3 rounded-2xl px-3 py-2">
+    <div className="frost-card flex w-full items-center gap-3 rounded-2xl px-3 py-2 sm:w-auto">
       <Building05 className="size-4 shrink-0 text-muted-foreground" />
-      <div className="min-w-[9rem] flex-1">
+      <div className="min-w-0 flex-1 sm:min-w-[9rem]">
         <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
           {t("layout.branch")}
         </p>
         <Select
-          className="h-8 border-0 bg-transparent px-0 pe-7 text-sm font-semibold shadow-none focus:ring-0"
+          className="h-8 w-full border-0 bg-transparent px-0 pe-7 text-sm font-semibold shadow-none focus:ring-0"
           value={currentBranch?.id ?? ""}
           onChange={handleBranchChange}
         >

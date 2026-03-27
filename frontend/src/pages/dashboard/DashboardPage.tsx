@@ -67,21 +67,21 @@ export default function DashboardPage() {
             <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
               {t("dashboard.heroBody")}
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/pos">
-                <Button size="lg" rightIcon={<ArrowRight className="size-4" />}>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link to="/pos" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto" rightIcon={<ArrowRight className="size-4" />}>
                   {t("dashboard.heroPrimary")}
                 </Button>
               </Link>
-              <Link to="/reports">
-                <Button size="lg" variant="glass">
+              <Link to="/reports" className="w-full sm:w-auto">
+                <Button size="lg" variant="glass" className="w-full sm:w-auto">
                   {t("dashboard.heroSecondary")}
                 </Button>
               </Link>
             </div>
           </div>
 
-          <div className="grid w-full max-w-md grid-cols-2 gap-4">
+          <div className="grid w-full max-w-md grid-cols-1 gap-4 sm:grid-cols-2">
             {isProductsLoading || isCustomersLoading || isOrdersLoading || isShiftLoading ? (
               Array.from({ length: 4 }).map((_, index) => (
                 <Skeleton key={index} className="h-32 rounded-[calc(var(--radius)+0.15rem)]" />

@@ -231,11 +231,11 @@ export const MainLayout = () => {
 
   return (
     <div className="app-shell">
-      <div className={cn("mx-auto flex min-h-screen max-w-[1600px] gap-4 p-4", isRtl ? "xl:flex-row-reverse" : "xl:flex-row")}>
+      <div className="mx-auto flex min-h-screen max-w-[1600px] gap-3 p-3 sm:gap-4 sm:p-4 xl:flex-row">
         {sidebar}
 
         <div className="relative flex min-w-0 flex-1 flex-col gap-4">
-          <header className="glass-panel sticky top-4 z-20 flex flex-col gap-4 px-4 py-4 sm:px-5">
+          <header className="glass-panel sticky top-2 z-20 flex flex-col gap-4 px-4 py-4 sm:top-4 sm:px-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <Button
@@ -268,16 +268,16 @@ export const MainLayout = () => {
                   {t("layout.openPalette")}
                 </Button>
                 <LanguagePill />
-                <Badge variant="outline" className="rounded-2xl px-3 py-2 text-foreground">
+                <Badge variant="outline" className="hidden rounded-2xl px-3 py-2 text-foreground sm:inline-flex">
                   {timeLabel}
                 </Badge>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <BranchSelector />
               <DropdownMenu>
-                <DropdownMenuTrigger className="frost-card flex items-center gap-3 rounded-[1.35rem] px-3 py-2">
+                <DropdownMenuTrigger className="frost-card flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2 sm:w-auto">
                   <Avatar className="h-11 w-11">
                     {preferences.avatarImage ? (
                       <AvatarImage src={preferences.avatarImage} alt={user?.name} />

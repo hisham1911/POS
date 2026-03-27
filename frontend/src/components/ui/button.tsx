@@ -24,14 +24,14 @@ const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
   success:
     "bg-success text-success-foreground shadow-soft hover:bg-success/90",
   glass:
-    "border border-[hsl(var(--border)/0.7)] bg-[hsl(var(--card)/0.78)] text-foreground shadow-soft backdrop-blur-md hover:bg-[hsl(var(--card)/0.92)]"
+    "border border-[hsl(var(--border)/0.65)] bg-[hsl(var(--card)/0.78)] text-foreground shadow-soft backdrop-blur-md hover:bg-[hsl(var(--card)/0.92)]"
 };
 
 const sizes: Record<NonNullable<ButtonProps["size"]>, string> = {
   sm: "h-10 rounded-2xl px-3.5 text-sm",
   md: "h-11 rounded-2xl px-4 text-sm font-semibold",
-  lg: "h-12 rounded-[1.35rem] px-5 text-base font-semibold",
-  xl: "h-14 rounded-[1.55rem] px-6 text-base font-semibold",
+  lg: "h-12 rounded-3xl px-5 text-base font-semibold",
+  xl: "h-14 rounded-4xl px-6 text-base font-semibold",
   icon: "h-11 w-11 rounded-2xl"
 };
 

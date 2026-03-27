@@ -600,7 +600,7 @@ export default function SettingsPage() {
         </Tabs>
 
         <div className="flex justify-end">
-          <Button type="submit" size="lg" isLoading={isSaving}>
+          <Button type="submit" size="lg" isLoading={isSaving} className="w-full sm:w-auto">
             {t("settings.save")}
           </Button>
         </div>

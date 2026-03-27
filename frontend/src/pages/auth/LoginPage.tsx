@@ -77,7 +77,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.08 }}
-          className="glass-panel relative w-full max-w-xl self-center px-6 py-7 sm:px-8 lg:min-w-[460px] lg:max-w-[34rem]"
+          className="glass-panel relative w-full max-w-xl self-center px-6 py-7 sm:px-8 lg:max-w-[34rem] xl:min-w-[460px]"
         >
           <div className="space-y-2">
             <p className="section-caption">{t("common.appName")}</p>

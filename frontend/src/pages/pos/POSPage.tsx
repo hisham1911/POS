@@ -166,7 +166,7 @@ export const POSPage = () => {
   }
 
   return (
-    <div className="h-full flex overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* Products Section */}
       <div className="flex-1 flex flex-col bg-gray-50 p-4 min-w-0">
         {/* Shift Warning Banner */}
@@ -197,8 +197,8 @@ export const POSPage = () => {
         </div>
 
         {/* Categories and Filters */}
-        <div className="flex items-center justify-between mb-4 gap-2">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-3">
             <CategoryTabs
               categories={categories}
               selectedId={selectedCategory}
@@ -209,7 +209,7 @@ export const POSPage = () => {
             <button
               onClick={() => setShowAvailableOnly(!showAvailableOnly)}
               className={clsx(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
+                "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
                 showAvailableOnly
                   ? "bg-success-100 text-success-700 border border-success-300"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
@@ -223,7 +223,7 @@ export const POSPage = () => {
             {/* Quick Create Product */}
             <button
               onClick={() => setShowQuickCreate(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700"
               title="إضافة منتج سريع"
             >
               <PlusCircle className="w-4 h-4" />
@@ -233,7 +233,7 @@ export const POSPage = () => {
             {/* Custom Item */}
             <button
               onClick={() => setShowCustomItem(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-secondary-600 text-white hover:bg-secondary-700"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap bg-secondary-600 text-white hover:bg-secondary-700"
               title="إضافة منتج مخصص للطلب الحالي"
             >
               <FileText className="w-4 h-4" />
@@ -244,7 +244,7 @@ export const POSPage = () => {
           {/* Mobile cart toggle */}
           <button
             onClick={() => setShowMobileCart(!showMobileCart)}
-            className="lg:hidden relative p-2 border border-gray-200 rounded-lg hover:bg-gray-100 shrink-0"
+            className="relative self-end rounded-lg border border-gray-200 p-2 hover:bg-gray-100 shrink-0 lg:hidden"
           >
             <Menu className="w-5 h-5" />
             {itemsCount > 0 && (
@@ -277,7 +277,7 @@ export const POSPage = () => {
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileCart(false)}
           />
-          <div className="absolute right-0 top-0 bottom-0 w-80 bg-white p-4 animate-slide-in-right shadow-2xl flex flex-col">
+          <div className="absolute right-0 top-0 bottom-0 w-[min(100%,24rem)] bg-white p-4 animate-slide-in-right shadow-2xl flex flex-col">
             <Cart
               onCheckout={() => {
                 setShowMobileCart(false);

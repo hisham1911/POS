@@ -32,16 +32,17 @@ export const MetricCard = ({
         : "en-US";
 
   return (
-    <Card className="frost-card-hover overflow-hidden">
-      <CardHeader className="flex-row items-start justify-between gap-4">
-        <div>
-          <CardDescription className="text-xs uppercase tracking-[0.22em]">
+    <Card className="frost-card-hover rounded-2xl shadow-card overflow-hidden">
+      <CardHeader className="flex-row items-start justify-between gap-4 p-5 sm:p-6">
+        <div className="space-y-1.5">
+          <CardDescription className="text-xs uppercase tracking-[0.22em] text-muted-foreground/85">
             {title}
           </CardDescription>
-          <CardTitle className="mt-2 text-3xl font-black">
+          <CardTitle className="text-3xl font-black tracking-tight">
             <CountUp
               end={value}
-              duration={1.2}
+              duration={1.6}
+              useEasing={true}
               formattingFn={(current) =>
                 `${new Intl.NumberFormat(locale, {
                   maximumFractionDigits: 0
@@ -52,13 +53,13 @@ export const MetricCard = ({
         </div>
         <Badge
           variant={tone === "warning" ? "warning" : tone === "success" ? "success" : tone === "secondary" ? "secondary" : "default"}
-          className={cn("rounded-2xl px-2.5 py-2")}
+          className="h-10 w-10 shrink-0 items-center justify-center rounded-2xl p-0"
         >
-          <Icon className="size-4" />
+          <Icon className="size-5" />
         </Badge>
       </CardHeader>
-      <CardContent className="pt-1">
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <CardContent className="px-5 pb-5 pt-0 sm:px-6 sm:pb-6">
+        <p className="text-sm font-medium text-muted-foreground/75 leading-relaxed">{description}</p>
       </CardContent>
     </Card>
   );

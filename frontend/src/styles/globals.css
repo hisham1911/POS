@@ -99,12 +99,12 @@
 
   h1 {
     font-size: clamp(2.3rem, 5vw, 4.4rem);
-    line-height: 0.95;
+    line-height: 1.15;
   }
 
   h2 {
     font-size: clamp(1.8rem, 4vw, 3rem);
-    line-height: 1.05;
+    line-height: 1.25;
   }
 
   h3 {
@@ -301,6 +301,25 @@
 }
 
 @layer utilities {
+  .stagger-in > * {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: staggerReveal 0.4s ease-out forwards;
+  }
+
+  .stagger-in > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-in > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-in > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-in > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-in > *:nth-child(5) { animation-delay: 0.25s; }
+
+  @keyframes staggerReveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }
