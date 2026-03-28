@@ -1,346 +1,185 @@
 import { useState } from "react";
-import {
-  Package,
-  AlertTriangle,
-  Building2,
-  Download,
-  Loader2,
-  AlertCircle,
-  Filter,
-  ChevronDown,
-  Info,
-} from "lucide-react";
-import { Card } from "@/components/common/Card";
-import { formatCurrency } from "@/utils/formatters";
-import { useGetUnifiedInventoryReportQuery } from "@/api/inventoryReportsApi";
+import { AlertCircle, AlertTriangle, Building2, ChevronDown, Download, Filter, Info, Loader2, Package } from "lucide-react";
+
 import { useGetCategoriesQuery } from "@/api/categoriesApi";
+import { useGetUnifiedInventoryReportQuery } from "@/api/inventoryReportsApi";
+import { Button } from "@/components/common/Button";
+import { Card } from "@/components/common/Card";
+import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "@/components/ui/table";
+import { formatCurrency } from "@/utils/formatters";
 
 export const UnifiedInventoryReportPage = () => {
-  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [categoryId, setCategoryId] = useState<number | undefined>();
   const [lowStockOnly, setLowStockOnly] = useState(false);
 
   const { data: categoriesData } = useGetCategoriesQuery();
-  const { data, isLoading, isError, error } = useGetUnifiedInventoryReportQuery(
-    {
-      categoryId,
-      lowStockOnly,
-    },
-  );
+  const { data, isLoading, isError, error } = useGetUnifiedInventoryReportQuery({ categoryId, lowStockOnly });
 
   const reports = data?.data || [];
   const categories = categoriesData?.data || [];
-
   const totalProducts = reports.length;
-  const totalQuantity = reports.reduce((sum, r) => sum + r.totalQuantity, 0);
-  const totalValue = reports.reduce((sum, r) => sum + (r.totalValue || 0), 0);
-  const lowStockProducts = reports.filter(
-    (r) => r.lowStockBranchCount > 0,
-  ).length;
+  const totalQuantity = reports.reduce((sum, report) => sum + report.totalQuantity, 0);
+  const totalValue = reports.reduce((sum, report) => sum + (report.totalValue || 0), 0);
+  const lowStockProducts = reports.filter((report) => report.lowStockBranchCount > 0).length;
 
   const handleExport = () => {
-    window.open(
-      `/api/inventory-reports/unified/export?${categoryId ? `categoryId=${categoryId}&` : ""}${lowStockOnly ? "lowStockOnly=true" : ""}`,
-      "_blank",
-    );
+    window.open(`/api/inventory-reports/unified/export?${categoryId ? `categoryId=${categoryId}&` : ""}${lowStockOnly ? "lowStockOnly=true" : ""}`, "_blank");
   };
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-        <span className="mr-2 text-gray-600">جاري تحميل التقرير...</span>
+      <div className="page-shell">
+        <div className="glass-panel flex min-h-[16rem] items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="size-6 animate-spin text-primary" />
+          <span>جاري تحميل التقرير...</span>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600">فشل في تحميل التقرير</p>
-          <p className="text-gray-500 text-sm mt-2">
-            {(error as any)?.data?.message || "حدث خطأ غير متوقع"}
-          </p>
+      <div className="page-shell">
+        <div className="glass-panel flex min-h-[16rem] flex-col items-center justify-center text-center">
+          <AlertCircle className="mb-4 size-10 text-danger" />
+          <p className="font-semibold text-danger">فشل في تحميل التقرير</p>
+          <p className="mt-2 text-sm text-muted-foreground">{(error as any)?.data?.message || "حدث خطأ غير متوقع"}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            تقرير المخزون الموحد
-          </h1>
-          <p className="text-gray-500 mt-1">عرض موحد للمخزون عبر جميع الفروع</p>
-        </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2 bg-success-500 text-white rounded-lg hover:bg-success-600 transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          تصدير CSV
-        </button>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <div className="flex items-center gap-4">
-          <Filter className="w-5 h-5 text-gray-400" />
-          <div className="flex-1 flex items-center gap-4">
-            <div className="relative">
-              <select
-                value={categoryId || ""}
-                onChange={(e) =>
-                  setCategoryId(
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
-                }
-                className="appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm min-w-[180px]"
-              >
-                <option value="">جميع الفئات</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-            </div>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={lowStockOnly}
-                onChange={(e) => setLowStockOnly(e.target.checked)}
-                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-              />
-              <span className="text-sm text-gray-700">
-                المنتجات ذات المخزون المنخفض فقط
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="section-caption">تقارير المخزون</div>
+            <h1 className="mt-3 flex items-center gap-3 text-balance text-3xl font-black text-foreground">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                <Building2 className="size-6" />
               </span>
-            </label>
+              تقرير المخزون الموحد
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              نظرة موحدة على مخزون جميع الفروع مع إبراز الفروع منخفضة المخزون والتفاصيل التشغيلية داخل واجهة متسقة مع النظام.
+            </p>
           </div>
+          <Button variant="outline" leftIcon={<Download className="size-4" />} onClick={handleExport}>
+            تصدير CSV
+          </Button>
+        </div>
+      </section>
+
+      <Card className="space-y-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Filter className="size-4 text-primary" />
+          <span>الفلاتر</span>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+          <div className="relative">
+            <select
+              value={categoryId || ""}
+              onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full appearance-none rounded-2xl border border-input bg-card/80 py-3 pl-10 pr-4 text-sm font-medium shadow-sm"
+            >
+              <option value="">جميع الفئات</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+          </div>
+          <label className="choice-chip cursor-pointer" data-selected={lowStockOnly}>
+            <input type="checkbox" checked={lowStockOnly} onChange={(e) => setLowStockOnly(e.target.checked)} className="h-4 w-4" />
+            <span>المنتجات ذات المخزون المنخفض فقط</span>
+          </label>
         </div>
       </Card>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">إجمالي المنتجات</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {totalProducts}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">إجمالي الكمية</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {totalQuantity}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">منتجات بمخزون منخفض</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {lowStockProducts}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">قيمة المخزون</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {formatCurrency(totalValue)}
-              </p>
-            </div>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <Card><div className="flex items-center gap-4"><div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Package className="size-6" /></div><div><p className="text-sm text-muted-foreground">إجمالي المنتجات</p><p className="text-2xl font-bold text-foreground">{totalProducts}</p></div></div></Card>
+        <Card><div className="flex items-center gap-4"><div className="flex size-12 items-center justify-center rounded-2xl bg-success/10 text-success"><Package className="size-6" /></div><div><p className="text-sm text-muted-foreground">إجمالي الكمية</p><p className="text-2xl font-bold text-foreground">{totalQuantity}</p></div></div></Card>
+        <Card><div className="flex items-center gap-4"><div className="flex size-12 items-center justify-center rounded-2xl bg-warning/10 text-warning"><AlertTriangle className="size-6" /></div><div><p className="text-sm text-muted-foreground">منتجات بمخزون منخفض</p><p className="text-2xl font-bold text-warning">{lowStockProducts}</p></div></div></Card>
+        <Card><div className="flex items-center gap-4"><div className="flex size-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><Building2 className="size-6" /></div><div><p className="text-sm text-muted-foreground">قيمة المخزون</p><p className="text-2xl font-bold text-accent">{formatCurrency(totalValue)}</p></div></div></Card>
       </div>
 
-      {/* Unified Inventory Table */}
       <Card>
-        <h3 className="text-lg font-bold text-gray-800 mb-4">المخزون الموحد</h3>
+        <h3 className="mb-4 text-lg font-bold text-foreground">المخزون الموحد</h3>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  المنتج
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  SKU
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  الفئة
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  إجمالي الكمية
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  عدد الفروع
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  فروع بمخزون منخفض
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  متوسط التكلفة
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  القيمة الإجمالية
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                  تفاصيل الفروع
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell className="text-right">المنتج</TableHeaderCell>
+                <TableHeaderCell className="text-right">SKU</TableHeaderCell>
+                <TableHeaderCell className="text-right">الفئة</TableHeaderCell>
+                <TableHeaderCell className="text-right">إجمالي الكمية</TableHeaderCell>
+                <TableHeaderCell className="text-right">عدد الفروع</TableHeaderCell>
+                <TableHeaderCell className="text-right">فروع بمخزون منخفض</TableHeaderCell>
+                <TableHeaderCell className="text-right">متوسط التكلفة</TableHeaderCell>
+                <TableHeaderCell className="text-right">القيمة الإجمالية</TableHeaderCell>
+                <TableHeaderCell className="text-right">تفاصيل الفروع</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {reports.length > 0 ? (
                 reports.map((item) => (
-                  <tr
-                    key={item.productId}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {item.productName}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {item.productSku || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {item.categoryName || "-"}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">
-                      {item.totalQuantity}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <Building2 className="w-3 h-3 ml-1" />
-                        {item.branchCount}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
+                  <TableRow key={item.productId} className={item.lowStockBranchCount > 0 ? "bg-warning/6" : undefined}>
+                    <TableCell className="font-medium text-foreground">{item.productName}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{item.productSku || "-"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{item.categoryName || "-"}</TableCell>
+                    <TableCell className="font-semibold text-foreground">{item.totalQuantity}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-1 text-xs font-semibold text-accent">{item.branchCount}</span>
+                    </TableCell>
+                    <TableCell>
                       {item.lowStockBranchCount > 0 ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          <AlertTriangle className="w-3 h-3 ml-1" />
-                          {item.lowStockBranchCount}
-                        </span>
+                        <span className="inline-flex items-center rounded-full bg-warning/10 px-2 py-1 text-xs font-semibold text-warning">{item.lowStockBranchCount}</span>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {item.averageCost
-                        ? formatCurrency(item.averageCost)
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-primary-600">
-                      {item.totalValue ? formatCurrency(item.totalValue) : "-"}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{item.averageCost ? formatCurrency(item.averageCost) : "-"}</TableCell>
+                    <TableCell className="font-semibold text-primary">{item.totalValue ? formatCurrency(item.totalValue) : "-"}</TableCell>
+                    <TableCell>
                       <details className="cursor-pointer">
-                        <summary className="text-xs text-primary-600 hover:text-primary-700">
-                          عرض ({item.branchStocks.length})
-                        </summary>
-                        <div className="mt-2 space-y-1">
+                        <summary className="text-xs font-semibold text-primary hover:text-primary/80">عرض ({item.branchStocks.length})</summary>
+                        <div className="mt-2 space-y-2">
                           {item.branchStocks.map((branch) => (
-                            <div
-                              key={branch.branchId}
-                              className="text-xs p-2 bg-gray-50 rounded"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium">
-                                  {branch.branchName}
-                                </span>
-                                <span
-                                  className={
-                                    branch.isLowStock
-                                      ? "text-orange-600"
-                                      : "text-gray-600"
-                                  }
-                                >
-                                  {branch.quantity}
-                                </span>
+                            <div key={branch.branchId} className="rounded-xl border border-border/70 bg-card/65 p-3 text-xs">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="font-semibold text-foreground">{branch.branchName}</span>
+                                <span className={branch.isLowStock ? "font-semibold text-warning" : "text-muted-foreground"}>{branch.quantity}</span>
                               </div>
-                              {branch.isLowStock && (
-                                <span className="text-orange-600 text-xs">
-                                  مخزون منخفض (الحد الأدنى:{" "}
-                                  {branch.reorderLevel})
-                                </span>
-                              )}
+                              {branch.isLowStock ? <div className="mt-1 text-warning">مخزون منخفض، الحد الأدنى: {branch.reorderLevel}</div> : null}
                             </div>
                           ))}
                         </div>
                       </details>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="px-4 py-8 text-center text-gray-400"
-                  >
-                    لا توجد منتجات
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">لا توجد منتجات</TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </Card>
 
-      {/* Info Card */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="border-primary/20 bg-primary/6">
         <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">
-              معلومات التقرير
-            </h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>
-                • <strong>الموحد:</strong> يجمع مخزون جميع الفروع في جدول واحد
-              </li>
-              <li>
-                • <strong>الكمية:</strong> إجمالي المتوفر من كل منتج عبر كل
-                الفروع
-              </li>
-              <li>
-                • <strong>القيمة:</strong> إجمالي قيمة المخزون بسعر التكلفة
-                لجميع الفروع
-              </li>
-              <li>
-                • <strong>التصدير:</strong> يمكنك تحميل التقرير كملف إكسل
-                للمراجعة
-              </li>
+          <Info className="mt-0.5 size-5 shrink-0 text-primary" />
+          <div>
+            <h3 className="mb-2 text-sm font-semibold text-foreground">معلومات التقرير</h3>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              <li>يجمع مخزون جميع الفروع في تقرير واحد قابل للتصفية.</li>
+              <li>يوضح عدد الفروع المشاركة في كل منتج وعدد الفروع منخفضة المخزون.</li>
+              <li>تفاصيل الفروع داخل كل صف أصبحت أوضح ومتوافقة مع الثيم الداكن.</li>
             </ul>
           </div>
         </div>

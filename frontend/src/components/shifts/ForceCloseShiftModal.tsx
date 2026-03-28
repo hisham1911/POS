@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, AlertTriangle, Clock, User, DollarSign } from "@untitledui/icons";
+import { X, AlertTriangle, Clock, User01 as User, CurrencyDollar as DollarSign } from "@untitledui/icons";
 import { useForceCloseShiftMutation } from "../../api/shiftsApi";
 import { Shift } from "../../types/shift.types";
 import { formatDateTimeFull } from "../../utils/formatters";
@@ -56,18 +56,18 @@ export default function ForceCloseShiftModal({
   return (
     <Portal>
       <div 
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-[hsl(var(--foreground)/0.24)] p-4 backdrop-blur-md"
         onClick={onClose}
       >
         <div 
-          className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+          className="glass-panel flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-[calc(var(--radius)+0.35rem)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                <AlertTriangle className="w-5 h-5" />
               </div>
               <h2 className="text-xl font-bold text-foreground">
                 إغلاق الوردية بالقوة
@@ -85,7 +85,7 @@ export default function ForceCloseShiftModal({
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
             {/* Shift Info */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-border space-y-3">
+            <div className="space-y-3 rounded-xl border border-border bg-muted/35 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <User className="w-4 h-4" />
@@ -125,12 +125,12 @@ export default function ForceCloseShiftModal({
             {/* Reason */}
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                سبب الإغلاق بالقوة <span className="text-red-500">*</span>
+                سبب الإغلاق بالقوة <span className="text-danger">*</span>
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                className="w-full resize-none rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground"
                 rows={3}
                 placeholder="مثال: الكاشير نسي إغلاق الوردية، مشكلة تقنية، طوارئ..."
                 required
@@ -153,7 +153,7 @@ export default function ForceCloseShiftModal({
                   step="0.01"
                   value={actualBalance === "0" ? "" : actualBalance}
                   onChange={(e) => setActualBalance(e.target.value)}
-                  className="w-full pr-10 pl-4 py-2.5 border border-border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full rounded-xl border border-input bg-card/80 py-2.5 pl-4 pr-10 text-foreground"
                   placeholder="0.00"
                 />
               </div>
@@ -170,7 +170,7 @@ export default function ForceCloseShiftModal({
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                className="w-full resize-none rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground"
                 rows={2}
                 placeholder="أي ملاحظات إضافية..."
                 maxLength={1000}
@@ -178,14 +178,14 @@ export default function ForceCloseShiftModal({
             </div>
 
             {/* Warning */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div className="rounded-xl border border-warning/20 bg-warning/10 p-4">
               <div className="flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="mt-0.5 w-5 h-5 flex-shrink-0 text-warning" />
                 <div>
-                  <p className="text-sm font-medium text-yellow-800 mb-1">
+                  <p className="mb-1 text-sm font-medium text-foreground">
                     تحذير هام
                   </p>
-                  <p className="text-sm text-yellow-700">
+                  <p className="text-sm text-muted-foreground">
                     هذا الإجراء سيغلق الوردية فوراً ولا يمكن التراجع عنه. سيتم تسجيل هذه العملية في سجل التدقيق.
                   </p>
                 </div>
@@ -204,7 +204,7 @@ export default function ForceCloseShiftModal({
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-xl bg-danger px-4 py-2.5 font-medium text-danger-foreground transition-colors hover:bg-danger/90 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isLoading}
               >
                 {isLoading ? "جاري الإغلاق..." : "إغلاق بالقوة"}

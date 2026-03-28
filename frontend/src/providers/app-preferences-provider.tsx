@@ -85,6 +85,7 @@ const applyThemeToDocument = (
   root.setAttribute("lang", preferences.language);
   root.dataset.theme = preferences.themeId;
   root.dataset.language = preferences.language;
+  root.dataset.numerals = preferences.useArabicNumerals ? "arab" : "latn";
   root.style.colorScheme =
     preferences.themeId === "dark" ||
     (preferences.themeId === "custom" && preferences.customTheme.mode === "dark")

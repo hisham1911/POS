@@ -31,7 +31,7 @@ import { useOrders } from "@/hooks/useOrders";
 import { cn } from "@/lib/utils";
 import type { Order, OrdersQueryParams } from "@/types/order.types";
 import { ORDER_STATUS, ORDER_TYPES, PAYMENT_METHODS } from "@/utils/constants";
-import { formatCurrency, formatDateTime } from "@/utils/formatters";
+import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
 
 export const OrdersPage = () => {
   const { todayOrders, isLoadingOrders, cancelOrder } = useOrders();
@@ -161,15 +161,7 @@ export const OrdersPage = () => {
               {viewMode === "today"
                 ? "طلبات اليوم"
                 : viewMode === "date" && selectedDate
-                  ? `طلبات يوم ${new Date(selectedDate).toLocaleDateString(
-                      "ar-EG",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        timeZone: "Africa/Cairo",
-                      },
-                    )}`
+                  ? `طلبات يوم ${formatDate(selectedDate)}`
                   : "عرض وإدارة جميع الطلبات والمبيعات"}
             </p>
           </div>

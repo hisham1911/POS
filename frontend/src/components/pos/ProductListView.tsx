@@ -1,11 +1,12 @@
-import { Product } from "@/types/product.types";
-import { Category } from "@/types/category.types";
+import clsx from "clsx";
+import { AlertCircle, CheckCircle2, Minus, Package } from "lucide-react";
+
 import { useCart } from "@/hooks/useCart";
-import { formatCurrency } from "@/utils/formatters";
 import { useAppSelector } from "@/store/hooks";
 import { selectAllowNegativeStock } from "@/store/slices/cartSlice";
-import clsx from "clsx";
-import { Package, AlertCircle, CheckCircle2, Minus } from "lucide-react";
+import type { Category } from "@/types/category.types";
+import type { Product } from "@/types/product.types";
+import { formatCurrency, formatNumber } from "@/utils/formatters";
 
 interface ProductListViewProps {
   products: Product[];
@@ -29,46 +30,44 @@ export const ProductListView = ({ products, categories }: ProductListViewProps) 
     }
   };
 
-  // Group products by category
-  const groupedProducts = products.reduce((acc, product) => {
-    const categoryId = product.categoryId || 0;
-    if (!acc[categoryId]) {
-      acc[categoryId] = [];
-    }
-    acc[categoryId].push(product);
-    return acc;
-  }, {} as Record<number, Product[]>);
+  const groupedProducts = products.reduce(
+    (acc, product) => {
+      const categoryId = product.categoryId || 0;
+      if (!acc[categoryId]) {
+        acc[categoryId] = [];
+      }
+      acc[categoryId].push(product);
+      return acc;
+    },
+    {} as Record<number, Product[]>
+  );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {Object.entries(groupedProducts).map(([categoryId, categoryProducts]) => {
-        const category = categories.find((c) => c.id === Number(categoryId));
+        const category = categories.find((item) => item.id === Number(categoryId));
         const categoryName = category?.name || "غير مصنف";
 
         return (
-          <div key={categoryId} className="space-y-3">
-            {/* Category Header */}
-            <div className="flex items-center gap-3 pb-2 border-b-2 border-gray-200">
-              <div className="w-1 h-6 bg-primary-500 rounded-full" />
-              <h3 className="text-lg font-bold text-gray-800">{categoryName}</h3>
-              <span className="text-sm text-gray-500">
-                ({categoryProducts.length})
-              </span>
+          <section key={categoryId} className="space-y-3">
+            <div className="flex items-center gap-3 border-b border-border/70 pb-3">
+              <div className="h-7 w-1.5 rounded-full bg-[linear-gradient(180deg,hsl(var(--primary)),hsl(var(--accent)))] shadow-sm" />
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-base font-bold text-foreground">{categoryName}</h3>
+                <p className="font-numeric text-xs text-muted-foreground">
+                  {formatNumber(categoryProducts.length)} منتج
+                </p>
+              </div>
             </div>
 
-            {/* Products List */}
             <div className="space-y-2">
               {categoryProducts.map((product) => {
                 const cartItem = items.find((item) => item.product.id === product.id);
                 const quantityInCart = cartItem?.quantity ?? 0;
                 const totalStock = product.stockQuantity ?? 0;
-                const availableStock = product.trackInventory
-                  ? totalStock - quantityInCart
-                  : Infinity;
-                const canAddMore =
-                  allowNegativeStock || !product.trackInventory || availableStock > 0;
-                const isOutOfStock =
-                  !allowNegativeStock && product.trackInventory && totalStock <= 0;
+                const availableStock = product.trackInventory ? totalStock - quantityInCart : Infinity;
+                const canAddMore = allowNegativeStock || !product.trackInventory || availableStock > 0;
+                const isOutOfStock = !allowNegativeStock && product.trackInventory && totalStock <= 0;
                 const isLowStock =
                   product.trackInventory &&
                   totalStock > 0 &&
@@ -77,92 +76,82 @@ export const ProductListView = ({ products, categories }: ProductListViewProps) 
                 return (
                   <button
                     key={product.id}
+                    type="button"
                     onClick={() => handleProductClick(product)}
                     disabled={!product.isActive || isOutOfStock || !canAddMore}
                     className={clsx(
-                      "w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200",
-                      "border-2 text-right",
+                      "surface-outline flex w-full items-center justify-between gap-4 rounded-[calc(var(--radius)+0.02rem)] p-4 text-right transition-all duration-200",
                       quantityInCart > 0
-                        ? "border-primary-400 bg-primary-50 shadow-md"
-                        : "border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm",
-                      (!product.isActive || isOutOfStock || !canAddMore) &&
-                        "opacity-50 cursor-not-allowed",
-                      product.isActive && canAddMore && !isOutOfStock && "active:scale-[0.98]"
+                        ? "border-primary/30 bg-primary/6 shadow-soft ring-1 ring-primary/18"
+                        : "hover:border-primary/24 hover:bg-[hsl(var(--card)/0.92)]",
+                      (!product.isActive || isOutOfStock || !canAddMore) && "cursor-not-allowed opacity-50",
+                      product.isActive && canAddMore && !isOutOfStock && "active:scale-[0.985]"
                     )}
                   >
-                    {/* Left: Name & Stock */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-800 truncate">
-                          {product.name}
-                        </h4>
-                        {quantityInCart > 0 && (
-                          <span className="px-2 py-0.5 bg-primary-600 text-white text-xs font-bold rounded-full">
-                            {quantityInCart}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <h4 className="truncate font-semibold text-foreground">{product.name}</h4>
+                        {quantityInCart > 0 ? (
+                          <span className="font-numeric inline-flex rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-bold text-primary-foreground shadow-sm">
+                            {formatNumber(quantityInCart)}
                           </span>
-                        )}
+                        ) : null}
                       </div>
 
-                      {/* Stock Status */}
-                      {product.trackInventory && (
+                      {product.trackInventory ? (
                         <div className="flex items-center gap-2 text-sm">
                           {isOutOfStock ? (
                             <>
-                              <AlertCircle className="w-4 h-4 text-red-500" />
-                              <span className="text-red-600 font-medium">نفد المخزون</span>
+                              <AlertCircle className="h-4 w-4 text-destructive" />
+                              <span className="font-medium text-destructive">نفد المخزون</span>
                             </>
                           ) : isLowStock ? (
                             <>
-                              <Minus className="w-4 h-4 text-amber-500" />
-                              <span className="text-amber-600 font-medium">
-                                متبقي {availableStock}
+                              <Minus className="h-4 w-4 text-warning" />
+                              <span className="font-medium text-warning">
+                                متبقي <span className="font-numeric">{formatNumber(availableStock)}</span>
                               </span>
                             </>
                           ) : (
                             <>
-                              <CheckCircle2 className="w-4 h-4 text-success-500" />
-                              <span className="text-success-600 font-medium">
-                                متاح {availableStock}
+                              <CheckCircle2 className="h-4 w-4 text-success" />
+                              <span className="font-medium text-success">
+                                متاح <span className="font-numeric">{formatNumber(availableStock)}</span>
                               </span>
                             </>
                           )}
                         </div>
-                      )}
+                      ) : null}
 
-                      {!product.isActive && (
+                      {!product.isActive ? (
                         <div className="flex items-center gap-2 text-sm">
-                          <Package className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-500">غير متوفر</span>
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">غير متوفر</span>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
-                    {/* Right: Price */}
-                    <div className="text-left shrink-0 ml-4">
-                      <div className="text-xl font-bold text-primary-600">
+                    <div className="ml-4 shrink-0 text-left">
+                      <div className="font-numeric text-xl font-black text-primary">
                         {formatCurrency(product.price)}
                       </div>
-                      {product.sku && (
-                        <div className="text-xs text-gray-400 font-mono">
-                          {product.sku}
-                        </div>
-                      )}
+                      {product.sku ? <div className="font-mono text-xs text-muted-foreground">{product.sku}</div> : null}
                     </div>
                   </button>
                 );
               })}
             </div>
-          </div>
+          </section>
         );
       })}
 
-      {products.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p className="text-lg font-medium">لا توجد منتجات</p>
-          <p className="text-sm">جرب تغيير البحث أو الفلتر</p>
+      {products.length === 0 ? (
+        <div className="feedback-panel flex flex-col items-center justify-center gap-2 py-12 text-center" data-tone="info">
+          <Package className="h-16 w-16 text-muted-foreground opacity-45" />
+          <p className="text-lg font-medium text-foreground">لا توجد منتجات</p>
+          <p className="text-sm text-muted-foreground">جرب تغيير البحث أو الفلتر</p>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { formatDateTimeFull } from "@/utils/formatters";
 
 export const BackupPage = () => {
   const { data: backupsData, isLoading, refetch } = useListBackupsQuery();
@@ -211,8 +212,7 @@ export const BackupPage = () => {
   };
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleString("ar-EG");
+    return formatDateTimeFull(dateString);
   };
 
   const getReasonBadgeColor = (reason: string) => {

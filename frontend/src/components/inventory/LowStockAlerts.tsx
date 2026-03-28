@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGetLowStockItemsQuery } from "../../api/inventoryApi";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch, selectBranches } from "../../store/slices/branchSlice";
-import { AlertTriangle, Package, Filter, ChevronDown } from "@untitledui/icons";
+import { AlertTriangle, Package, FilterLines as Filter, ChevronDown } from "@untitledui/icons";
 
 export default function LowStockAlerts() {
   const currentBranch = useAppSelector(selectCurrentBranch);

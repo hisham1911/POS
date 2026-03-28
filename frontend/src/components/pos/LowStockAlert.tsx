@@ -3,6 +3,7 @@ import { useGetLowStockProductsQuery } from "@/api/inventoryApi";
 import { useState } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
+import { formatNumber } from "@/utils/formatters";
 
 export const LowStockAlert = () => {
   const [dismissed, setDismissed] = useState(false);
@@ -24,20 +25,21 @@ export const LowStockAlert = () => {
   const lowStockCount = data.length;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 flex items-center justify-between gap-3 mb-4 animate-fade-in">
-      <div className="flex items-center gap-2 text-amber-700">
-        <AlertTriangle className="w-5 h-5 shrink-0" />
+    <div className="feedback-panel mb-4 flex items-center justify-between gap-3 animate-fade-in" data-tone="warning">
+      <div className="flex items-center gap-2 text-warning">
+        <AlertTriangle className="h-5 w-5 shrink-0" />
         <span className="text-sm font-medium">
-          ⚠️ تنبيه: {lowStockCount} منتج{lowStockCount > 1 ? "ات" : ""} مخزونها
+          ⚠️ تنبيه: <span className="font-numeric">{formatNumber(lowStockCount)}</span> منتج{lowStockCount > 1 ? "ات" : ""} مخزونها
           منخفض
         </span>
       </div>
       <button
+        type="button"
         onClick={() => setDismissed(true)}
-        className="text-amber-600 hover:text-amber-800 p-1 rounded hover:bg-amber-100 transition-colors"
+        className="rounded-full p-1 text-warning transition-colors hover:bg-warning/16 hover:text-warning"
         aria-label="إخفاء التنبيه"
       >
-        <X className="w-4 h-4" />
+        <X className="h-4 w-4" />
       </button>
     </div>
   );

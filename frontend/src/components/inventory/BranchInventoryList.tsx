@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGetBranchInventoryQuery } from "../../api/inventoryApi";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch } from "../../store/slices/branchSlice";
-import { Package, AlertTriangle, Search, RefreshCw } from "@untitledui/icons";
+import { Package, AlertTriangle, SearchLg as Search, RefreshCcw01 as RefreshCw } from "@untitledui/icons";
 import { toast } from "sonner";
 import { formatDateOnly } from "../../utils/formatters";
 

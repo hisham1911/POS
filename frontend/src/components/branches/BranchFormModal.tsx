@@ -84,28 +84,28 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
   return (
     <Portal>
       <div 
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-[hsl(var(--foreground)/0.24)] p-4 backdrop-blur-md"
         onClick={onClose}
       >
         <div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+          className="glass-panel flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[calc(var(--radius)+0.35rem)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+          <div className="flex shrink-0 items-center justify-between border-b border-border p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-primary-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Building2 className="w-5 h-5" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-foreground">
                 {isEditMode ? "تعديل الفرع" : "إضافة فرع جديد"}
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="rounded-lg p-2 transition-colors hover:bg-muted/50"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
@@ -113,15 +113,15 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
             {/* Basic Info */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800">
+              <h3 className="font-semibold text-foreground">
                 المعلومات الأساسية
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    اسم الفرع <span className="text-red-500">*</span>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    اسم الفرع <span className="text-danger">*</span>
                   </label>
                   <Input
                     type="text"
@@ -134,8 +134,8 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
 
                 {/* Code */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    كود الفرع <span className="text-red-500">*</span>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    كود الفرع <span className="text-danger">*</span>
                   </label>
                   <Input
                     type="text"
@@ -146,7 +146,7 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
                     disabled={isEditMode}
                   />
                   {isEditMode && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       لا يمكن تعديل الكود بعد الإنشاء
                     </p>
                   )}
@@ -156,12 +156,12 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
 
             {/* Contact Info */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800">معلومات الاتصال</h3>
+              <h3 className="font-semibold text-foreground">معلومات الاتصال</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-foreground">
                     رقم الهاتف
                   </label>
                   <Input
@@ -175,29 +175,29 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
                 {/* Status (Edit mode only) */}
                 {isEditMode && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-foreground">
                       الحالة
                     </label>
-                    <div className="flex items-center gap-4 h-10">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <label className="choice-chip cursor-pointer" data-selected={formData.isActive}>
                         <input
                           type="radio"
                           name="isActive"
                           checked={formData.isActive}
                           onChange={() => handleChange("isActive", true)}
-                          className="w-4 h-4 text-primary-600"
+                          className="h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700">نشط</span>
+                        <span>نشط</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="choice-chip cursor-pointer" data-selected={!formData.isActive}>
                         <input
                           type="radio"
                           name="isActive"
                           checked={!formData.isActive}
                           onChange={() => handleChange("isActive", false)}
-                          className="w-4 h-4 text-primary-600"
+                          className="h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700">غير نشط</span>
+                        <span>غير نشط</span>
                       </label>
                     </div>
                   </div>
@@ -206,7 +206,7 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
 
               {/* Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   العنوان
                 </label>
                 <textarea
@@ -214,14 +214,14 @@ export const BranchFormModal = ({ branch, onClose }: BranchFormModalProps) => {
                   onChange={(e) => handleChange("address", e.target.value)}
                   placeholder="مثال: 123 شارع الجمهورية، القاهرة"
                   rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                  className="w-full resize-none rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground"
                 />
               </div>
             </div>
           </form>
 
           {/* Actions */}
-          <div className="flex gap-3 p-6 border-t border-gray-200 flex-shrink-0">
+          <div className="flex shrink-0 gap-3 border-t border-border p-6">
             <Button
               type="button"
               variant="outline"

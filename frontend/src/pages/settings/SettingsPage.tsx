@@ -26,7 +26,9 @@ import { usePOSMode } from "@/hooks/usePOSMode";
 import { cn } from "@/lib/utils";
 import { useAppDispatch } from "@/store/hooks";
 import { setTaxSettings } from "@/store/slices/cartSlice";
+import type { CustomThemeConfig } from "@/lib/preferences";
 import type { UpdateTenantRequest } from "@/types/tenant.types";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/utils/formatters";
 import { toast } from "sonner";
 
 const settingsSchema = z.object({
@@ -63,6 +65,13 @@ const themeCards = [
   { id: "custom", labelKey: "settings.appearance.custom", preview: "linear-gradient(145deg, #e9f7f0 0%, #f9f2e4 42%, #edf4ff 100%)" }
 ] as const;
 
+const customThemeFields = [
+  { key: "primary", labelKey: "settings.appearance.primary" },
+  { key: "accent", labelKey: "settings.appearance.accent" },
+  { key: "background", labelKey: "settings.appearance.background" },
+  { key: "surface", labelKey: "settings.appearance.surface" }
+] as const;
+
 const wallpaperLabelMap: Record<string, string> = {
   "confetti-forest": "themes.confettiForest",
   "beach-glow": "themes.beachGlow",
@@ -88,6 +97,8 @@ export default function SettingsPage() {
   const [updateTenant, { isLoading: isSaving }] = useUpdateCurrentTenantMutation();
   const [uploadLogo] = useUploadLogoMutation();
   const [activeTab, setActiveTab] = useState(0);
+  const [customThemeDraft, setCustomThemeDraft] = useState<CustomThemeConfig>(preferences.customTheme);
+  const [isEditingCustomTheme, setIsEditingCustomTheme] = useState(false);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -145,6 +156,12 @@ export default function SettingsPage() {
     });
   }, [form, tenantData]);
 
+  useEffect(() => {
+    if (!isEditingCustomTheme) {
+      setCustomThemeDraft(preferences.customTheme);
+    }
+  }, [isEditingCustomTheme, preferences.customTheme]);
+
   const values = form.watch();
   const receiptWidth =
     values.receiptPaperSize === "80mm"
@@ -152,6 +169,27 @@ export default function SettingsPage() {
       : values.receiptPaperSize === "58mm"
         ? 219
         : values.receiptCustomWidth;
+  const customThemeDirty =
+    customThemeDraft.mode !== preferences.customTheme.mode ||
+    customThemeDraft.primary !== preferences.customTheme.primary ||
+    customThemeDraft.accent !== preferences.customTheme.accent ||
+    customThemeDraft.background !== preferences.customTheme.background ||
+    customThemeDraft.surface !== preferences.customTheme.surface;
+  const customPreviewForeground = customThemeDraft.mode === "dark" ? "#f8fafc" : "#1f2937";
+  const customPreviewMuted = customThemeDraft.mode === "dark" ? "rgba(248,250,252,0.68)" : "#475569";
+  const customThemePreview = `linear-gradient(145deg, ${customThemeDraft.primary}22 0%, ${customThemeDraft.accent}30 38%, ${customThemeDraft.background} 100%)`;
+
+  const handleSaveCustomTheme = () => {
+    updateCustomTheme(customThemeDraft);
+    setTheme("custom");
+    setIsEditingCustomTheme(false);
+    toast.success(t("settings.appearance.customThemeSaved"));
+  };
+
+  const handleCancelCustomTheme = () => {
+    setCustomThemeDraft(preferences.customTheme);
+    setIsEditingCustomTheme(false);
+  };
 
   const onSubmit = form.handleSubmit(async (data) => {
     const payload: UpdateTenantRequest = {
@@ -254,7 +292,7 @@ export default function SettingsPage() {
                             style={{
                               backgroundImage:
                                 theme.id === "custom"
-                                  ? `linear-gradient(140deg, ${preferences.customTheme.primary}33, ${preferences.customTheme.accent}44, ${preferences.customTheme.background})`
+                                  ? `linear-gradient(140deg, ${customThemeDraft.primary}33, ${customThemeDraft.accent}44, ${customThemeDraft.background})`
                                   : theme.preview
                             }}
                           />
@@ -263,27 +301,183 @@ export default function SettingsPage() {
                       ))}
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {[
-                        { key: "primary", label: t("settings.appearance.primary") },
-                        { key: "accent", label: t("settings.appearance.accent") },
-                        { key: "background", label: t("settings.appearance.background") },
-                        { key: "surface", label: t("settings.appearance.surface") }
-                      ].map((item) => (
-                        <label key={item.key} className="surface-outline flex items-center justify-between rounded-2xl px-4 py-3">
-                          <span className="text-sm font-semibold text-foreground">{item.label}</span>
-                          <input
-                            type="color"
-                            value={preferences.customTheme[item.key as keyof typeof preferences.customTheme] as string}
-                            onChange={(event) =>
-                              updateCustomTheme({
-                                [item.key]: event.target.value
-                              })
-                            }
-                            className="h-10 w-14 cursor-pointer rounded-xl border-0 bg-transparent"
+                    <div className="surface-outline rounded-[calc(var(--radius)+0.1rem)] p-5">
+                      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                          <div
+                            className="mesh-preview h-20 w-full shrink-0 rounded-[calc(var(--radius)+0.1rem)] border border-border/70 sm:w-32"
+                            style={{ backgroundImage: customThemePreview }}
                           />
-                        </label>
-                      ))}
+
+                          <div className="max-w-2xl">
+                            <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                              {t("settings.appearance.customTheme")}
+                            </div>
+                            <p className="mt-3 text-sm text-muted-foreground">{t("settings.appearance.customThemeHint")}</p>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <span
+                                className={cn(
+                                  "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                  preferences.themeId === "custom" ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground"
+                                )}
+                              >
+                                {preferences.themeId === "custom" ? t("settings.appearance.customThemeApplied") : t("settings.appearance.custom")}
+                              </span>
+                              <span className="inline-flex rounded-full bg-background/80 px-3 py-1 text-xs font-semibold text-foreground">
+                                {t(`settings.appearance.${customThemeDraft.mode}`)}
+                              </span>
+                              {customThemeFields.map((item) => (
+                                <span
+                                  key={item.key}
+                                  className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-2.5 py-1"
+                                >
+                                  <span
+                                    className="size-2.5 rounded-full border border-white/50 shadow-sm"
+                                    style={{ backgroundColor: customThemeDraft[item.key] }}
+                                  />
+                                  <span className="font-numeric text-[11px] font-semibold text-muted-foreground">{customThemeDraft[item.key]}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {!isEditingCustomTheme ? (
+                            <>
+                              <Button type="button" size="sm" variant="outline" onClick={() => setIsEditingCustomTheme(true)}>
+                                {t("common.edit")}
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => setTheme("custom")}
+                                disabled={preferences.themeId === "custom"}
+                              >
+                                {preferences.themeId === "custom" ? t("settings.appearance.customThemeApplied") : t("common.apply")}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button type="button" size="sm" onClick={handleSaveCustomTheme} disabled={!customThemeDirty}>
+                                {t("common.save")}
+                              </Button>
+                              <Button type="button" size="sm" variant="ghost" onClick={handleCancelCustomTheme}>
+                                {t("common.cancel")}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {isEditingCustomTheme ? (
+                        <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+                          <div className="space-y-4">
+                            <div className="mesh-preview rounded-[calc(var(--radius)+0.1rem)] p-4" style={{ backgroundImage: customThemePreview }}>
+                              <div
+                                className="rounded-[calc(var(--radius)+0.25rem)] border p-4 shadow-soft"
+                                style={{
+                                  backgroundColor: customThemeDraft.surface,
+                                  borderColor: `${customThemeDraft.primary}26`
+                                }}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: customPreviewMuted }}>
+                                      {t("settings.appearance.customThemeDraft")}
+                                    </p>
+                                    <p className="mt-2 text-lg font-black" style={{ color: customPreviewForeground }}>
+                                      {t("common.preview")}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className="rounded-full px-3 py-1 text-xs font-semibold shadow-sm"
+                                    style={{
+                                      backgroundColor: customThemeDraft.primary,
+                                      color: customThemeDraft.mode === "dark" ? "#0f172a" : "#ffffff"
+                                    }}
+                                  >
+                                    {preferences.themeId === "custom" ? t("settings.appearance.customThemeApplied") : t("settings.appearance.custom")}
+                                  </span>
+                                </div>
+
+                                <div
+                                  className="mt-5 rounded-2xl border p-4"
+                                  style={{ borderColor: `${customThemeDraft.accent}26`, backgroundColor: `${customThemeDraft.background}cc` }}
+                                >
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: customPreviewMuted }}>
+                                        {t("settings.appearance.themeSection")}
+                                      </p>
+                                      <p className="mt-2 font-numeric text-2xl font-black" style={{ color: customPreviewForeground }}>
+                                        {formatCurrency(28450.75)}
+                                      </p>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                      {[customThemeDraft.primary, customThemeDraft.accent, customThemeDraft.surface].map((color) => (
+                                        <span
+                                          key={color}
+                                          className="size-3 rounded-full border border-white/40 shadow-sm"
+                                          style={{ backgroundColor: color }}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                                {t("settings.appearance.customThemeMode")}
+                              </p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {(["light", "dark"] as const).map((modeOption) => (
+                                  <button
+                                    key={modeOption}
+                                    type="button"
+                                    onClick={() =>
+                                      setCustomThemeDraft((current) => ({
+                                        ...current,
+                                        mode: modeOption
+                                      }))
+                                    }
+                                    className="choice-chip justify-center"
+                                    data-selected={customThemeDraft.mode === modeOption}
+                                  >
+                                    {t(`settings.appearance.${modeOption}`)}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            {customThemeFields.map((item) => (
+                              <label key={item.key} className="surface-outline flex items-center justify-between gap-3 rounded-2xl px-4 py-3">
+                                <div className="min-w-0">
+                                  <span className="text-sm font-semibold text-foreground">{t(item.labelKey)}</span>
+                                  <p className="mt-1 font-numeric text-xs text-muted-foreground">{customThemeDraft[item.key]}</p>
+                                </div>
+                                <input
+                                  type="color"
+                                  value={customThemeDraft[item.key]}
+                                  onChange={(event) =>
+                                    setCustomThemeDraft((current) => ({
+                                      ...current,
+                                      [item.key]: event.target.value
+                                    }))
+                                  }
+                                  className="h-12 w-16 cursor-pointer rounded-2xl bg-transparent"
+                                />
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </CardContent>
                 </Card>
@@ -291,20 +485,59 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("settings.appearance.languageSection")}</CardTitle>
-                    <CardDescription>{t("layout.changeLanguage")}</CardDescription>
+                    <CardDescription>{t("settings.appearance.languageHint")}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5">
                     <div className="surface-outline rounded-2xl p-4">
                       <LanguagePill />
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-semibold text-foreground">{t("settings.appearance.numerals")}</p>
-                          <p className="text-sm text-muted-foreground">{t("common.language")}</p>
+                      <div className="mt-4 rounded-2xl border border-border/70 bg-card/65 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-foreground">{t("settings.appearance.numerals")}</p>
+                            <p className="text-sm text-muted-foreground">{t("settings.appearance.numeralsHint")}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="inline-flex rounded-full bg-primary/12 px-3 py-1 text-xs font-semibold text-primary">
+                              {preferences.useArabicNumerals ? t("settings.appearance.indicDigits") : t("settings.appearance.latinDigits")}
+                            </span>
+                            <Switch
+                              checked={preferences.useArabicNumerals}
+                              onCheckedChange={(checked) => setUseArabicNumerals(checked)}
+                            />
+                          </div>
                         </div>
-                        <Switch
-                          checked={preferences.useArabicNumerals}
-                          onCheckedChange={setUseArabicNumerals}
-                        />
+
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-2xl border border-border/70 bg-background/55 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                              {t("settings.appearance.previewLabel")}
+                            </p>
+                            <p className="mt-2 font-numeric text-2xl font-black text-foreground">
+                              {formatNumber(123456789)}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">{formatDateOnly(new Date())}</p>
+                          </div>
+
+                          <div className="rounded-2xl border border-border/70 bg-background/55 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                              {t("common.language")}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <span className={cn(
+                                "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                preferences.useArabicNumerals ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground"
+                              )}>
+                                {t("settings.appearance.indicDigits")}
+                              </span>
+                              <span className={cn(
+                                "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                !preferences.useArabicNumerals ? "bg-primary/12 text-primary" : "bg-muted text-muted-foreground"
+                              )}>
+                                {t("settings.appearance.latinDigits")}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -576,17 +809,17 @@ export default function SettingsPage() {
                         <div className="mt-3 space-y-1 text-xs text-foreground">
                           <div className="flex items-center justify-between">
                             <span>{t("settings.receipt.previewItem")}</span>
-                            <span>{values.currency} 120</span>
+                            <span className="font-numeric">{formatCurrency(120, values.currency)}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>{t("settings.receipt.previewTax")}</span>
-                            <span>{values.taxRate}%</span>
+                            <span className="font-numeric">{formatNumber(values.taxRate)}%</span>
                           </div>
                         </div>
                         <div className="my-3 h-px bg-border" />
                         <div className="flex items-center justify-between text-sm font-bold text-foreground">
                           <span>{t("settings.receipt.previewTotal")}</span>
-                          <span>{values.currency} 136.8</span>
+                          <span className="font-numeric">{formatCurrency(136.8, values.currency)}</span>
                         </div>
                         {values.receiptShowThankYou ? <p className="mt-4 text-center text-xs text-muted-foreground">{t("settings.receipt.previewThanks")}</p> : null}
                         {values.receiptFooterMessage ? <p className="mt-2 text-center text-xs text-muted-foreground">{values.receiptFooterMessage}</p> : null}

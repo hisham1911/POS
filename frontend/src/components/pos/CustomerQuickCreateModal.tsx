@@ -1,9 +1,13 @@
+import { FileText, Mail, MapPin, Phone, User } from "lucide-react";
 import { useState } from "react";
-import { X, User, Phone, Mail, MapPin, FileText } from "lucide-react";
-import { useCreateCustomerMutation } from "@/api/customersApi";
-import { Customer } from "@/types/customer.types";
 import toast from "react-hot-toast";
-import { Portal } from "@/components/common/Portal";
+
+import { useCreateCustomerMutation } from "@/api/customersApi";
+import { Button } from "@/components/common/Button";
+import { Modal } from "@/components/common/Modal";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { Customer } from "@/types/customer.types";
 
 interface CustomerQuickCreateModalProps {
   initialPhone: string;
@@ -26,8 +30,8 @@ export const CustomerQuickCreateModal = ({
 
   const [createCustomer, { isLoading }] = useCreateCustomerMutation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
     if (!formData.phone || formData.phone.length < 8) {
       toast.error("رقم الهاتف غير صحيح");
@@ -52,163 +56,126 @@ export const CustomerQuickCreateModal = ({
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
-    <Portal>
-      <div 
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
-        onClick={onClose}
-      >
-        <div 
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                <User className="w-5 h-5 text-primary-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-800">إضافة عميل جديد</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="إضافة عميل جديد"
+      description="أدخل الحد الأدنى من البيانات لربط العميل بالفاتورة بسرعة، مع بقاء النموذج واضحًا في كل الثيمات."
+      size="md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="feedback-panel flex items-start gap-3" data-tone="info">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+            <User className="h-5 w-5" />
           </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
-            {/* Phone (Required) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                رقم الهاتف <span className="text-danger-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  dir="ltr"
-                  placeholder="01xxxxxxxxx"
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
-            </div>
-
-            {/* Name (Optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                الاسم
-              </label>
-              <div className="relative">
-                <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="اسم العميل (اختياري)"
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
-            </div>
-
-            {/* Email (Optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                البريد الإلكتروني
-              </label>
-              <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  dir="ltr"
-                  placeholder="email@example.com"
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
-            </div>
-
-            {/* Address (Optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                العنوان
-              </label>
-              <div className="relative">
-                <MapPin className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="عنوان العميل (اختياري)"
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
-            </div>
-
-            {/* Notes (Optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ملاحظات
-              </label>
-              <div className="relative">
-                <FileText className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="ملاحظات إضافية (اختياري)"
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
-                />
-              </div>
-            </div>
-          </form>
-
-          {/* Actions */}
-          <div className="flex gap-3 p-6 border-t border-gray-200 flex-shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              إلغاء
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  جاري الحفظ...
-                </>
-              ) : (
-                "حفظ"
-              )}
-            </button>
+          <div>
+            <p className="font-semibold text-foreground">إنشاء عميل سريع</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              الحقول الاختيارية تساعد لاحقًا في الفواتير والبحث وسجل العملاء، لكن الهاتف يكفي للبدء.
+            </p>
           </div>
         </div>
-      </div>
-    </Portal>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <Label htmlFor="customer-phone">رقم الهاتف *</Label>
+            <div className="relative">
+              <Phone className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="customer-phone"
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                dir="ltr"
+                placeholder="01xxxxxxxxx"
+                className="font-numeric pe-10"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="customer-name">الاسم</Label>
+            <div className="relative">
+              <User className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="customer-name"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="اسم العميل"
+                className="pe-10"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="customer-email">البريد الإلكتروني</Label>
+            <div className="relative">
+              <Mail className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="customer-email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                dir="ltr"
+                placeholder="email@example.com"
+                className="pe-10"
+              />
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <Label htmlFor="customer-address">العنوان</Label>
+            <div className="relative">
+              <MapPin className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="customer-address"
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="عنوان العميل"
+                className="pe-10"
+              />
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <Label htmlFor="customer-notes">ملاحظات</Label>
+            <div className="relative">
+              <FileText className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <textarea
+                id="customer-notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                rows={4}
+                placeholder="أي ملاحظات إضافية"
+                className="interactive-ring min-h-[7rem] w-full rounded-2xl border border-border bg-card/82 pe-10 ps-4 pt-3 text-sm text-foreground shadow-sm transition placeholder:text-muted-foreground/80 focus:border-ring focus:bg-card"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+            إلغاء
+          </Button>
+          <Button type="submit" isLoading={isLoading}>
+            حفظ العميل
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };

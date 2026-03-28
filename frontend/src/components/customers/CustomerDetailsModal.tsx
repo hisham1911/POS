@@ -128,27 +128,27 @@ export const CustomerDetailsModal = ({
       {/* Modal */}
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div
-          className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+          className="glass-panel w-full max-w-3xl max-h-[85vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center justify-between border-b border-border p-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-primary-100 rounded-full flex items-center justify-center">
-                <User className="w-7 h-7 text-primary-600" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/12 text-primary">
+                <User className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-foreground">
                   {customer.name || "عميل بدون اسم"}
                 </h2>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Phone className="w-4 h-4" />
                   {customer.phone}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
+              <div className="flex items-center gap-1 rounded-full border border-warning/25 bg-warning/12 px-3 py-1 text-warning">
                 <Star className="w-4 h-4 fill-yellow-500" />
                 <span className="font-semibold">{customer.loyaltyPoints}</span>
                 <span className="text-xs">نقطة</span>
@@ -158,10 +158,10 @@ export const CustomerDetailsModal = ({
                   setLoyaltyMode("add");
                   setShowLoyaltyModal(true);
                 }}
-                className="p-2 hover:bg-green-50 rounded-lg transition-colors group"
+                className="group rounded-lg p-2 transition-colors hover:bg-success/10"
                 title="إضافة نقاط"
               >
-                <Plus className="w-4 h-4 text-green-600 group-hover:text-green-700" />
+                <Plus className="w-4 h-4 text-success group-hover:text-success" />
               </button>
               <button
                 onClick={() => {
@@ -169,62 +169,62 @@ export const CustomerDetailsModal = ({
                   setShowLoyaltyModal(true);
                 }}
                 disabled={customer.loyaltyPoints === 0}
-                className="p-2 hover:bg-orange-50 rounded-lg transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group rounded-lg p-2 transition-colors hover:bg-warning/10 disabled:cursor-not-allowed disabled:opacity-50"
                 title="استبدال نقاط"
               >
-                <Minus className="w-4 h-4 text-orange-600 group-hover:text-orange-700" />
+                <Minus className="w-4 h-4 text-warning group-hover:text-warning" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="rounded-lg p-2 transition-colors hover:bg-muted"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 border-b">
+          <div className="grid grid-cols-4 gap-4 border-b border-border bg-muted/35 p-4">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mb-1">
+              <div className="mb-1 flex items-center justify-center gap-1 text-sm text-muted-foreground">
                 <ShoppingBag className="w-4 h-4" />
                 إجمالي الطلبات
               </div>
-              <p className="font-bold text-lg text-gray-800">
+              <p className="text-lg font-bold text-foreground">
                 {customer.totalOrders}
               </p>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mb-1">
+              <div className="mb-1 flex items-center justify-center gap-1 text-sm text-muted-foreground">
                 <Wallet className="w-4 h-4" />
                 إجمالي المشتريات
               </div>
-              <p className="font-bold text-lg text-green-600">
+              <p className="text-lg font-bold text-success">
                 {formatCurrency(customer.totalSpent)}
               </p>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-orange-500 text-sm mb-1">
+              <div className="mb-1 flex items-center justify-center gap-1 text-sm text-warning">
                 <Wallet className="w-4 h-4" />
                 المبلغ المستحق
               </div>
-              <p className="font-bold text-lg text-orange-600">
+              <p className="text-lg font-bold text-warning">
                 {customer.totalDue > 0
                   ? formatCurrency(customer.totalDue)
                   : "—"}
               </p>
               {customer.creditLimit > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-muted-foreground">
                   من {formatCurrency(customer.creditLimit)}
                 </p>
               )}
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mb-1">
+              <div className="mb-1 flex items-center justify-center gap-1 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 آخر طلب
               </div>
-              <p className="font-semibold text-gray-800 text-sm">
+              <p className="text-sm font-semibold text-foreground">
                 {customer.lastOrderAt
                   ? formatDateTime(customer.lastOrderAt).split(",")[0]
                   : "—"}
@@ -278,8 +278,8 @@ export const CustomerDetailsModal = ({
                     <Loading />
                   </div>
                 ) : orders.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <div className="py-12 text-center text-muted-foreground">
+                    <ShoppingBag className="mx-auto mb-3 w-12 h-12 text-muted-foreground/35" />
                     <p>لا توجد طلبات لهذا العميل</p>
                   </div>
                 ) : (
@@ -287,7 +287,7 @@ export const CustomerDetailsModal = ({
                     {/* Orders Table */}
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-gray-50 text-gray-600">
+                        <thead className="bg-muted/45 text-muted-foreground">
                           <tr>
                             <th className="text-right py-3 px-3 font-medium">
                               رقم الطلب
@@ -306,21 +306,21 @@ export const CustomerDetailsModal = ({
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-border/60">
                           {orders.map((order) => (
                             <tr
                               key={order.id}
                               className={clsx(
-                                "hover:bg-gray-50 transition-colors",
-                                order.orderType === "Return" && "bg-orange-50",
+                                "transition-colors hover:bg-muted/35",
+                                order.orderType === "Return" && "bg-warning/10",
                               )}
                             >
                               <td className="py-3 px-3">
-                                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                <span className="rounded bg-muted px-2 py-1 font-mono text-xs text-foreground">
                                   {order.orderNumber}
                                 </span>
                               </td>
-                              <td className="py-3 px-3 text-gray-600">
+                              <td className="py-3 px-3 text-muted-foreground">
                                 {formatDateTime(order.createdAt)}
                               </td>
                               <td className="py-3 px-3">
@@ -333,8 +333,8 @@ export const CustomerDetailsModal = ({
                                 className={clsx(
                                   "py-3 px-3 font-semibold",
                                   order.total < 0
-                                    ? "text-orange-600"
-                                    : "text-gray-800",
+                                    ? "text-warning"
+                                    : "text-foreground",
                                 )}
                               >
                                 {formatCurrency(order.total)}
@@ -359,7 +359,7 @@ export const CustomerDetailsModal = ({
                           <ChevronRight className="w-4 h-4 ml-1" />
                           السابق
                         </Button>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           صفحة {ordersPage} من {ordersTotalPages}
                         </span>
                         <Button
@@ -390,8 +390,8 @@ export const CustomerDetailsModal = ({
                     <Loading />
                   </div>
                 ) : !debtHistoryData?.data || debtHistoryData.data.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <Receipt className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <div className="py-12 text-center text-muted-foreground">
+                    <Receipt className="mx-auto mb-3 w-12 h-12 text-muted-foreground/35" />
                     <p>لا توجد دفعات لهذا العميل</p>
                   </div>
                 ) : (
@@ -399,18 +399,18 @@ export const CustomerDetailsModal = ({
                     {debtHistoryData.data.map((payment) => (
                       <div
                         key={payment.id}
-                        className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                        className="rounded-xl border border-border bg-card/75 p-4 transition-shadow hover:shadow-md"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                              <DollarSign className="w-5 h-5 text-green-600" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/12 text-success">
+                              <DollarSign className="w-5 h-5" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-800">
+                              <p className="font-semibold text-foreground">
                                 {formatCurrency(payment.amount)}
                               </p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground">
                                 {formatDateTime(payment.createdAt)}
                               </p>
                             </div>
@@ -425,16 +425,16 @@ export const CustomerDetailsModal = ({
                               }
                             }}
                             disabled={isPrinting}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                            className="rounded-lg p-2 transition-colors hover:bg-muted disabled:opacity-50"
                             title="طباعة إيصال"
                           >
-                            <Printer className="w-4 h-4 text-gray-600" />
+                            <Printer className="w-4 h-4 text-muted-foreground" />
                           </button>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
-                            <p className="text-gray-500">طريقة الدفع</p>
+                            <p className="text-muted-foreground">طريقة الدفع</p>
                             <p className="font-medium">
                               {payment.paymentMethod === 'Cash' && '💵 نقدي'}
                               {payment.paymentMethod === 'Card' && '💳 بطاقة'}
@@ -443,35 +443,35 @@ export const CustomerDetailsModal = ({
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-500">المسجل بواسطة</p>
+                            <p className="text-muted-foreground">المسجل بواسطة</p>
                             <p className="font-medium">{payment.recordedByUserName || 'غير معروف'}</p>
                           </div>
                         </div>
 
                         {payment.referenceNumber && (
                           <div className="mt-3 pt-3 border-t">
-                            <p className="text-xs text-gray-500">رقم المرجع</p>
+                            <p className="text-xs text-muted-foreground">رقم المرجع</p>
                             <p className="text-sm font-mono">{payment.referenceNumber}</p>
                           </div>
                         )}
 
                         {payment.notes && (
                           <div className="mt-3 pt-3 border-t">
-                            <p className="text-xs text-gray-500">ملاحظات</p>
-                            <p className="text-sm text-gray-700">{payment.notes}</p>
+                            <p className="text-xs text-muted-foreground">ملاحظات</p>
+                            <p className="text-sm text-foreground/88">{payment.notes}</p>
                           </div>
                         )}
 
                         <div className="mt-3 pt-3 border-t flex items-center justify-between text-xs">
                           <div>
-                            <span className="text-gray-500">الرصيد قبل: </span>
-                            <span className="font-semibold text-orange-600">
+                            <span className="text-muted-foreground">الرصيد قبل: </span>
+                            <span className="font-semibold text-warning">
                               {formatCurrency(payment.balanceBefore)}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">الرصيد بعد: </span>
-                            <span className="font-semibold text-green-600">
+                            <span className="text-muted-foreground">الرصيد بعد: </span>
+                            <span className="font-semibold text-success">
                               {formatCurrency(payment.balanceAfter)}
                             </span>
                           </div>
@@ -486,15 +486,15 @@ export const CustomerDetailsModal = ({
             {activeTab === "details" && (
               <div className="space-y-4">
                 {/* Contact Info */}
-                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  <h3 className="font-semibold text-gray-800 mb-3">
+                <div className="rounded-xl bg-muted/35 p-4 space-y-3">
+                  <h3 className="mb-3 font-semibold text-foreground">
                     معلومات الاتصال
                   </h3>
 
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-500">رقم الهاتف</p>
+                      <p className="text-sm text-muted-foreground">رقم الهاتف</p>
                       <p className="font-medium">{customer.phone}</p>
                     </div>
                   </div>
@@ -503,7 +503,7 @@ export const CustomerDetailsModal = ({
                     <div className="flex items-center gap-3">
                       <Mail className="w-5 h-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           البريد الإلكتروني
                         </p>
                         <p className="font-medium">{customer.email}</p>
@@ -515,7 +515,7 @@ export const CustomerDetailsModal = ({
                     <div className="flex items-center gap-3">
                       <MapPin className="w-5 h-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-500">العنوان</p>
+                        <p className="text-sm text-muted-foreground">العنوان</p>
                         <p className="font-medium">{customer.address}</p>
                       </div>
                     </div>
@@ -524,32 +524,32 @@ export const CustomerDetailsModal = ({
 
                 {/* Notes */}
                 {customer.notes && (
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">
+                  <div className="rounded-xl bg-muted/35 p-4">
+                    <h3 className="mb-2 font-semibold text-foreground">
                       ملاحظات
                     </h3>
-                    <p className="text-gray-600">{customer.notes}</p>
+                    <p className="text-muted-foreground">{customer.notes}</p>
                   </div>
                 )}
 
                 {/* Account Info */}
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-800 mb-3">
+                <div className="rounded-xl bg-muted/35 p-4">
+                  <h3 className="mb-3 font-semibold text-foreground">
                     معلومات الحساب
                   </h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-500">تاريخ التسجيل</p>
+                      <p className="text-muted-foreground">تاريخ التسجيل</p>
                       <p className="font-medium">
                         {formatDateTime(customer.createdAt)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">الحالة</p>
+                      <p className="text-muted-foreground">الحالة</p>
                       <p
                         className={clsx(
                           "font-medium",
-                          customer.isActive ? "text-green-600" : "text-red-600",
+                          customer.isActive ? "text-success" : "text-danger",
                         )}
                       >
                         {customer.isActive ? "نشط" : "غير نشط"}
@@ -560,28 +560,28 @@ export const CustomerDetailsModal = ({
 
                 {/* Credit Info */}
                 {(customer.totalDue > 0 || customer.creditLimit > 0) && (
-                  <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-                    <h3 className="font-semibold text-gray-800 mb-3">
+                  <div className="feedback-panel rounded-xl p-4" data-tone={customer.totalDue > customer.creditLimit && customer.creditLimit > 0 ? "danger" : "warning"}>
+                    <h3 className="mb-3 font-semibold text-foreground">
                       معلومات الائتمان
                     </h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600">المبلغ المستحق:</span>
-                        <span className="font-bold text-orange-600 text-lg">
+                        <span className="text-muted-foreground">المبلغ المستحق:</span>
+                        <span className="text-lg font-bold text-warning">
                           {formatCurrency(customer.totalDue)}
                         </span>
                       </div>
                       {customer.creditLimit > 0 && (
                         <>
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">حد الائتمان:</span>
-                            <span className="font-semibold text-gray-800">
+                            <span className="text-muted-foreground">حد الائتمان:</span>
+                            <span className="font-semibold text-foreground">
                               {formatCurrency(customer.creditLimit)}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">المتاح:</span>
-                            <span className="font-semibold text-green-600">
+                            <span className="text-muted-foreground">المتاح:</span>
+                            <span className="font-semibold text-success">
                               {formatCurrency(
                                 customer.creditLimit - customer.totalDue,
                               )}
@@ -589,7 +589,7 @@ export const CustomerDetailsModal = ({
                           </div>
                           {/* Progress Bar */}
                           <div className="mt-2">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                            <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                               <span>استخدام الائتمان</span>
                               <span>
                                 {(
@@ -599,16 +599,16 @@ export const CustomerDetailsModal = ({
                                 %
                               </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="progress-shell h-2 w-full">
                               <div
                                 className={clsx(
-                                  "h-2 rounded-full transition-all",
+                                  "progress-fill h-2",
                                   customer.totalDue / customer.creditLimit > 0.8
-                                    ? "bg-red-500"
+                                    ? "!bg-danger"
                                     : customer.totalDue / customer.creditLimit >
                                         0.5
-                                      ? "bg-orange-500"
-                                      : "bg-green-500",
+                                      ? "!bg-warning"
+                                      : "!bg-success",
                                 )}
                                 style={{
                                   width: `${Math.min(
@@ -626,12 +626,12 @@ export const CustomerDetailsModal = ({
                     
                     {/* Pay Debt Button */}
                     {customer.totalDue > 0 && (
-                      <div className="mt-4 pt-4 border-t border-orange-200">
+                      <div className="mt-4 border-t border-warning/20 pt-4">
                         <Button
                           variant="primary"
                           size="sm"
                           onClick={() => setShowDebtPaymentModal(true)}
-                          className="w-full bg-orange-600 hover:bg-orange-700"
+                          className="w-full"
                         >
                           <DollarSign className="w-4 h-4 ml-2" />
                           تسديد دين

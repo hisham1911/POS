@@ -5,9 +5,8 @@ import {
   ArrowCircleUp,
   CurrencyDollar as DollarSign,
   RefreshCcw01 as RefreshCw,
-  TrendingDown,
-  TrendingUp,
 } from "@untitledui/icons";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 import {
   useDepositMutation,

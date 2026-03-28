@@ -21,6 +21,7 @@ import {
   Tag01,
   Trash01,
   User01,
+  Users01,
   XClose,
 } from "@untitledui/icons";
 import { useLazyGetCustomerByPhoneQuery } from "@/api/customersApi";
@@ -42,7 +43,7 @@ import { useShift } from "@/hooks/useShift";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/types/customer.types";
 import type { PaymentMethod } from "@/types/order.types";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, formatNumber } from "@/utils/formatters";
 
 type WorkspaceTab = "cart" | "customer" | "payment" | "summary";
 
@@ -347,7 +348,7 @@ export const POSWorkspacePage = () => {
   return (
     <div className="flex h-full flex-col bg-background">
       {shiftWarning && shiftWarning.shouldWarn && (
-        <div className="border-b border-warning/20 bg-warning/5 px-6 py-3 backdrop-blur-sm">
+        <div className="feedback-panel rounded-none border-x-0 border-t-0 px-6 py-3" data-tone="warning">
           <div className="flex items-center gap-3">
             <AlertCircle className="size-5 shrink-0 text-warning" />
             <div className="flex-1">
@@ -355,8 +356,8 @@ export const POSWorkspacePage = () => {
                 {shiftWarning.message}
               </p>
               {shiftWarning.hoursOpen && (
-                <p className="text-xs font-medium text-warning/80">
-                  الوردية مفتوحة منذ {shiftWarning.hoursOpen.toFixed(1)} ساعة
+                <p className="font-numeric text-xs font-medium text-warning/80">
+                  الوردية مفتوحة منذ {formatNumber(shiftWarning.hoursOpen.toFixed(1))} ساعة
                 </p>
               )}
             </div>
@@ -435,7 +436,7 @@ export const POSWorkspacePage = () => {
         </div>
 
         {/* Right: Transaction Workspace (40%) */}
-        <div className="flex min-h-[24rem] max-h-[70vh] w-full flex-col border-t border-border bg-card lg:max-h-none lg:w-[40%] lg:min-w-[24rem] lg:border-l lg:border-t-0 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] z-10">
+        <div className="z-10 flex min-h-[24rem] max-h-[70vh] w-full flex-col border-t border-border bg-card/92 backdrop-blur-xl lg:max-h-none lg:w-[40%] lg:min-w-[24rem] lg:border-l lg:border-t-0 shadow-card">
           {/* Tabs */}
           <div className="grid grid-cols-4 border-b border-border bg-muted/20">
             <button
@@ -450,8 +451,8 @@ export const POSWorkspacePage = () => {
               <ShoppingCart01 className="size-5" />
               <span className="truncate">السلة</span>
               {itemsCount > 0 && (
-                <span className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
-                  {itemsCount}
+                <span className="font-numeric absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
+                  {formatNumber(itemsCount)}
                 </span>
               )}
             </button>
@@ -522,7 +523,7 @@ export const POSWorkspacePage = () => {
                   <>
                     <div className="mb-4 flex items-center justify-between">
                       <h3 className="text-lg font-bold text-foreground">
-                        العناصر ({itemsCount})
+                        العناصر (<span className="font-numeric">{formatNumber(itemsCount)}</span>)
                       </h3>
                       <button
                         onClick={clearCart}
@@ -575,20 +576,20 @@ export const POSWorkspacePage = () => {
                               value={discountInputValue === "0" ? "" : discountInputValue}
                               onChange={(e) => setDiscountInputValue(e.target.value)}
                               placeholder={discountInputType === "Percentage" ? "0-100" : "0.00"}
-                              className="w-full rounded-xl border-2 border-border/50 bg-background px-4 py-3 font-mono text-lg focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+                              className="font-numeric w-full rounded-xl border-2 border-border/50 bg-background px-4 py-3 text-lg focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
                               autoFocus
                             />
 
                             <div className="flex gap-2">
                               <Button
-                                variant="default"
+                                variant="primary"
                                 className="flex-1"
                                 onClick={() => {
                                   const value = parseFloat(discountInputValue);
                                   if (!isNaN(value) && value > 0) {
                                     if (discountInputType === "Percentage" && value <= 100) {
                                       applyDiscount("Percentage", value);
-                                      toast.success(`تم تطبيق خصم ${value}%`);
+                                      toast.success(`تم تطبيق خصم ${formatNumber(value)}%`);
                                       setShowDiscountInput(false);
                                       setDiscountInputValue("");
                                     } else if (discountInputType === "Fixed") {
@@ -631,7 +632,7 @@ export const POSWorkspacePage = () => {
                             <div className="mb-2 flex items-center justify-between">
                               <span className="text-sm font-bold text-success flex items-center gap-1.5">
                                 <Tag01 className="size-4" />
-                                {discountType === "Percentage" ? `خصم ${discountValue}%` : "خصم ثابت"}
+                                {discountType === "Percentage" ? `خصم ${formatNumber(discountValue ?? 0)}%` : "خصم ثابت"}
                               </span>
                               <button
                                 onClick={() => {
@@ -643,7 +644,7 @@ export const POSWorkspacePage = () => {
                                 <XClose className="size-4" />
                               </button>
                             </div>
-                            <div className="font-mono text-2xl font-bold text-success">
+                            <div className="font-numeric text-2xl font-bold text-success">
                               - {formatCurrency(discountAmount)}
                             </div>
                           </div>
@@ -673,7 +674,7 @@ export const POSWorkspacePage = () => {
                           <p className="text-xl font-bold text-foreground">
                             {selectedCustomer.name || "بدون اسم"}
                           </p>
-                          <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground font-mono">
+                          <p className="mt-1 flex items-center gap-1.5 font-numeric text-sm font-medium text-muted-foreground">
                             <Phone className="size-3.5" />
                             <span dir="ltr">{selectedCustomer.phone}</span>
                           </p>
@@ -690,33 +691,33 @@ export const POSWorkspacePage = () => {
 
                     <div className="space-y-3">
                       {(selectedCustomer.loyaltyPoints ?? 0) > 0 && (
-                        <div className="flex items-center justify-between rounded-xl bg-background border border-border p-3.5 shadow-sm">
+                        <div className="surface-outline flex items-center justify-between rounded-xl p-3.5">
                           <span className="flex items-center gap-2 text-sm font-bold text-foreground">
                             <Star01 className="size-4 text-warning fill-warning" />
                             نقاط الولاء
                           </span>
-                          <span className="font-mono text-lg font-bold text-warning">
-                            {selectedCustomer.loyaltyPoints}
+                          <span className="font-numeric text-lg font-bold text-warning">
+                            {formatNumber(selectedCustomer.loyaltyPoints ?? 0)}
                           </span>
                         </div>
                       )}
 
                       {selectedCustomer.totalDue > 0 && (
-                        <div className="flex items-center justify-between rounded-xl bg-danger/10 border border-danger/20 p-3.5 shadow-sm">
+                        <div className="feedback-panel flex items-center justify-between rounded-xl p-3.5" data-tone="danger">
                           <span className="flex items-center gap-2 text-sm font-bold text-danger">
                             <AlertCircle className="size-4" />
                             رصيد مستحق
                           </span>
-                          <span className="font-mono text-lg font-bold text-danger">
+                          <span className="font-numeric text-lg font-bold text-danger">
                             {formatCurrency(selectedCustomer.totalDue)}
                           </span>
                         </div>
                       )}
 
                       {selectedCustomer.creditLimit > 0 && (
-                        <div className="flex items-center justify-between rounded-xl bg-background border border-border p-3.5 shadow-sm">
+                        <div className="surface-outline flex items-center justify-between rounded-xl p-3.5">
                           <span className="text-sm font-bold text-muted-foreground">حد الائتمان</span>
-                          <span className="font-mono font-bold text-foreground">
+                          <span className="font-numeric font-bold text-foreground">
                             {formatCurrency(selectedCustomer.creditLimit)}
                           </span>
                         </div>
@@ -734,7 +735,7 @@ export const POSWorkspacePage = () => {
                           setCustomerPhone(e.target.value.replace(/[^0-9]/g, ""))
                         }
                         placeholder="ابحث برقم الهاتف عن عميل..."
-                        className="w-full rounded-2xl border-2 border-border/50 bg-background px-5 py-4 pl-12 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 font-mono text-lg"
+                        className="font-numeric w-full rounded-2xl border-2 border-border/50 bg-background px-5 py-4 pl-12 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 text-lg"
                         dir="ltr"
                       />
                       <SearchLg className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
@@ -761,7 +762,7 @@ export const POSWorkspacePage = () => {
                               <p className="font-bold text-foreground text-lg">
                                 {searchResult.data.name || "بدون اسم"}
                               </p>
-                              <p className="font-mono text-sm text-muted-foreground">
+                              <p className="font-numeric text-sm text-muted-foreground" dir="ltr">
                                 {searchResult.data.phone}
                               </p>
                             </div>
@@ -811,7 +812,7 @@ export const POSWorkspacePage = () => {
                     <div className="absolute inset-0 bg-primary/5 pattern-dots pattern-primary/10 pattern-bg-transparent pattern-size-4" />
                     <div className="relative z-10">
                       <p className="mb-2 text-sm font-bold text-primary">المبلغ المطلوب</p>
-                      <p className="font-display text-5xl font-black text-primary drop-shadow-sm">
+                      <p className="font-numeric text-5xl font-black text-primary drop-shadow-sm">
                         {formatCurrency(total)}
                       </p>
                     </div>
@@ -855,7 +856,7 @@ export const POSWorkspacePage = () => {
                           showPaymentError ? "animate-shake border-danger" : "border-transparent"
                         )}
                       >
-                        <p className="font-mono text-4xl font-bold text-foreground">
+                        <p className="font-numeric text-4xl font-bold text-foreground">
                           {amountPaid || "0"}{" "}
                           <span className="text-xl text-muted-foreground mr-1">ج.م</span>
                         </p>
@@ -867,9 +868,9 @@ export const POSWorkspacePage = () => {
                          <button
                          key={amount}
                          onClick={() => handleQuickAmount(amount)}
-                         className="rounded-xl bg-background border border-border py-3 font-mono text-sm font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm"
+                         className="font-numeric rounded-xl border border-border bg-background py-3 text-sm font-bold shadow-sm transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground"
                        >
-                         {amount}
+                         {formatNumber(amount)}
                        </button>
                       ))}
                     </div>
@@ -885,7 +886,7 @@ export const POSWorkspacePage = () => {
                           key={key}
                           onClick={() => handleNumpadClick(key)}
                           className={cn(
-                            "flex h-14 items-center justify-center rounded-xl bg-background border border-border font-mono text-xl font-bold shadow-sm transition-all hover:bg-muted active:scale-95",
+                            "font-numeric flex h-14 items-center justify-center rounded-xl border border-border bg-background text-xl font-bold shadow-sm transition-all hover:bg-muted active:scale-95",
                             key === "0" && "col-span-2",
                             key === "C" && "text-danger bg-danger/5 border-danger/20 hover:bg-danger/10",
                             key === "←" && "text-warning bg-warning/5 border-warning/20 hover:bg-warning/10"
@@ -899,7 +900,7 @@ export const POSWorkspacePage = () => {
                     {change > 0 && (
                       <div className="rounded-2xl border border-success/30 bg-success/10 p-5 text-center shadow-inner mt-4">
                         <p className="mb-1 text-sm font-bold text-success/80">الباقي للعميل</p>
-                        <p className="font-mono text-3xl font-black text-success">
+                        <p className="font-numeric text-3xl font-black text-success">
                           {formatCurrency(change)}
                         </p>
                       </div>
@@ -917,7 +918,7 @@ export const POSWorkspacePage = () => {
                         <p className="mb-1 text-sm font-bold opacity-80">المبلغ المتبقي (الآجل)</p>
                         <p
                           className={cn(
-                            "font-mono text-3xl font-black",
+                            "font-numeric text-3xl font-black",
                             creditLimitExceeded ? "text-danger" : "text-warning"
                           )}
                         >
@@ -990,7 +991,7 @@ export const POSWorkspacePage = () => {
                 <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
                   <div className="mb-3 flex justify-between items-center text-xs font-bold text-muted-foreground">
                     <span>العناصر</span>
-                    <span className="bg-muted px-2 py-0.5 rounded-md">{itemsCount}</span>
+                    <span className="font-numeric rounded-md bg-muted px-2 py-0.5">{formatNumber(itemsCount)}</span>
                   </div>
                   <div className="max-h-56 space-y-2.5 overflow-y-auto scrollbar-thin pr-1">
                     {items.map((item) => (
@@ -999,12 +1000,12 @@ export const POSWorkspacePage = () => {
                         className="flex items-start justify-between text-sm py-1 border-b border-border/40 last:border-0 last:pb-0"
                       >
                         <div className="flex items-start gap-2.5 pr-2">
-                          <span className="font-mono font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-xs">
-                            {item.quantity}x
+                          <span className="font-numeric rounded bg-muted px-1.5 py-0.5 text-xs font-bold text-muted-foreground">
+                            {formatNumber(item.quantity)}x
                           </span>
                           <span className="font-medium text-foreground line-clamp-2 leading-tight mt-0.5">{item.product.name}</span>
                         </div>
-                        <span className="font-mono font-bold text-foreground whitespace-nowrap pt-0.5">
+                        <span className="font-numeric whitespace-nowrap pt-0.5 font-bold text-foreground">
                           {formatCurrency(item.product.price * item.quantity)}
                         </span>
                       </div>
@@ -1015,7 +1016,7 @@ export const POSWorkspacePage = () => {
                 <div className="space-y-3 rounded-2xl border border-primary/10 bg-primary/5 p-5 shadow-sm">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium text-muted-foreground">المجموع الفرعي</span>
-                    <span className="font-mono font-bold text-foreground">
+                    <span className="font-numeric font-bold text-foreground">
                       {formatCurrency(subtotal)}
                     </span>
                   </div>
@@ -1027,9 +1028,9 @@ export const POSWorkspacePage = () => {
                         الخصم
                         {discountType === "Percentage" &&
                           discountValue &&
-                          ` (${discountValue}%)`}
+                          ` (${formatNumber(discountValue)}%)`}
                       </span>
-                      <span className="font-mono font-bold text-success">
+                      <span className="font-numeric font-bold text-success">
                         - {formatCurrency(discountAmount)}
                       </span>
                     </div>
@@ -1037,8 +1038,8 @@ export const POSWorkspacePage = () => {
 
                   {isTaxEnabled && (
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium text-muted-foreground">الضريبة ({taxRate}%)</span>
-                      <span className="font-mono font-bold text-foreground">
+                      <span className="font-medium text-muted-foreground">الضريبة ({formatNumber(taxRate)}%)</span>
+                      <span className="font-numeric font-bold text-foreground">
                         {formatCurrency(taxAmount)}
                       </span>
                     </div>
@@ -1046,7 +1047,7 @@ export const POSWorkspacePage = () => {
 
                   <div className="mt-2 flex items-center justify-between border-t border-border/50 pt-3">
                     <span className="text-lg font-black text-foreground">الإجمالي</span>
-                    <span className="font-display text-3xl font-black text-primary">
+                    <span className="font-numeric text-3xl font-black text-primary">
                       {formatCurrency(total)}
                     </span>
                   </div>
@@ -1076,15 +1077,15 @@ export const POSWorkspacePage = () => {
             <div className="mb-4 flex items-end justify-between px-1">
                <div>
                   <span className="text-sm font-bold text-muted-foreground block mb-0.5">الإجمالي النهائي</span>
-                  <span className="font-display text-4xl font-black text-foreground drop-shadow-sm">
+                  <span className="font-numeric text-4xl font-black text-foreground drop-shadow-sm">
                     {formatCurrency(total)}
                   </span>
                </div>
                {activeTab === "payment" && selectedPaymentMethod === "Cash" && change > 0 && (
                  <div className="text-left">
                    <span className="text-xs font-bold text-success/80 block mb-0.5">الباقي</span>
-                   <span className="font-mono text-xl font-black text-success">{formatCurrency(change)}</span>
-                 </div>
+                   <span className="font-numeric text-xl font-black text-success">{formatCurrency(change)}</span>
+                </div>
                )}
             </div>
 
@@ -1108,7 +1109,7 @@ export const POSWorkspacePage = () => {
                   ? "جاري الدفع..."
                   : numericAmount < total && allowPartialPayment
                   ? `إتمام البيع الآجل (مستحق: ${formatCurrency(amountDue)})`
-                  : "إتمام الدفع واصدار הפاتورة"}
+                  : "إتمام الدفع وإصدار الفاتورة"}
               </Button>
             )}
 

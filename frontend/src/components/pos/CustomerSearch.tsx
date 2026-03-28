@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, User, Plus, X, Star, Phone } from "lucide-react";
+import { Phone, Plus, Search, Star, User, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useLazyGetCustomerByPhoneQuery } from "@/api/customersApi";
-import { Customer } from "@/types/customer.types";
+import type { Customer } from "@/types/customer.types";
+import { formatNumber } from "@/utils/formatters";
+
 import { CustomerQuickCreateModal } from "./CustomerQuickCreateModal";
 
 interface CustomerSearchProps {
@@ -19,10 +22,8 @@ export const CustomerSearch = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [searchCustomer, { data: searchResult, isFetching, isError }] =
-    useLazyGetCustomerByPhoneQuery();
+  const [searchCustomer, { data: searchResult, isFetching, isError }] = useLazyGetCustomerByPhoneQuery();
 
-  // Debounced search
   const debouncedSearch = useCallback(
     (phoneNumber: string) => {
       if (debounceRef.current) {
@@ -50,15 +51,14 @@ export const CustomerSearch = ({
     };
   }, [phone, debouncedSearch]);
 
-  // Update searching state when fetch completes
   useEffect(() => {
     if (!isFetching) {
       setIsSearching(false);
     }
   }, [isFetching]);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, ""); // Only numbers
+  const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value.replace(/[^0-9]/g, "");
     setPhone(value);
   };
 
@@ -78,45 +78,38 @@ export const CustomerSearch = ({
     setPhone("");
   };
 
-  const showNotFound =
-    phone.length >= 8 &&
-    !isFetching &&
-    !isSearching &&
-    (isError || !searchResult?.data);
-  const showResult =
-    phone.length >= 8 && !isFetching && !isSearching && searchResult?.data;
+  const showNotFound = phone.length >= 8 && !isFetching && !isSearching && (isError || !searchResult?.data);
+  const showResult = phone.length >= 8 && !isFetching && !isSearching && searchResult?.data;
 
-  // If customer is selected, show the selected customer card
   if (selectedCustomer) {
     return (
-      <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 mb-4">
-        <div className="flex items-center justify-between">
+      <div className="feedback-panel mb-4" data-tone="info">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+              <User className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-semibold text-gray-800">
-                {selectedCustomer.name || "عميل"}
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
+              <p className="font-semibold text-foreground">{selectedCustomer.name || "عميل"}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <span className="font-numeric flex items-center gap-1" dir="ltr">
+                  <Phone className="h-3 w-3" />
                   {selectedCustomer.phone}
                 </span>
-                <span className="flex items-center gap-1 text-amber-600">
-                  <Star className="w-3 h-3 fill-current" />
-                  {selectedCustomer.loyaltyPoints} نقطة
+                <span className="font-numeric flex items-center gap-1 text-warning">
+                  <Star className="h-3 w-3 fill-current" />
+                  {formatNumber(selectedCustomer.loyaltyPoints ?? 0)} نقطة
                 </span>
               </div>
             </div>
           </div>
           <button
+            type="button"
             onClick={handleClearCustomer}
-            className="p-1.5 text-gray-400 hover:text-danger-500 hover:bg-danger-50 rounded-full transition-colors"
+            className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
             title="إزالة العميل"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -125,10 +118,9 @@ export const CustomerSearch = ({
 
   return (
     <div className="mb-4">
-      {/* Search Input */}
-      <div className="relative">
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-          <Search className="w-4 h-4" />
+      <div className="group relative">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary">
+          <Search className="h-4 w-4" />
         </div>
         <input
           ref={inputRef}
@@ -136,70 +128,62 @@ export const CustomerSearch = ({
           value={phone}
           onChange={handlePhoneChange}
           placeholder="🔍 رقم الهاتف..."
-          className="w-full pr-10 pl-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="font-numeric w-full rounded-2xl border border-border bg-card/82 py-2.5 pl-4 pr-10 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
           dir="ltr"
         />
-        {(isFetching || isSearching) && (
+        {isFetching || isSearching ? (
           <div className="absolute left-3 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
-        )}
+        ) : null}
       </div>
 
-      {/* Search Result - Customer Found */}
-      {showResult && searchResult.data && (
+      {showResult && searchResult.data ? (
         <div
-          onClick={() => handleSelectCustomer(searchResult.data!)}
-          className="mt-2 bg-success-50 border border-success-200 rounded-lg p-3 cursor-pointer hover:bg-success-100 transition-colors"
+          onClick={() => handleSelectCustomer(searchResult.data)}
+          className="surface-outline mt-2 cursor-pointer rounded-2xl border-success/24 bg-success/8 p-3 transition-colors hover:bg-success/12"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-success-600 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success text-success-foreground">
+                <User className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-medium text-gray-800">
-                  {searchResult.data.name || "عميل"}
-                </p>
-                <p className="text-xs text-gray-500 flex items-center gap-2">
-                  <span>{searchResult.data.phone}</span>
-                  <span className="text-amber-600">
-                    ⭐ {searchResult.data.loyaltyPoints} نقطة
-                  </span>
+                <p className="font-medium text-foreground">{searchResult.data.name || "عميل"}</p>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="font-numeric" dir="ltr">{searchResult.data.phone}</span>
+                  <span className="font-numeric text-warning">⭐ {formatNumber(searchResult.data.loyaltyPoints ?? 0)} نقطة</span>
                 </p>
               </div>
             </div>
-            <span className="text-xs text-success-600 font-medium">
-              اضغط للاختيار
-            </span>
+            <span className="text-xs font-medium text-success">اضغط للاختيار</span>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Search Result - Not Found */}
-      {showNotFound && (
-        <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">لم يتم العثور على عميل</p>
+      {showNotFound ? (
+        <div className="surface-outline mt-2 rounded-2xl border-dashed p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">لم يتم العثور على عميل</p>
             <button
+              type="button"
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="flex items-center gap-1 text-sm font-medium text-primary transition hover:text-primary/80"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               إضافة عميل جديد
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Create Customer Modal */}
-      {showCreateModal && (
+      {showCreateModal ? (
         <CustomerQuickCreateModal
           initialPhone={phone}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleCreateSuccess}
         />
-      )}
+      ) : null}
     </div>
   );
 };

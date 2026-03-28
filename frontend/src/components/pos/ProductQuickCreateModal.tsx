@@ -69,22 +69,22 @@ export const ProductQuickCreateModal = ({
   return (
     <Portal>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="glass-panel w-full max-w-md max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                <Package className="w-5 h-5 text-primary-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary">
+                <Package className="w-5 h-5" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-foreground">
                 إضافة منتج سريع
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="rounded-lg p-2 transition-colors hover:bg-muted"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
@@ -92,18 +92,18 @@ export const ProductQuickCreateModal = ({
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 اسم المنتج *
               </label>
               <div className="relative">
-                <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full rounded-xl border border-input bg-card/80 py-2.5 pl-4 pr-10 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                   placeholder="مثال: قهوة تركي"
                   required
                   autoFocus
@@ -113,11 +113,11 @@ export const ProductQuickCreateModal = ({
 
             {/* Price */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 السعر *
               </label>
               <div className="relative">
-                <DollarSign className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <DollarSign className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="number"
                   step="0.01"
@@ -129,7 +129,7 @@ export const ProductQuickCreateModal = ({
                       price: e.target.value,
                     })
                   }
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full rounded-xl border border-input bg-card/80 py-2.5 pl-4 pr-10 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                   placeholder="0.00"
                   required
                 />
@@ -138,7 +138,7 @@ export const ProductQuickCreateModal = ({
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 التصنيف *
               </label>
               <div className="relative">
@@ -150,7 +150,7 @@ export const ProductQuickCreateModal = ({
                       categoryId: parseInt(e.target.value),
                     })
                   }
-                  className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+                  className="w-full appearance-none rounded-xl border border-input bg-card/80 py-2.5 pl-10 pr-4 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:border-border focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                   required
                 >
                   <option value="">اختر التصنيف</option>
@@ -160,13 +160,13 @@ export const ProductQuickCreateModal = ({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <ChevronDown className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               </div>
             </div>
 
             {/* Product Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 نوع المنتج *
               </label>
               <div className="relative">
@@ -178,7 +178,7 @@ export const ProductQuickCreateModal = ({
                       type: parseInt(e.target.value) as ProductType,
                     })
                   }
-                  className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+                  className="w-full appearance-none rounded-xl border border-input bg-card/80 py-2.5 pl-10 pr-4 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:border-border focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                   required
                 >
                   <option value={ProductType.Service}>
@@ -188,9 +188,9 @@ export const ProductQuickCreateModal = ({
                     منتج مادي (يتتبع المخزون)
                   </option>
                 </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <ChevronDown className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {formData.type === ProductType.Service
                   ? "الخدمات لا تحتاج تتبع مخزون (مثل: التوصيل، الصيانة)"
                   : "المنتجات المادية تحتاج تتبع مخزون (مثل: القهوة، الطعام)"}
@@ -200,11 +200,11 @@ export const ProductQuickCreateModal = ({
             {/* Initial Stock (only for Physical products) */}
             {formData.type === ProductType.Physical && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   الكمية الأولية
                 </label>
                 <div className="relative">
-                  <Hash className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Hash className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type="number"
                     min="0"
@@ -215,7 +215,7 @@ export const ProductQuickCreateModal = ({
                         initialStock: e.target.value,
                       })
                     }
-                    className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full rounded-xl border border-input bg-card/80 py-2.5 pl-4 pr-10 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                     placeholder="0"
                   />
                 </div>
@@ -224,7 +224,7 @@ export const ProductQuickCreateModal = ({
 
             {/* SKU (optional) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 SKU (اختياري)
               </label>
               <input
@@ -233,25 +233,25 @@ export const ProductQuickCreateModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, sku: e.target.value })
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                 placeholder="مثال: COFFEE-001"
               />
             </div>
 
             {/* Barcode (optional) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 الباركود (اختياري)
               </label>
               <div className="relative">
-                <Barcode className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Barcode className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   value={formData.barcode || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, barcode: e.target.value })
                   }
-                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full rounded-xl border border-input bg-card/80 py-2.5 pl-4 pr-10 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                   placeholder="مثال: 1234567890123"
                 />
               </div>
@@ -262,14 +262,14 @@ export const ProductQuickCreateModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                className="flex-1 rounded-xl border border-border px-4 py-2.5 font-medium text-foreground transition-colors hover:bg-muted"
                 disabled={isLoading}
               >
                 إلغاء
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-xl bg-primary px-4 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isLoading}
               >
                 {isLoading ? "جاري الإضافة..." : "إضافة المنتج"}

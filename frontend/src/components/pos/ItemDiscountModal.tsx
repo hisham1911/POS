@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { X, Percent, DollarSign, Check } from "lucide-react";
-import { formatCurrency } from "@/utils/formatters";
-import { Button } from "@/components/common/Button";
-import { toast } from "sonner";
 import clsx from "clsx";
-import { Portal } from "@/components/common/Portal";
-import { CartItem, ItemDiscount } from "@/store/slices/cartSlice";
+import { Check, DollarSign, Percent } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/common/Button";
+import { Modal } from "@/components/common/Modal";
+import { Input } from "@/components/ui/input";
+import type { CartItem, ItemDiscount } from "@/store/slices/cartSlice";
+import { formatCurrency, formatNumber } from "@/utils/formatters";
 
 interface ItemDiscountModalProps {
   item: CartItem;
@@ -13,6 +15,9 @@ interface ItemDiscountModalProps {
   onRemove: () => void;
   onClose: () => void;
 }
+
+const keypad = ["7", "8", "9", "←", "4", "5", "6", "C", "1", "2", "3", ".", "0", "00"] as const;
+const quickPercentages = [5, 10, 15, 20];
 
 export const ItemDiscountModal = ({
   item,
@@ -23,23 +28,15 @@ export const ItemDiscountModal = ({
   const itemTotal = item.product.price * item.quantity;
   const currentDiscount = item.discount;
 
-  const [discountType, setDiscountType] = useState<"percentage" | "fixed">(
-    currentDiscount?.type || "percentage",
-  );
-  const [discountValue, setDiscountValue] = useState<string>(
-    currentDiscount?.value?.toString() || "",
-  );
+  const [discountType, setDiscountType] = useState<"percentage" | "fixed">(currentDiscount?.type || "percentage");
+  const [discountValue, setDiscountValue] = useState<string>(currentDiscount?.value?.toString() || "");
   const [reason, setReason] = useState<string>(currentDiscount?.reason || "");
 
   const numericValue = parseFloat(discountValue) || 0;
 
   let previewDiscount = 0;
   if (numericValue > 0) {
-    if (discountType === "percentage") {
-      previewDiscount = itemTotal * (numericValue / 100);
-    } else {
-      previewDiscount = numericValue;
-    }
+    previewDiscount = discountType === "percentage" ? itemTotal * (numericValue / 100) : numericValue;
     previewDiscount = Math.min(previewDiscount, itemTotal);
   }
 
@@ -48,15 +45,22 @@ export const ItemDiscountModal = ({
   const handleNumpadClick = (value: string) => {
     if (value === "C") {
       setDiscountValue("");
-    } else if (value === "←") {
+      return;
+    }
+
+    if (value === "←") {
       setDiscountValue((prev) => prev.slice(0, -1));
-    } else if (value === ".") {
+      return;
+    }
+
+    if (value === ".") {
       if (!discountValue.includes(".")) {
         setDiscountValue((prev) => prev + ".");
       }
-    } else {
-      setDiscountValue((prev) => prev + value);
+      return;
     }
+
+    setDiscountValue((prev) => prev + value);
   };
 
   const handleApply = () => {
@@ -78,7 +82,7 @@ export const ItemDiscountModal = ({
     onApply({
       type: discountType,
       value: numericValue,
-      ...(reason ? { reason } : {}),
+      ...(reason ? { reason } : {})
     });
     toast.success(`تم تطبيق الخصم على ${item.product.name}`);
     onClose();
@@ -90,189 +94,131 @@ export const ItemDiscountModal = ({
     onClose();
   };
 
-  const quickPercentages = [5, 10, 15, 20];
-
   return (
-    <Portal>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-scale-in flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b shrink-0">
-            <h2 className="text-xl font-bold">خصم على: {item.product.name}</h2>
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-danger-50 hover:text-danger-500 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* Item Total */}
-            <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <p className="text-gray-500 text-sm mb-1">
-                سعر المنتج ({item.quantity} ×{" "}
-                {formatCurrency(item.product.price)})
-              </p>
-              <p className="text-2xl font-bold text-gray-800">
-                {formatCurrency(itemTotal)}
-              </p>
-            </div>
-
-            {/* Discount Type */}
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-3">
-                نوع الخصم
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setDiscountType("percentage")}
-                  className={clsx(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                    discountType === "percentage"
-                      ? "border-primary-600 bg-primary-50 text-primary-600"
-                      : "border-gray-200 hover:border-gray-300",
-                  )}
-                >
-                  <Percent className="w-8 h-8" />
-                  <span className="font-medium">نسبة مئوية</span>
-                </button>
-                <button
-                  onClick={() => setDiscountType("fixed")}
-                  className={clsx(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                    discountType === "fixed"
-                      ? "border-primary-600 bg-primary-50 text-primary-600"
-                      : "border-gray-200 hover:border-gray-300",
-                  )}
-                >
-                  <DollarSign className="w-8 h-8" />
-                  <span className="font-medium">مبلغ ثابت</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Discount Value Input */}
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-3">
-                {discountType === "percentage"
-                  ? "نسبة الخصم (%)"
-                  : "قيمة الخصم (ج.م)"}
-              </p>
-              <div className="text-center p-4 bg-gray-50 rounded-xl">
-                <p className="text-3xl font-bold">
-                  {discountValue || "0"}{" "}
-                  <span className="text-lg text-gray-400">
-                    {discountType === "percentage" ? "%" : "ج.م"}
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Percentages */}
-            {discountType === "percentage" && (
-              <div className="flex gap-2">
-                {quickPercentages.map((percent) => (
-                  <button
-                    key={percent}
-                    onClick={() => setDiscountValue(percent.toString())}
-                    className="flex-1 py-2 rounded-lg bg-gray-100 font-medium hover:bg-primary-100 hover:text-primary-600 transition-colors"
-                  >
-                    {percent}%
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Numpad */}
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                "7",
-                "8",
-                "9",
-                "←",
-                "4",
-                "5",
-                "6",
-                "C",
-                "1",
-                "2",
-                "3",
-                ".",
-                "0",
-                "00",
-              ].map((key) => (
-                <button
-                  key={key}
-                  onClick={() => handleNumpadClick(key)}
-                  className={clsx(
-                    "h-14 rounded-lg bg-gray-100 font-semibold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors",
-                    key === "0" && "col-span-2",
-                  )}
-                >
-                  {key}
-                </button>
-              ))}
-            </div>
-
-            {/* Reason */}
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-2">
-                سبب الخصم (اختياري)
-              </p>
-              <input
-                type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="مثال: عرض خاص، عميل مميز..."
-                className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-
-            {/* Preview */}
-            {previewDiscount > 0 && (
-              <div className="space-y-2 p-4 bg-success-50 rounded-xl border border-success-200">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>سعر المنتج</span>
-                  <span>{formatCurrency(itemTotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-success-600 font-medium">
-                  <span>الخصم</span>
-                  <span>- {formatCurrency(previewDiscount)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold text-gray-800 pt-2 border-t border-success-200">
-                  <span>بعد الخصم</span>
-                  <span>{formatCurrency(previewTotal)}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              {currentDiscount && (
-                <Button
-                  variant="danger"
-                  size="lg"
-                  className="flex-1"
-                  onClick={handleRemove}
-                >
-                  إلغاء الخصم
-                </Button>
-              )}
-              <Button
-                variant="success"
-                size="lg"
-                className="flex-1"
-                onClick={handleApply}
-                disabled={numericValue <= 0}
-                rightIcon={<Check className="w-5 h-5" />}
-              >
-                تطبيق الخصم
-              </Button>
-            </div>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={`خصم على ${item.product.name}`}
+      description="استخدم خصمًا خاصًا على هذا المنتج فقط، مع سبب اختياري يظهر لاحقًا في تفاصيل الطلب."
+      size="md"
+    >
+      <div className="space-y-6">
+        <div className="mesh-preview rounded-[calc(var(--radius)+0.05rem)] p-4">
+          <div className="surface-outline rounded-[calc(var(--radius)+0.1rem)] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              سعر المنتج ({formatNumber(item.quantity)} × {formatCurrency(item.product.price)})
+            </p>
+            <p className="font-numeric mt-2 text-3xl font-black text-foreground">{formatCurrency(itemTotal)}</p>
           </div>
         </div>
+
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-foreground">نوع الخصم</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { id: "percentage" as const, label: "نسبة مئوية", icon: <Percent className="h-6 w-6" /> },
+              { id: "fixed" as const, label: "مبلغ ثابت", icon: <DollarSign className="h-6 w-6" /> },
+            ].map((itemOption) => (
+              <button
+                key={itemOption.id}
+                type="button"
+                onClick={() => setDiscountType(itemOption.id)}
+                className={clsx("choice-chip min-h-[5rem] flex-col justify-center gap-2 rounded-[calc(var(--radius)-0.1rem)]", discountType === itemOption.id && "scale-[1.01]")}
+                data-selected={discountType === itemOption.id}
+              >
+                {itemOption.icon}
+                <span>{itemOption.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="surface-outline rounded-[calc(var(--radius)+0.05rem)] p-4 text-center">
+          <p className="text-sm font-medium text-muted-foreground">
+            {discountType === "percentage" ? "نسبة الخصم (%)" : "قيمة الخصم (ج.م)"}
+          </p>
+          <p className="font-numeric mt-3 text-4xl font-black text-foreground">
+            {discountValue || "0"}
+            <span className="ms-2 text-lg font-semibold text-muted-foreground">
+              {discountType === "percentage" ? "%" : "ج.م"}
+            </span>
+          </p>
+        </div>
+
+        {discountType === "percentage" ? (
+          <div className="grid grid-cols-4 gap-2">
+            {quickPercentages.map((percent) => (
+              <button
+                key={percent}
+                type="button"
+                onClick={() => setDiscountValue(percent.toString())}
+                className="font-numeric rounded-2xl border border-border bg-background/75 py-2.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/8 hover:text-primary"
+              >
+                {formatNumber(percent)}%
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-4 gap-2">
+          {keypad.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => handleNumpadClick(key)}
+              className={clsx(
+                "font-numeric h-14 rounded-2xl border border-border bg-background/78 text-xl font-semibold text-foreground shadow-sm transition hover:bg-muted active:scale-[0.98]",
+                key === "0" && "col-span-2",
+                key === "C" && "border-destructive/20 bg-destructive/8 text-destructive hover:bg-destructive/12",
+                key === "←" && "border-warning/22 bg-warning/8 text-warning hover:bg-warning/12"
+              )}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+
+        <div>
+          <label className="mb-2 inline-flex text-sm font-semibold text-foreground" htmlFor="item-discount-reason">
+            سبب الخصم
+          </label>
+          <Input
+            id="item-discount-reason"
+            type="text"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="مثال: عميل مميز أو عرض خاص"
+          />
+        </div>
+
+        {previewDiscount > 0 ? (
+          <div className="feedback-panel space-y-2" data-tone="success">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">سعر المنتج</span>
+              <span className="font-numeric font-semibold text-foreground">{formatCurrency(itemTotal)}</span>
+            </div>
+            <div className="flex justify-between text-sm text-success">
+              <span className="font-semibold">الخصم</span>
+              <span className="font-numeric font-semibold">- {formatCurrency(previewDiscount)}</span>
+            </div>
+            <div className="flex justify-between border-t border-border/60 pt-2 text-lg font-bold">
+              <span className="text-foreground">بعد الخصم</span>
+              <span className="font-numeric text-success">{formatCurrency(previewTotal)}</span>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
+          {currentDiscount ? (
+            <Button variant="danger" onClick={handleRemove}>
+              إلغاء الخصم
+            </Button>
+          ) : null}
+          <Button onClick={handleApply} disabled={numericValue <= 0} rightIcon={<Check className="h-5 w-5" />}>
+            تطبيق الخصم
+          </Button>
+        </div>
       </div>
-    </Portal>
+    </Modal>
   );
 };

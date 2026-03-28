@@ -5,6 +5,7 @@ import { Customer, PayDebtRequest } from '../../types/customer.types';
 import { toast } from 'sonner';
 import { Portal } from '@/components/common/Portal';
 import clsx from 'clsx';
+import { formatCurrency } from '@/utils/formatters';
 
 interface DebtPaymentModalProps {
   customer: Customer;
@@ -37,7 +38,7 @@ export const DebtPaymentModal: React.FC<DebtPaymentModalProps> = ({
     }
 
     if (numAmount > customer.totalDue) {
-      newErrors.amount = `المبلغ أكبر من الدين المستحق (${customer.totalDue.toFixed(2)} ج.م)`;
+      newErrors.amount = `المبلغ أكبر من الدين المستحق (${formatCurrency(customer.totalDue)})`;
     }
 
     setErrors(newErrors);
@@ -69,14 +70,6 @@ export const DebtPaymentModal: React.FC<DebtPaymentModalProps> = ({
       console.error('Error paying debt:', error);
       toast.error(error?.data?.message || 'حدث خطأ أثناء تسديد الدين');
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-EG', {
-      style: 'currency',
-      currency: 'EGP',
-      minimumFractionDigits: 2,
-    }).format(amount);
   };
 
   const paymentMethods = [

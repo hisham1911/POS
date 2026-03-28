@@ -14,7 +14,7 @@ import {
   X,
   Clock,
   Package,
-  Filter,
+  FilterLines as Filter,
   AlertTriangle,
   ChevronDown,
 } from "@untitledui/icons";

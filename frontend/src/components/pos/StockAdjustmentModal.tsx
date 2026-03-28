@@ -1,12 +1,16 @@
+import clsx from "clsx";
+import { AlertTriangle, Package } from "lucide-react";
 import { useState } from "react";
-import { X, Package, AlertTriangle } from "lucide-react";
-import { Product } from "@/types/product.types";
-import { StockAdjustmentType } from "@/types/inventory.types";
+import { toast } from "sonner";
+
 import { useAdjustProductStockMutation } from "@/api/inventoryApi";
 import { Button } from "@/components/common/Button";
-import { toast } from "sonner";
-import clsx from "clsx";
-import { Portal } from "@/components/common/Portal";
+import { Modal } from "@/components/common/Modal";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { StockAdjustmentType } from "@/types/inventory.types";
+import type { Product } from "@/types/product.types";
+import { formatNumber } from "@/utils/formatters";
 
 interface StockAdjustmentModalProps {
   product: Product;
@@ -28,11 +32,8 @@ export const StockAdjustmentModal = ({
   product,
   onClose,
 }: StockAdjustmentModalProps) => {
-  const [newQuantity, setNewQuantity] = useState<string>(
-    (product.stockQuantity ?? 0).toString(),
-  );
-  const [adjustmentType, setAdjustmentType] =
-    useState<StockAdjustmentType>("Adjustment");
+  const [newQuantity, setNewQuantity] = useState<string>((product.stockQuantity ?? 0).toString());
+  const [adjustmentType, setAdjustmentType] = useState<StockAdjustmentType>("Adjustment");
   const [reason, setReason] = useState("");
 
   const [adjustStock, { isLoading }] = useAdjustProductStockMutation();
@@ -58,20 +59,13 @@ export const StockAdjustmentModal = ({
         productId: product.id,
         data: {
           quantity: quantityChange,
-          reason:
-            reason ||
-            adjustmentReasons.find((r) => r.id === adjustmentType)?.label ||
-            "",
+          reason: reason || adjustmentReasons.find((item) => item.id === adjustmentType)?.label || "",
           adjustmentType,
         },
       }).unwrap();
 
       if (result.success) {
-        toast.success(
-          `تم تحديث المخزون: ${currentStock} → ${
-            result.data?.newBalance ?? targetQuantity
-          }`,
-        );
+        toast.success(`تم تحديث المخزون: ${formatNumber(currentStock)} → ${formatNumber(result.data?.newBalance ?? targetQuantity)}`);
         onClose();
       } else {
         toast.error(result.message || "فشل تعديل المخزون");
@@ -82,135 +76,92 @@ export const StockAdjustmentModal = ({
   };
 
   return (
-    <Portal>
-      <div 
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
-        onClick={onClose}
-      >
-        <div 
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-scale-in"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="تعديل المخزون"
+      description={`مراجعة كمية ${product.name} وتوثيق سبب التغيير بشكل واضح ومتوافق مع الثيم.`}
+      size="md"
+    >
+      <div className="space-y-5">
+        <div className="mesh-preview rounded-[calc(var(--radius)+0.05rem)] p-4">
+          <div className="surface-outline flex items-center justify-between rounded-[calc(var(--radius)+0.1rem)] p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                <Package className="w-5 h-5 text-primary-600" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                <Package className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">تعديل المخزون</h2>
-                <p className="text-sm text-gray-500">{product.name}</p>
+                <p className="font-semibold text-foreground">{product.name}</p>
+                <p className="text-sm text-muted-foreground">المخزون الحالي</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-
-          <div className="p-6 space-y-4 overflow-y-auto flex-1">
-            {/* Current Stock Display */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 text-center border border-gray-200">
-              <p className="text-sm text-gray-600 mb-1">المخزون الحالي</p>
-              <p className="text-3xl font-bold text-gray-800">{currentStock}</p>
-            </div>
-
-            {/* New Quantity Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                الكمية الجديدة
-              </label>
-              <input
-                type="number"
-                value={newQuantity === "0" ? "" : newQuantity}
-                onChange={(e) => setNewQuantity(e.target.value)}
-                min="0"
-                placeholder="0"
-                className="w-full px-4 py-3 text-center text-2xl font-bold border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              {/* Change Preview */}
-              {quantityChange !== 0 && (
-                <div
-                  className={clsx(
-                    "mt-2 text-center text-sm font-medium",
-                    quantityChange > 0 ? "text-green-600" : "text-red-600",
-                  )}
-                >
-                  {quantityChange > 0 ? `+${quantityChange}` : quantityChange}{" "}
-                  وحدة
-                </div>
-              )}
-            </div>
-
-            {/* Adjustment Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                سبب التعديل
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {adjustmentReasons.map((type) => (
-                  <button
-                    key={type.id}
-                    type="button"
-                    onClick={() => setAdjustmentType(type.id)}
-                    className={clsx(
-                      "flex items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                      adjustmentType === type.id
-                        ? "border-primary-600 bg-primary-50 text-primary-700"
-                        : "border-gray-200 hover:border-gray-300",
-                    )}
-                  >
-                    <span>{type.icon}</span>
-                    <span className="text-sm font-medium">{type.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Optional Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ملاحظات (اختياري)
-              </label>
-              <input
-                type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="أي تفاصيل إضافية..."
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            {/* Warning for large changes */}
-            {Math.abs(quantityChange) > 50 && (
-              <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-700">
-                <AlertTriangle className="w-5 h-5 shrink-0" />
-                <span className="text-sm">
-                  تغيير كبير في المخزون - يرجى التأكد
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex gap-3 p-6 border-t border-gray-200 flex-shrink-0">
-            <Button variant="secondary" onClick={onClose} className="flex-1">
-              إلغاء
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              isLoading={isLoading}
-              disabled={isLoading || quantityChange === 0}
-              className="flex-1"
-            >
-              تأكيد التعديل
-            </Button>
+            <span className="font-numeric text-3xl font-black text-foreground">{formatNumber(currentStock)}</span>
           </div>
         </div>
+
+        <div>
+          <Label htmlFor="stock-target">الكمية الجديدة</Label>
+          <Input
+            id="stock-target"
+            type="number"
+            value={newQuantity === "0" ? "" : newQuantity}
+            onChange={(event) => setNewQuantity(event.target.value)}
+            min="0"
+            placeholder="0"
+            className="font-numeric h-14 text-center text-2xl font-black"
+          />
+          {quantityChange !== 0 ? (
+            <p className={clsx("font-numeric mt-2 text-center text-sm font-semibold", quantityChange > 0 ? "text-success" : "text-destructive")}>
+              {quantityChange > 0 ? `+${formatNumber(quantityChange)}` : formatNumber(quantityChange)} وحدة
+            </p>
+          ) : null}
+        </div>
+
+        <div>
+          <Label>سبب التعديل</Label>
+          <div className="grid grid-cols-2 gap-3">
+            {adjustmentReasons.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setAdjustmentType(item.id)}
+                className={clsx("choice-chip min-h-[4.5rem] items-center justify-start gap-3 rounded-[calc(var(--radius)-0.1rem)]", adjustmentType === item.id && "scale-[1.01]")}
+                data-selected={adjustmentType === item.id}
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-sm font-semibold">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="stock-reason">ملاحظات إضافية</Label>
+          <Input
+            id="stock-reason"
+            type="text"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="أي تفاصيل إضافية"
+          />
+        </div>
+
+        {Math.abs(quantityChange) > 50 ? (
+          <div className="feedback-panel flex items-center gap-3" data-tone="warning">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-warning" />
+            <p className="text-sm text-foreground">تغيير كبير في المخزون، راجع الكمية قبل الحفظ.</p>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap justify-end gap-3 border-t border-border/70 pt-4">
+          <Button variant="ghost" onClick={onClose}>
+            إلغاء
+          </Button>
+          <Button onClick={handleSubmit} isLoading={isLoading} disabled={isLoading || quantityChange === 0}>
+            تأكيد التعديل
+          </Button>
+        </div>
       </div>
-    </Portal>
+    </Modal>
   );
 };

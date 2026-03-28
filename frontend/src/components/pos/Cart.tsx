@@ -3,7 +3,7 @@ import { useCart } from "@/hooks/useCart";
 import { CartItemComponent } from "./CartItem";
 import { OrderSummary } from "./OrderSummary";
 import { Button } from "@/components/common/Button";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, formatNumber } from "@/utils/formatters";
 import { CustomerSearch } from "./CustomerSearch";
 import { Customer } from "@/types/customer.types";
 import { useState } from "react";
@@ -26,14 +26,13 @@ export const Cart = ({
   if (items.length === 0) {
     return (
       <div className="h-full flex flex-col">
-        {/* Customer Search - Always visible */}
         <CustomerSearch
           selectedCustomer={selectedCustomer}
           onCustomerSelect={onCustomerSelect}
         />
 
-        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-          <div className="size-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+        <div className="feedback-panel flex flex-1 flex-col items-center justify-center gap-2 text-center" data-tone="info">
+          <div className="mb-2 flex size-20 items-center justify-center rounded-full bg-muted/50">
             <ShoppingCart className="size-10 opacity-30" />
           </div>
           <p className="text-lg font-bold text-foreground">السلة فارغة</p>
@@ -45,40 +44,36 @@ export const Cart = ({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Customer Search */}
       <CustomerSearch
         selectedCustomer={selectedCustomer}
         onCustomerSelect={onCustomerSelect}
       />
 
-      {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-border">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-foreground">الطلب الحالي</h2>
-          <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-            {itemsCount}
+          <span className="font-numeric rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+            {formatNumber(itemsCount)}
           </span>
         </div>
         <button
+          type="button"
           onClick={clearCart}
-          className="flex items-center gap-1 text-danger font-bold text-sm hover:underline"
+          className="flex items-center gap-1 text-sm font-bold text-danger transition hover:underline"
         >
           <Trash2 className="size-4" />
           إفراغ
         </button>
       </div>
 
-      {/* Items */}
       <div className="flex-1 overflow-y-auto py-4 space-y-3 scrollbar-thin">
         {items.map((item) => (
           <CartItemComponent key={item.product.id} item={item} />
         ))}
       </div>
 
-      {/* Summary */}
       <OrderSummary />
 
-      {/* Discount Button */}
       <Button
         variant="outline"
         size="lg"
@@ -89,17 +84,15 @@ export const Cart = ({
         {discountAmount > 0 ? "تعديل الخصم" : "إضافة خصم"}
       </Button>
 
-      {/* Checkout Button */}
       <Button
         variant="success"
         size="xl"
         className="w-full mt-2"
         onClick={onCheckout}
       >
-        💳 الدفع {formatCurrency(total)}
+        <span className="font-numeric">💳 الدفع {formatCurrency(total)}</span>
       </Button>
 
-      {/* Discount Modal */}
       {showDiscountModal && (
         <DiscountModal onClose={() => setShowDiscountModal(false)} />
       )}

@@ -12,9 +12,9 @@ import {
 } from "../../store/slices/branchSlice";
 import { selectIsAdmin } from "../../store/slices/authSlice";
 import {
-  DollarSign,
-  Edit,
-  Trash2,
+  CurrencyDollar as DollarSign,
+  Edit01 as Edit,
+  Trash01 as Trash2,
   Plus,
   AlertTriangle,
   X,

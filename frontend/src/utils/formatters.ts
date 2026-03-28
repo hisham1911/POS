@@ -1,33 +1,65 @@
-// Cairo timezone for Egypt (Version: 2026-02-21-v2)
+import { APP_PREFERENCES_KEY, defaultPreferences, type AppLanguage } from "@/lib/preferences";
+
 const TIMEZONE = "Africa/Cairo";
 
-/**
- * Parse date string from API (assumes UTC if no timezone specified)
- * Backend stores DateTime.UtcNow but JSON doesn't include 'Z' suffix
- */
 const parseApiDate = (date: string | Date): Date => {
   if (date instanceof Date) return date;
-  
-  // Backend sends dates in UTC format like "2024-01-15T05:00:00"
-  // We need to treat them as UTC by adding 'Z' suffix
+
   const dateStr = date.toString();
-  
-  // If no timezone info, assume UTC and add 'Z'
-  if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.match(/[+-]\d{2}:\d{2}$/)) {
-    return new Date(dateStr + 'Z');
+  if (!dateStr.endsWith("Z") && !dateStr.includes("+") && !dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+    return new Date(`${dateStr}Z`);
   }
-  
+
   return new Date(dateStr);
 };
 
-/**
- * Format date with Cairo timezone using toLocaleString
- * Use this instead of new Date().toLocaleString() directly
- */
-export const formatDateTimeFull = (date: string | Date): string => {
+const getStoredPreferences = () => {
+  const fallback = defaultPreferences();
+
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(APP_PREFERENCES_KEY);
+    if (!raw) return fallback;
+
+    return {
+      ...fallback,
+      ...JSON.parse(raw),
+    };
+  } catch {
+    return fallback;
+  }
+};
+
+const getFormattingContext = () => {
+  const preferences = getStoredPreferences();
+  const language = preferences.language ?? "en";
+  const numberingSystem = preferences.useArabicNumerals ? "arab" : "latn";
+  const baseLocale = language === "ar" ? "ar-EG" : "en-US";
+
+  return {
+    language,
+    locale: `${baseLocale}-u-nu-${numberingSystem}`,
+  };
+};
+
+const formatWithDateTime = (
+  date: string | Date,
+  options: Intl.DateTimeFormatOptions,
+) => {
   const parsed = parseApiDate(date);
-  return parsed.toLocaleString("ar-EG", {
+  const { locale } = getFormattingContext();
+
+  return new Intl.DateTimeFormat(locale, {
     timeZone: TIMEZONE,
+    ...options,
+  }).format(parsed);
+};
+
+export const formatDateTimeFull = (date: string | Date): string =>
+  formatWithDateTime(date, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -35,24 +67,18 @@ export const formatDateTimeFull = (date: string | Date): string => {
     minute: "2-digit",
     hour12: false,
   });
-};
 
-/**
- * Format date only with Cairo timezone
- * Use this instead of new Date().toLocaleDateString() directly
- */
-export const formatDateOnly = (date: string | Date): string => {
-  return parseApiDate(date).toLocaleDateString("ar-EG", {
-    timeZone: TIMEZONE,
+export const formatDateOnly = (date: string | Date): string =>
+  formatWithDateTime(date, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
-};
 
-// تنسيق العملة
 export const formatCurrency = (amount: number, currency = "EGP"): string => {
-  return new Intl.NumberFormat("ar-EG", {
+  const { locale } = getFormattingContext();
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     minimumFractionDigits: 2,
@@ -60,55 +86,68 @@ export const formatCurrency = (amount: number, currency = "EGP"): string => {
   }).format(amount);
 };
 
-// تنسيق بسيط للجنيه
 export const formatPrice = (amount: number): string => {
-  return `${amount.toFixed(2)} ج.م`;
+  const { language } = getFormattingContext();
+  const currencyLabel = language === "ar" ? "ج.م" : "EGP";
+  return `${formatNumber(amount.toFixed(2))} ${currencyLabel}`;
 };
 
-// تنسيق التاريخ (Cairo timezone)
-export const formatDate = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-EG", {
+export const formatDate = (date: string | Date): string =>
+  formatWithDateTime(date, {
     year: "numeric",
     month: "long",
     day: "numeric",
-    timeZone: TIMEZONE,
-  }).format(parseApiDate(date));
-};
+  });
 
-// تنسيق التاريخ والوقت (Cairo timezone)
-export const formatDateTime = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-EG", {
+export const formatDateTime = (date: string | Date): string =>
+  formatWithDateTime(date, {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: TIMEZONE,
-  }).format(parseApiDate(date));
-};
+  });
 
-// تنسيق التاريخ والوقت المختصر (Cairo timezone)
-export const formatDateTimeShort = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-EG", {
+export const formatDateTimeShort = (date: string | Date): string =>
+  formatWithDateTime(date, {
     month: "numeric",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: TIMEZONE,
-  }).format(parseApiDate(date));
-};
+  });
 
-// تنسيق الوقت فقط (Cairo timezone)
-export const formatTime = (date: string | Date): string => {
-  return new Intl.DateTimeFormat("ar-EG", {
+export const formatTime = (date: string | Date): string =>
+  formatWithDateTime(date, {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: TIMEZONE,
-  }).format(parseApiDate(date));
+  });
+
+const relativeTimeCopy: Record<
+  AppLanguage,
+  {
+    now: string;
+    minutes: (value: string) => string;
+    hours: (value: string) => string;
+    days: (value: string) => string;
+  }
+> = {
+  ar: {
+    now: "الآن",
+    minutes: (value) => `منذ ${value} دقيقة`,
+    hours: (value) => `منذ ${value} ساعة`,
+    days: (value) => `منذ ${value} يوم`,
+  },
+  en: {
+    now: "Now",
+    minutes: (value) => `${value} min ago`,
+    hours: (value) => `${value} hr ago`,
+    days: (value) => `${value} d ago`,
+  },
 };
 
-// تنسيق الوقت النسبي (منذ X دقائق)
 export const formatRelativeTime = (date: string | Date): string => {
+  const { language } = getFormattingContext();
+  const copy = relativeTimeCopy[language];
   const now = new Date();
   const then = parseApiDate(date);
   const diffMs = now.getTime() - then.getTime();
@@ -116,15 +155,17 @@ export const formatRelativeTime = (date: string | Date): string => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "الآن";
-  if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
-  if (diffHours < 24) return `منذ ${diffHours} ساعة`;
-  if (diffDays < 7) return `منذ ${diffDays} يوم`;
-  
+  if (diffMins < 1) return copy.now;
+  if (diffMins < 60) return copy.minutes(formatNumber(diffMins));
+  if (diffHours < 24) return copy.hours(formatNumber(diffHours));
+  if (diffDays < 7) return copy.days(formatNumber(diffDays));
+
   return formatDateTime(date);
 };
 
-// تنسيق الأرقام
-export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat("ar-EG").format(num);
+export const formatNumber = (num: number | string): string => {
+  const { locale } = getFormattingContext();
+  const numericValue = typeof num === "string" ? Number(num) : num;
+
+  return new Intl.NumberFormat(locale).format(Number.isFinite(numericValue) ? numericValue : 0);
 };

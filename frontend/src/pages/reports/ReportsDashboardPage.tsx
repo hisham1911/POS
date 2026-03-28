@@ -16,12 +16,11 @@ import {
   Star01,
   SwitchHorizontal01,
   SwitchVertical01,
-  TrendingDown,
-  TrendingUp,
   Truck01,
   UserCheck01,
   Users01,
 } from "@untitledui/icons";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -285,7 +284,7 @@ export const ReportsDashboardPage = () => {
               {category.reports.map((report) => (
                 <Card
                   key={report.id}
-                  className="group cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="group cursor-pointer overflow-hidden border border-border/60 bg-card/70 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                   onClick={() => handleReportClick(report.path)}
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -297,7 +296,7 @@ export const ReportsDashboardPage = () => {
                 >
                   <div className="flex h-full flex-col p-6 text-center">
                     <div
-                      className={`mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${report.bgColor}`}
+                      className={`mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl border border-border/50 transition-transform duration-300 group-hover:scale-110 ${report.bgColor}`}
                     >
                       <report.icon className={`size-7 ${report.color}`} />
                     </div>
@@ -310,9 +309,9 @@ export const ReportsDashboardPage = () => {
                       {report.description}
                     </p>
                     
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-center opacity-0 transition-opacity group-hover:bg-primary/5 group-hover:text-primary group-hover:opacity-100"
+                    <Button
+                      variant="outline"
+                      className="mt-auto w-full justify-center border-primary/20 bg-card/65 text-foreground transition group-hover:border-primary/40 group-hover:bg-primary/10 group-hover:text-primary"
                     >
                       فتح التقرير
                     </Button>

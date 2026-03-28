@@ -17,23 +17,24 @@ export const ShiftWarningBanner = ({ warning, onClose }: ShiftWarningBannerProps
   return (
     <div
       className={clsx(
-        "rounded-lg p-4 mb-6 border-2 animate-pulse",
+        "mb-6 rounded-2xl border p-4 shadow-sm",
         isCritical
-          ? "bg-red-50 border-red-500"
-          : "bg-yellow-50 border-yellow-500"
+          ? "feedback-panel border-danger/35"
+          : "feedback-panel border-warning/35"
       )}
+      data-tone={isCritical ? "danger" : "warning"}
     >
       <div className="flex items-start gap-3">
         <div
           className={clsx(
-            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-            isCritical ? "bg-red-100" : "bg-yellow-100"
+            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
+            isCritical ? "bg-danger/12 text-danger" : "bg-warning/12 text-warning"
           )}
         >
           {isCritical ? (
-            <XCircle className="w-6 h-6 text-red-600" />
+            <XCircle className="w-6 h-6" />
           ) : (
-            <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            <AlertTriangle className="w-6 h-6" />
           )}
         </div>
 
@@ -42,7 +43,7 @@ export const ShiftWarningBanner = ({ warning, onClose }: ShiftWarningBannerProps
             <h3
               className={clsx(
                 "font-bold text-lg",
-                isCritical ? "text-red-800" : "text-yellow-800"
+                isCritical ? "text-danger" : "text-warning"
               )}
             >
               {isCritical ? "🚨 تحذير شديد" : "⚠️ تحذير"}
@@ -58,15 +59,15 @@ export const ShiftWarningBanner = ({ warning, onClose }: ShiftWarningBannerProps
           <p
             className={clsx(
               "text-sm leading-relaxed",
-              isCritical ? "text-red-700" : "text-yellow-700"
+              isCritical ? "text-danger" : "text-warning"
             )}
           >
             {warning.message}
           </p>
 
           {isCritical && (
-            <div className="mt-3 p-3 bg-red-100 rounded-lg">
-              <p className="text-sm text-red-800 font-medium">
+            <div className="feedback-panel mt-3" data-tone="danger">
+              <p className="text-sm font-medium text-foreground">
                 ⚡ يُرجى إغلاق الوردية الحالية وفتح وردية جديدة في أقرب وقت ممكن
                 للحفاظ على دقة السجلات المالية.
               </p>
@@ -78,10 +79,10 @@ export const ShiftWarningBanner = ({ warning, onClose }: ShiftWarningBannerProps
           <button
             onClick={onClose}
             className={clsx(
-              "p-1 rounded-lg hover:bg-opacity-20 transition-colors",
+              "rounded-lg p-1 transition-colors",
               isCritical
-                ? "hover:bg-red-600 text-red-600"
-                : "hover:bg-yellow-600 text-yellow-600"
+                ? "text-danger hover:bg-danger/10"
+                : "text-warning hover:bg-warning/10"
             )}
             aria-label="إغلاق التحذير"
           >

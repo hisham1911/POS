@@ -27,6 +27,7 @@ import { useCategories, useProducts } from "@/hooks/useProducts";
 import { useShift } from "@/hooks/useShift";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/types/customer.types";
+import { formatNumber } from "@/utils/formatters";
 
 export const POSPage = () => {
   const { mode } = usePOSMode();
@@ -229,8 +230,8 @@ export const POSPage = () => {
           >
             <Menu01 className="size-5 text-foreground" />
             {itemsCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
-                {itemsCount}
+              <span className="font-numeric absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
+                {formatNumber(itemsCount)}
               </span>
             )}
           </button>
@@ -241,7 +242,7 @@ export const POSPage = () => {
         </div>
       </div>
 
-      <div className="hidden w-96 shrink-0 flex-col border-r border-border bg-card p-4 lg:flex shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] z-10">
+      <div className="z-10 hidden w-96 shrink-0 flex-col border-r border-border bg-card/92 p-4 shadow-card backdrop-blur-xl lg:flex">
         <Cart
           onCheckout={() => setShowPayment(true)}
           selectedCustomer={selectedCustomer}
@@ -255,7 +256,7 @@ export const POSPage = () => {
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setShowMobileCart(false)}
           />
-          <div className="absolute bottom-0 right-0 top-0 flex w-[min(100%,24rem)] animate-in slide-in-from-right flex-col bg-card p-4 shadow-2xl border-l border-border">
+          <div className="absolute bottom-0 right-0 top-0 flex w-[min(100%,24rem)] animate-in slide-in-from-right flex-col border-l border-border bg-card/94 p-4 shadow-card backdrop-blur-xl">
             <Cart
               onCheckout={() => {
                 setShowMobileCart(false);

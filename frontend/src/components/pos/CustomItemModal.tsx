@@ -75,25 +75,25 @@ export const CustomItemModal = ({
         onClick={onClose}
       >
         <div 
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+          className="glass-panel w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Plus className="w-5 h-5 text-orange-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/12 text-warning">
+                <Plus className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">منتج مخصص</h2>
-                <p className="text-sm text-gray-500">للطلب الحالي فقط</p>
+                <h2 className="text-xl font-bold text-foreground">منتج مخصص</h2>
+                <p className="text-sm text-muted-foreground">للطلب الحالي فقط</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="rounded-lg p-2 transition-colors hover:bg-muted"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
@@ -104,7 +104,7 @@ export const CustomItemModal = ({
           >
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 الاسم *
               </label>
               <input
@@ -113,7 +113,7 @@ export const CustomItemModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                 placeholder="مثال: رسوم توصيل، خدمة تغليف"
                 required
                 autoFocus
@@ -123,7 +123,7 @@ export const CustomItemModal = ({
             {/* Price & Quantity */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   السعر *
                 </label>
                 <div className="relative">
@@ -138,7 +138,7 @@ export const CustomItemModal = ({
                         unitPrice: displayToNumber(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                     placeholder="0.00"
                     required
                   />
@@ -146,7 +146,7 @@ export const CustomItemModal = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   الكمية *
                 </label>
                 <input
@@ -159,7 +159,7 @@ export const CustomItemModal = ({
                       quantity: parseInt(e.target.value) || 1,
                     })
                   }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                   placeholder="1"
                   required
                 />
@@ -168,7 +168,7 @@ export const CustomItemModal = ({
 
             {/* Tax Rate */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 نسبة الضريبة (%)
               </label>
               <input
@@ -183,17 +183,17 @@ export const CustomItemModal = ({
                     taxRate: parseFloat(e.target.value) || 14,
                   })
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                 placeholder="14"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 الافتراضي: 14% (ضريبة القيمة المضافة)
               </p>
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 ملاحظات (اختياري)
               </label>
               <textarea
@@ -201,17 +201,17 @@ export const CustomItemModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, notes: e.target.value })
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+                className="w-full resize-none rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                 placeholder="أي ملاحظات إضافية..."
                 rows={2}
               />
             </div>
 
             {/* Preview */}
-            <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <div className="feedback-panel p-4" data-tone="warning">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">الإجمالي المتوقع:</span>
-                <span className="text-lg font-bold text-orange-600">
+                <span className="text-sm text-muted-foreground">الإجمالي المتوقع:</span>
+                <span className="text-lg font-bold text-warning">
                   {(
                     formData.unitPrice *
                     (formData.quantity || 1) *
@@ -220,7 +220,7 @@ export const CustomItemModal = ({
                   ج.م
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {formData.unitPrice.toFixed(2)} × {formData.quantity || 1} +
                 ضريبة {formData.taxRate || 0}%
               </p>
@@ -228,11 +228,11 @@ export const CustomItemModal = ({
           </form>
 
           {/* Actions - Fixed at bottom */}
-          <div className="flex gap-3 p-6 border-t border-gray-200 flex-shrink-0">
+          <div className="flex gap-3 p-6 border-t border-border flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+              className="flex-1 rounded-xl border border-border px-4 py-2.5 font-medium text-foreground transition-colors hover:bg-muted"
               disabled={orderId ? isLoading : false}
             >
               إلغاء
@@ -240,7 +240,7 @@ export const CustomItemModal = ({
             <button
               type="submit"
               onClick={handleSubmit}
-              className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl bg-warning px-4 py-2.5 font-medium text-warning-foreground transition-colors hover:bg-warning/90 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={orderId ? isLoading : false}
             >
               {orderId && isLoading ? "جاري الإضافة..." : "إضافة للطلب"}

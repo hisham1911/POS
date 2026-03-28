@@ -5,9 +5,8 @@ import {
   Building02,
   ChevronDown,
   List,
-  TrendingDown,
-  TrendingUp,
 } from "@untitledui/icons";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 import { useGetTransactionsQuery } from "../../api/cashRegisterApi";
 import { Button } from "../../components/ui/button";

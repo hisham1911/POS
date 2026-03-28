@@ -211,44 +211,42 @@ export const PaymentModal = ({
                     </div>
                   )}
                   {selectedCustomer.creditLimit > 0 && (
-                    <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                    <div className="feedback-panel mt-2" data-tone={creditLimitExceeded ? "danger" : "info"}>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600">حد الائتمان:</span>
-                        <span className="font-medium">
+                        <span className="text-muted-foreground">حد الائتمان:</span>
+                        <span className="font-medium text-foreground">
                           {formatCurrency(selectedCustomer.creditLimit)}
                         </span>
                       </div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600">المستخدم:</span>
-                        <span className="font-medium text-orange-600">
+                        <span className="text-muted-foreground">المستخدم:</span>
+                        <span className="font-medium text-warning">
                           {formatCurrency(selectedCustomer.totalDue)}
                         </span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-600">المتاح:</span>
+                        <span className="text-muted-foreground">المتاح:</span>
                         <span
                           className={`font-medium ${
-                            availableCredit < 0
-                              ? "text-danger-600"
-                              : "text-success-600"
+                            availableCredit < 0 ? "text-danger" : "text-success"
                           }`}
                         >
                           {formatCurrency(availableCredit)}
                         </span>
                       </div>
                       {/* Progress bar */}
-                      <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="progress-shell mt-2 h-1.5">
                         <div
-                          className={`h-full transition-all ${
+                          className={`progress-fill ${
                             selectedCustomer.totalDue /
                               selectedCustomer.creditLimit >
                             0.9
-                              ? "bg-danger-500"
+                              ? "!bg-danger"
                               : selectedCustomer.totalDue /
                                     selectedCustomer.creditLimit >
                                   0.7
-                                ? "bg-orange-500"
-                                : "bg-success-500"
+                                ? "!bg-warning"
+                                : "!bg-success"
                           }`}
                           style={{
                             width: `${Math.min(
@@ -325,18 +323,18 @@ export const PaymentModal = ({
 
                 {/* Quick Amounts */}
                 <div className="flex gap-2">
-                  {quickAmounts.map((amount) => (
+              {quickAmounts.map((amount) => (
                     <button
                       key={amount}
                       onClick={() => handleQuickAmount(amount)}
-                      className="flex-1 py-2 rounded-lg bg-gray-100 font-medium hover:bg-primary-100 hover:text-primary-600 transition-colors"
+                      className="flex-1 rounded-lg border border-border bg-muted/65 py-2 font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-primary/10 hover:text-primary"
                     >
                       {amount}
                     </button>
                   ))}
                   <button
                     onClick={() => handleQuickAmount(total)}
-                    className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+                    className="flex-1 rounded-lg bg-primary py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     تمام
                   </button>
@@ -364,7 +362,7 @@ export const PaymentModal = ({
                       key={key}
                       onClick={() => handleNumpadClick(key)}
                       className={clsx(
-                        "h-14 rounded-lg bg-gray-100 font-semibold text-xl hover:bg-gray-200 active:bg-gray-300 transition-colors",
+                        "h-14 rounded-lg border border-border bg-muted/70 text-xl font-semibold text-foreground transition-colors hover:border-primary/25 hover:bg-card active:bg-muted",
                         key === "0" && "col-span-2",
                       )}
                     >
@@ -375,9 +373,9 @@ export const PaymentModal = ({
 
                 {/* Change */}
                 {change > 0 && (
-                  <div className="text-center p-4 bg-success-50 rounded-xl border border-success-200">
-                    <p className="text-gray-500 text-sm">الباقي</p>
-                    <p className="text-2xl font-bold text-success-500">
+                  <div className="feedback-panel text-center" data-tone="info">
+                    <p className="text-sm text-muted-foreground">الباقي</p>
+                    <p className="text-2xl font-bold text-success">
                       {formatCurrency(change)}
                     </p>
                   </div>
@@ -387,30 +385,31 @@ export const PaymentModal = ({
                 {numericAmount < total && numericAmount > 0 && (
                   <div
                     className={clsx(
-                      "text-center p-4 rounded-xl border",
+                      "feedback-panel text-center",
                       creditLimitExceeded
-                        ? "bg-danger-50 border-danger-200"
-                        : "bg-orange-50 border-orange-200",
+                        ? ""
+                        : "",
                     )}
+                    data-tone={creditLimitExceeded ? "danger" : "warning"}
                   >
-                    <p className="text-gray-500 text-sm">المبلغ المستحق</p>
+                    <p className="text-sm text-muted-foreground">المبلغ المستحق</p>
                     <p
                       className={clsx(
                         "text-2xl font-bold",
                         creditLimitExceeded
-                          ? "text-danger-500"
-                          : "text-orange-500",
+                          ? "text-danger"
+                          : "text-warning",
                       )}
                     >
                       {formatCurrency(amountDue)}
                     </p>
                     {creditLimitExceeded && (
-                      <p className="text-xs text-danger-600 mt-1">
+                      <p className="mt-1 text-xs text-danger">
                         تجاوز حد الائتمان - المتاح: {formatCurrency(availableCredit)}
                       </p>
                     )}
                     {selectedCustomer && !selectedCustomer.isActive && (
-                      <p className="text-xs text-danger-600 mt-1">
+                      <p className="mt-1 text-xs text-danger">
                         العميل غير نشط
                       </p>
                     )}
@@ -421,7 +420,7 @@ export const PaymentModal = ({
 
             {/* Partial Payment Option */}
             {selectedCustomer && canTakeCredit && (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="feedback-panel flex items-center gap-3" data-tone="info">
                 <input
                   type="checkbox"
                   id="partialPayment"
@@ -433,10 +432,10 @@ export const PaymentModal = ({
                   htmlFor="partialPayment"
                   className="flex-1 cursor-pointer"
                 >
-                  <p className="font-medium text-gray-800">
+                  <p className="font-medium text-foreground">
                     السماح بالدفع الجزئي (بيع آجل)
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     يمكن للعميل دفع جزء من المبلغ والباقي يُسجل كدين
                   </p>
                 </label>

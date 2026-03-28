@@ -427,12 +427,9 @@ export const toLocalizedNumber = (
   language: AppLanguage,
   useArabicNumerals: boolean
 ) => {
-  const locale =
-    language === "ar" && useArabicNumerals
-      ? "ar-EG-u-nu-arab"
-      : language === "ar"
-        ? "ar-EG"
-        : "en-US";
+  const baseLocale = language === "ar" ? "ar-EG" : "en-US";
+  const numberingSystem = useArabicNumerals ? "arab" : "latn";
+  const locale = `${baseLocale}-u-nu-${numberingSystem}`;
 
   return new Intl.NumberFormat(locale).format(Number(value));
 };

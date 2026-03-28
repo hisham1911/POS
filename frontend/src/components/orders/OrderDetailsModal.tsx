@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { X, Printer, RotateCcw, User, Phone, Tag } from "lucide-react";
-import { Order } from "@/types/order.types";
-import { formatCurrency, formatDateTime } from "@/utils/formatters";
-import { ORDER_STATUS, PAYMENT_METHODS } from "@/utils/constants";
+
+import { usePrintReceiptMutation } from "@/api/ordersApi";
 import { Button } from "@/components/common/Button";
-import { RefundModal } from "./RefundModal";
+import { Portal } from "@/components/common/Portal";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { usePrintReceiptMutation } from "@/api/ordersApi";
-import { toast } from "sonner";
+import { Order } from "@/types/order.types";
+import { ORDER_STATUS, PAYMENT_METHODS } from "@/utils/constants";
+import { formatCurrency, formatDateTime } from "@/utils/formatters";
 import clsx from "clsx";
-import { Portal } from "@/components/common/Portal";
+import { toast } from "sonner";
+
+import { RefundModal } from "./RefundModal";
 
 interface OrderDetailsModalProps {
   order: Order;
@@ -25,7 +27,6 @@ export const OrderDetailsModal = ({
   const user = useAppSelector(selectCurrentUser);
   const [printReceipt, { isLoading: isPrinting }] = usePrintReceiptMutation();
 
-  // Only Admin or SystemOwner can refund - can also do additional partial refund on PartiallyRefunded orders
   const canRefund =
     (user?.role === "Admin" || user?.role === "SystemOwner") &&
     (order.status === "Completed" || order.status === "PartiallyRefunded");
@@ -46,18 +47,15 @@ export const OrderDetailsModal = ({
 
   return (
     <Portal>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-scale-in flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b shrink-0">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+        <div className="glass-panel flex max-h-[90vh] w-full max-w-lg animate-scale-in flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border p-6 shrink-0">
             <div>
-              <h2 className="text-xl font-bold">طلب #{order.orderNumber}</h2>
-              <p className="text-sm text-gray-500">
-                {formatDateTime(order.createdAt)}
-              </p>
+              <h2 className="text-xl font-bold text-foreground">طلب #{order.orderNumber}</h2>
+              <p className="text-sm text-muted-foreground">{formatDateTime(order.createdAt)}</p>
             </div>
             <div className="flex gap-2">
-              {canRefund && (
+              {canRefund ? (
                 <Button
                   variant="danger"
                   size="sm"
@@ -66,7 +64,7 @@ export const OrderDetailsModal = ({
                 >
                   <RotateCcw className="w-4 h-4" />
                 </Button>
-              )}
+              ) : null}
               <Button
                 variant="outline"
                 size="sm"
@@ -78,296 +76,232 @@ export const OrderDetailsModal = ({
               </Button>
               <button
                 onClick={onClose}
-                className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-danger-50 hover:text-danger-500 transition-colors"
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/70 transition-colors hover:bg-danger/10 hover:text-danger"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* Status */}
+          <div className="flex-1 space-y-6 overflow-y-auto p-6">
             <div className="flex items-center justify-between">
-              <span className="text-gray-500">الحالة</span>
+              <span className="text-muted-foreground">الحالة</span>
               <span
                 className={clsx(
-                  "px-3 py-1 rounded-full text-sm font-medium",
+                  "rounded-full px-3 py-1 text-sm font-medium",
                   order.status === "Completed"
-                    ? "bg-success-50 text-success-500"
+                    ? "bg-success/12 text-success"
                     : order.status === "Pending"
-                      ? "bg-warning-50 text-warning-500"
+                      ? "bg-warning/12 text-warning"
                       : order.status === "PartiallyRefunded"
-                        ? "bg-amber-50 text-amber-600"
+                        ? "bg-warning/12 text-warning"
                         : order.status === "Refunded"
-                          ? "bg-danger-50 text-danger-500"
-                          : "bg-gray-50 text-gray-500",
+                          ? "bg-danger/12 text-danger"
+                          : "bg-muted text-muted-foreground"
                 )}
               >
                 {ORDER_STATUS[order.status]?.label}
               </span>
             </div>
 
-            {/* Customer */}
             {order.customerId ? (
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  معلومات العميل
-                </p>
+              <div className="rounded-lg border border-border bg-muted/35 p-3">
+                <p className="mb-2 text-sm font-medium text-muted-foreground">معلومات العميل</p>
                 <div className="space-y-1.5">
-                  {order.customerName && (
+                  {order.customerName ? (
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-primary-500" />
-                      <span className="font-medium text-gray-800">
-                        {order.customerName}
-                      </span>
+                      <User className="w-4 h-4 text-primary" />
+                      <span className="font-medium text-foreground">{order.customerName}</span>
                     </div>
-                  )}
-                  {order.customerPhone && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="w-4 h-4 text-gray-400" />
+                  ) : null}
+                  {order.customerPhone ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
                       <span dir="ltr">{order.customerPhone}</span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">العميل</span>
-                <span className="text-gray-400">عميل نقدي</span>
+                <span className="text-muted-foreground">العميل</span>
+                <span className="text-muted-foreground/70">عميل نقدي</span>
               </div>
             )}
 
-            {/* Items */}
             <div>
-              <h3 className="font-semibold mb-3">المنتجات</h3>
+              <h3 className="mb-3 font-semibold text-foreground">المنتجات</h3>
               <div className="space-y-2">
                 {order.items.map((item) => (
-                  <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between">
+                  <div key={item.id} className="rounded-lg border border-border/60 bg-card/65 p-3">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="font-medium">{item.productName}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="font-medium text-foreground">{item.productName}</p>
+                        <p className="text-sm text-muted-foreground">
                           {item.quantity} × {formatCurrency(item.unitPrice)}
-                          {item.refundedQuantity > 0 && (
-                            <span className="text-orange-500 mr-2">
-                              (مسترجع: {item.refundedQuantity})
-                            </span>
-                          )}
+                          {item.refundedQuantity > 0 ? (
+                            <span className="mr-2 text-warning">(مسترجع: {item.refundedQuantity})</span>
+                          ) : null}
                         </p>
                       </div>
-                      <div className="text-left shrink-0">
+                      <div className="shrink-0 text-left">
                         {item.discountAmount > 0 ? (
                           <>
-                            <p className="text-sm text-gray-400 line-through">
+                            <p className="text-sm text-muted-foreground/65 line-through">
                               {formatCurrency(item.unitPrice * item.quantity)}
                             </p>
-                            <p className="font-semibold text-success-600">
-                              {formatCurrency(item.total)}
-                            </p>
+                            <p className="font-semibold text-success">{formatCurrency(item.total)}</p>
                           </>
                         ) : (
-                          <p className="font-semibold">
-                            {formatCurrency(item.total)}
-                          </p>
+                          <p className="font-semibold text-foreground">{formatCurrency(item.total)}</p>
                         )}
                       </div>
                     </div>
-                    {item.discountAmount > 0 && (
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <Tag className="w-3.5 h-3.5 text-success-600" />
-                        <span className="text-xs text-success-600 font-medium">
+
+                    {item.discountAmount > 0 ? (
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-success" />
+                        <span className="text-xs font-medium text-success">
                           خصم{" "}
-                          {item.discountType === "Percentage" ||
-                          item.discountType === "percentage"
+                          {item.discountType === "Percentage" || item.discountType === "percentage"
                             ? `${item.discountValue}%`
                             : formatCurrency(item.discountValue ?? 0)}{" "}
                           (-{formatCurrency(item.discountAmount)})
                         </span>
-                        {item.discountReason && (
-                          <span className="text-xs text-gray-400">
-                            • {item.discountReason}
-                          </span>
-                        )}
+                        {item.discountReason ? (
+                          <span className="text-xs text-muted-foreground/70">• {item.discountReason}</span>
+                        ) : null}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="border-t pt-4 space-y-2">
+            <div className="space-y-2 border-t pt-4">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">المجموع الفرعي</span>
-                <span>{formatCurrency(order.subtotal)}</span>
+                <span className="text-muted-foreground">المجموع الفرعي</span>
+                <span className="text-foreground">{formatCurrency(order.subtotal)}</span>
               </div>
-              {/* Item-level discounts total */}
-              {order.items.some((i) => i.discountAmount > 0) && (
+
+              {order.items.some((item) => item.discountAmount > 0) ? (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <Tag className="w-3.5 h-3.5" />
                     خصومات المنتجات
                   </span>
-                  <span className="text-success-600">
-                    -
-                    {formatCurrency(
-                      order.items.reduce((s, i) => s + i.discountAmount, 0),
-                    )}
+                  <span className="text-success">
+                    -{formatCurrency(order.items.reduce((sum, item) => sum + item.discountAmount, 0))}
                   </span>
                 </div>
-              )}
-              {order.discountAmount > 0 && (
+              ) : null}
+
+              {order.discountAmount > 0 ? (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">
+                  <span className="text-muted-foreground">
                     خصم الطلب
-                    {(order.discountType === "Percentage" ||
-                      order.discountType === "percentage") &&
+                    {(order.discountType === "Percentage" || order.discountType === "percentage") &&
                     order.discountValue
                       ? ` (${order.discountValue}%)`
                       : ""}
                   </span>
-                  <span className="text-danger-500">
-                    -{formatCurrency(order.discountAmount)}
-                  </span>
+                  <span className="text-danger">-{formatCurrency(order.discountAmount)}</span>
                 </div>
-              )}
+              ) : null}
+
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  الضريبة ({order.taxRate}%)
-                </span>
-                <span>{formatCurrency(order.taxAmount)}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                <span>الإجمالي</span>
-                <span className="text-primary-600">
-                  {formatCurrency(order.total)}
-                </span>
+                <span className="text-muted-foreground">الضريبة ({order.taxRate}%)</span>
+                <span className="text-foreground">{formatCurrency(order.taxAmount)}</span>
               </div>
 
-              {/* Refund Amount - For partial or full refund */}
-              {hasRefund && order.refundAmount > 0 && (
-                <div className="flex justify-between text-sm pt-2 border-t border-dashed">
-                  <span className="text-danger-500 font-medium">
-                    {isFullyRefunded
-                      ? "مبلغ الاسترجاع الكامل"
-                      : "مبلغ الاسترجاع الجزئي"}
+              <div className="flex justify-between border-t pt-2 text-lg font-bold">
+                <span className="text-foreground">الإجمالي</span>
+                <span className="text-primary">{formatCurrency(order.total)}</span>
+              </div>
+
+              {hasRefund && order.refundAmount > 0 ? (
+                <div className="flex justify-between border-t border-dashed pt-2 text-sm">
+                  <span className="font-medium text-danger">
+                    {isFullyRefunded ? "مبلغ الاسترجاع الكامل" : "مبلغ الاسترجاع الجزئي"}
                   </span>
-                  <span className="text-danger-500 font-semibold">
-                    -{formatCurrency(order.refundAmount)}
-                  </span>
+                  <span className="font-semibold text-danger">-{formatCurrency(order.refundAmount)}</span>
                 </div>
-              )}
+              ) : null}
 
-              {/* Net Amount After Partial Refund */}
-              {isPartiallyRefunded && order.refundAmount > 0 && (
+              {isPartiallyRefunded && order.refundAmount > 0 ? (
                 <div className="flex justify-between text-sm font-medium">
-                  <span className="text-gray-600">الصافي بعد الاسترجاع</span>
-                  <span className="text-success-600">
-                    {formatCurrency(order.total - order.refundAmount)}
-                  </span>
+                  <span className="text-muted-foreground">الصافي بعد الاسترجاع</span>
+                  <span className="text-success">{formatCurrency(order.total - order.refundAmount)}</span>
                 </div>
-              )}
+              ) : null}
             </div>
 
-            {/* Payments */}
-            {order.payments.length > 0 && (
+            {order.payments.length > 0 ? (
               <div>
-                <h3 className="font-semibold mb-3">المدفوعات</h3>
+                <h3 className="mb-3 font-semibold text-foreground">المدفوعات</h3>
                 <div className="space-y-2">
                   {order.payments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between rounded-lg border border-border/60 bg-card/65 p-3"
                     >
-                      <span>{PAYMENT_METHODS[payment.method]?.label}</span>
-                      <span className="font-semibold">
-                        {formatCurrency(payment.amount)}
-                      </span>
+                      <span className="text-foreground">{PAYMENT_METHODS[payment.method]?.label}</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(payment.amount)}</span>
                     </div>
                   ))}
                 </div>
-                {order.changeAmount > 0 && (
-                  <div className="flex justify-between mt-2 text-sm">
-                    <span className="text-gray-500">الباقي</span>
-                    <span className="text-success-500">
-                      {formatCurrency(order.changeAmount)}
-                    </span>
+                {order.changeAmount > 0 ? (
+                  <div className="mt-2 flex justify-between text-sm">
+                    <span className="text-muted-foreground">الباقي</span>
+                    <span className="text-success">{formatCurrency(order.changeAmount)}</span>
                   </div>
-                )}
+                ) : null}
               </div>
-            )}
+            ) : null}
 
-            {/* Notes */}
-            {order.notes && (
+            {order.notes ? (
               <div>
-                <h3 className="font-semibold mb-2">ملاحظات</h3>
-                <p className="text-gray-500 bg-gray-50 p-3 rounded-lg">
-                  {order.notes}
-                </p>
+                <h3 className="mb-2 font-semibold text-foreground">ملاحظات</h3>
+                <p className="rounded-lg bg-muted/35 p-3 text-muted-foreground">{order.notes}</p>
               </div>
-            )}
+            ) : null}
 
-            {/* Refund Info - For both full and partial refunds */}
-            {hasRefund && order.refundReason && (
-              <div
-                className={clsx(
-                  "border rounded-lg p-4",
-                  isFullyRefunded
-                    ? "bg-danger-50 border-danger-200"
-                    : "bg-amber-50 border-amber-200",
-                )}
-              >
-                <h3
-                  className={clsx(
-                    "font-semibold mb-2",
-                    isFullyRefunded ? "text-danger-700" : "text-amber-700",
-                  )}
-                >
-                  {isFullyRefunded
-                    ? "معلومات الاسترجاع الكامل"
-                    : "معلومات الاسترجاع الجزئي"}
+            {hasRefund && order.refundReason ? (
+              <div className="feedback-panel rounded-lg p-4" data-tone={isFullyRefunded ? "danger" : "warning"}>
+                <h3 className={clsx("mb-2 font-semibold", isFullyRefunded ? "text-danger" : "text-warning")}>
+                  {isFullyRefunded ? "معلومات الاسترجاع الكامل" : "معلومات الاسترجاع الجزئي"}
                 </h3>
-                <div
-                  className={clsx(
-                    "text-sm space-y-1",
-                    isFullyRefunded ? "text-danger-600" : "text-amber-700",
-                  )}
-                >
+                <div className={clsx("space-y-1 text-sm", isFullyRefunded ? "text-danger" : "text-warning")}>
                   <p>
-                    <span className="font-medium">السبب:</span>{" "}
-                    {order.refundReason}
+                    <span className="font-medium">السبب:</span> {order.refundReason}
                   </p>
-                  {order.refundedAt && (
+                  {order.refundedAt ? (
                     <p>
-                      <span className="font-medium">التاريخ:</span>{" "}
-                      {formatDateTime(order.refundedAt)}
+                      <span className="font-medium">التاريخ:</span> {formatDateTime(order.refundedAt)}
                     </p>
-                  )}
-                  {order.refundedByUserName && (
+                  ) : null}
+                  {order.refundedByUserName ? (
                     <p>
-                      <span className="font-medium">بواسطة:</span>{" "}
-                      {order.refundedByUserName}
+                      <span className="font-medium">بواسطة:</span> {order.refundedByUserName}
                     </p>
-                  )}
-                  {order.refundAmount > 0 && (
+                  ) : null}
+                  {order.refundAmount > 0 ? (
                     <p>
-                      <span className="font-medium">المبلغ المسترد:</span>{" "}
-                      {formatCurrency(order.refundAmount)}
+                      <span className="font-medium">المبلغ المسترد:</span> {formatCurrency(order.refundAmount)}
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
 
-          {/* Refund Modal */}
-          {showRefundModal && (
+          {showRefundModal ? (
             <RefundModal
               order={order}
               onClose={() => setShowRefundModal(false)}
               onSuccess={onClose}
             />
-          )}
+          ) : null}
         </div>
       </div>
     </Portal>

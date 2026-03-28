@@ -73,17 +73,17 @@ export default function HandoverShiftModal({
   return (
     <Portal>
       <div 
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-[hsl(var(--foreground)/0.24)] p-4 backdrop-blur-md"
         onClick={onClose}
       >
         <div 
-          className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+          className="glass-panel flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-[calc(var(--radius)+0.35rem)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                 <span className="text-2xl">🔄</span>
               </div>
               <h2 className="text-xl font-bold text-foreground">تسليم الوردية</h2>
@@ -99,7 +99,7 @@ export default function HandoverShiftModal({
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
             {/* Current Shift Info */}
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-4 rounded-xl border border-primary/20 space-y-2">
+            <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/8 p-4">
               <div className="flex justify-between">
                 <span className="text-sm font-semibold text-muted-foreground">الكاشير الحالي:</span>
                 <span className="font-medium text-foreground">{shift.userName}</span>
@@ -129,7 +129,7 @@ export default function HandoverShiftModal({
                   onChange={(e) =>
                     setToUserId(e.target.value ? Number(e.target.value) : "")
                   }
-                  className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-card cursor-pointer hover:border-border/80 transition-all duration-200 text-foreground font-medium shadow-sm"
+                  className="appearance-none w-full rounded-xl border border-input bg-card/80 pl-10 pr-4 py-2.5 font-medium text-foreground shadow-sm transition-all duration-200 hover:border-border/80 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   required
                 >
                   <option value="">-- اختر المستخدم --</option>
@@ -156,7 +156,7 @@ export default function HandoverShiftModal({
                 step="0.01"
                 value={currentBalance === "0" ? "" : currentBalance}
                 onChange={(e) => setCurrentBalance(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+                className="w-full rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground"
                 placeholder="الرصيد في الدرج"
                 required
               />
@@ -173,7 +173,7 @@ export default function HandoverShiftModal({
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary resize-none bg-background text-foreground"
+                className="w-full resize-none rounded-xl border border-input bg-card/80 px-4 py-2.5 text-foreground"
                 rows={3}
                 placeholder="أي ملاحظات للمستخدم المستلم..."
                 maxLength={500}
@@ -184,7 +184,7 @@ export default function HandoverShiftModal({
             </div>
 
             {/* Info */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+            <div className="rounded-xl border border-primary/20 bg-primary/8 p-4">
               <p className="text-sm text-primary font-medium">
                 ℹ️ سيتم نقل الوردية للمستخدم المحدد وسيستمر بنفس الرقم. سيتم
                 تسجيل عملية التسليم في سجل التدقيق.

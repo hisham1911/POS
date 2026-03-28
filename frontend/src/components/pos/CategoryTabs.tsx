@@ -13,15 +13,12 @@ export const CategoryTabs = ({ categories, selectedId, onSelect }: CategoryTabsP
       {/* All */}
       <button
         onClick={() => onSelect(null)}
-        className={clsx(
-          "px-4 py-3 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 active:scale-95",
-          selectedId === null
-            ? "bg-primary-600 text-white"
-            : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-        )}
+        className={clsx("choice-chip whitespace-nowrap active:scale-95")}
+        data-selected={selectedId === null}
         aria-pressed={selectedId === null}
       >
-        🏪 الكل
+        <span className="choice-chip-icon flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition">🏪</span>
+        <span>الكل</span>
       </button>
 
       {/* Categories */}
@@ -29,15 +26,14 @@ export const CategoryTabs = ({ categories, selectedId, onSelect }: CategoryTabsP
         <button
           key={category.id}
           onClick={() => onSelect(category.id)}
-          className={clsx(
-            "px-4 py-3 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 active:scale-95",
-            selectedId === category.id
-              ? "bg-primary-600 text-white"
-              : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-          )}
+          className={clsx("choice-chip whitespace-nowrap active:scale-95")}
+          data-selected={selectedId === category.id}
           aria-pressed={selectedId === category.id}
         >
-          {category.imageUrl || "📁"} {category.name}
+          <span className="choice-chip-icon flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition">
+            {category.imageUrl || "📁"}
+          </span>
+          <span>{category.name}</span>
         </button>
       ))}
     </div>

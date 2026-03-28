@@ -3,8 +3,7 @@ import type { ComponentType, SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppPreferences } from "@/hooks/useAppPreferences";
-import { cn } from "@/lib/utils";
+import { formatNumber } from "@/utils/formatters";
 
 type IconType = ComponentType<SVGProps<SVGSVGElement> & { size?: number; color?: string }>;
 
@@ -23,14 +22,6 @@ export const MetricCard = ({
   tone?: "primary" | "secondary" | "success" | "warning";
   suffix?: string;
 }) => {
-  const { preferences } = useAppPreferences();
-  const locale =
-    preferences.language === "ar" && preferences.useArabicNumerals
-      ? "ar-EG-u-nu-arab"
-      : preferences.language === "ar"
-        ? "ar-EG"
-        : "en-US";
-
   return (
     <Card className="frost-card-hover rounded-2xl shadow-card overflow-hidden">
       <CardHeader className="flex-row items-start justify-between gap-4 p-5 sm:p-6">
@@ -44,9 +35,7 @@ export const MetricCard = ({
               duration={1.6}
               useEasing={true}
               formattingFn={(current) =>
-                `${new Intl.NumberFormat(locale, {
-                  maximumFractionDigits: 0
-                }).format(current)}${suffix ? ` ${suffix}` : ""}`
+                `${formatNumber(Math.round(current))}${suffix ? ` ${suffix}` : ""}`
               }
             />
           </CardTitle>
