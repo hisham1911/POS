@@ -30,49 +30,49 @@ export default function ShiftRecoveryModal({
         onClick={onDiscard}
       >
         <div 
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+          className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                 <span className="text-2xl">🔄</span>
               </div>
-              <h2 className="text-xl font-bold text-gray-800">استعادة الوردية</h2>
+              <h2 className="text-xl font-bold text-foreground">استعادة الوردية</h2>
             </div>
           </div>
 
           <div className="p-6 space-y-4 overflow-y-auto flex-1">
-            <p className="text-gray-700">
+            <p className="text-muted-foreground">
               تم العثور على وردية مفتوحة من جلسة سابقة. هل تريد استعادتها؟
             </p>
 
             {/* Shift Info */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">رقم الوردية:</span>
-                <span className="font-medium text-gray-800">#{shift.id}</span>
+                <span className="text-sm text-muted-foreground">رقم الوردية:</span>
+                <span className="font-medium text-foreground">#{shift.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">وقت الفتح:</span>
-                <span className="font-medium text-gray-800">
+                <span className="text-sm text-muted-foreground">وقت الفتح:</span>
+                <span className="font-medium text-foreground">
                   {formatDateTimeFull(shift.openedAt)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">الرصيد المتوقع:</span>
-                <span className="font-medium text-gray-800">
+                <span className="text-sm text-muted-foreground">الرصيد المتوقع:</span>
+                <span className="font-medium text-foreground">
                   {shift.expectedBalance.toFixed(2)} ج.م
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">عدد الطلبات:</span>
-                <span className="font-medium text-gray-800">{shift.totalOrders}</span>
+                <span className="text-sm text-muted-foreground">عدد الطلبات:</span>
+                <span className="font-medium text-foreground">{shift.totalOrders}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">آخر حفظ:</span>
-                <span className="font-medium text-gray-800">منذ {timeSinceLastSave} دقيقة</span>
+                <span className="text-sm text-muted-foreground">آخر حفظ:</span>
+                <span className="font-medium text-foreground">منذ {timeSinceLastSave} دقيقة</span>
               </div>
             </div>
 
@@ -86,7 +86,7 @@ export default function ShiftRecoveryModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-2 p-6 border-t border-gray-200 flex-shrink-0">
+          <div className="flex flex-col gap-2 p-6 border-t border-border flex-shrink-0">
             <button
               onClick={onRestore}
               className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors"

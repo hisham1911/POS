@@ -1,30 +1,44 @@
 import { useState } from "react";
-import { Trash2, Edit, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
-  useGetSuppliersQuery,
+  Building02,
+  Edit01,
+  Plus,
+  SearchLg,
+  Trash01,
+} from "@untitledui/icons";
+
+import {
   useDeleteSupplierMutation,
+  useGetSuppliersQuery,
 } from "../../api/suppliersApi";
-import { Supplier } from "../../types/supplier.types";
-import { Button } from "../../components/common/Button";
-import { Card } from "../../components/common/Card";
+import { MetricCard } from "../../components/app/metric-card";
 import { Loading } from "../../components/common/Loading";
-import { Input } from "../../components/common/Input";
 import SupplierFormModal from "../../components/suppliers/SupplierFormModal";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "../../components/ui/table";
+import { cn } from "../../lib/utils";
+import { Supplier } from "../../types/supplier.types";
 
 export default function SuppliersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
-    null,
-  );
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
   const { data: response, isLoading } = useGetSuppliersQuery();
   const [deleteSupplier] = useDeleteSupplierMutation();
 
   const suppliers = response?.data || [];
 
-  // Filter suppliers by search term
   const filteredSuppliers = suppliers.filter(
     (supplier) =>
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,154 +73,166 @@ export default function SuppliersPage() {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <div className="flex h-full items-center justify-center bg-background">
+        <Loading />
+      </div>
+    );
   }
 
   const activeSuppliers = filteredSuppliers.filter((s) => s.isActive).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                <Plus className="w-5 h-5 text-indigo-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">الموردين</h1>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground">
+              الموردين
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إدارة الموردين والشركات الموردة
+            </p>
+          </div>
+
+          <div className="flex items-end gap-2">
+            <Button
+              size="lg"
+              onClick={handleAddSupplier}
+              leftIcon={<Plus className="size-5" />}
+            >
+              إضافة مورد
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <MetricCard
+          title="إجمالي الموردين"
+          value={filteredSuppliers.length}
+          description="جميع الموردين المسجلين"
+          icon={Building02}
+        />
+        <MetricCard
+          title="الموردين النشطين"
+          value={activeSuppliers}
+          description="موردين متعامل معهم حالياً"
+          icon={Building02}
+          tone="success"
+        />
+      </div>
+
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="relative max-w-xl">
+              <SearchLg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="ابحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-background/50"
+              />
             </div>
-            <p className="text-gray-600">إدارة الموردين والشركات الموردة</p>
-          </div>
-          <Button
-            onClick={handleAddSupplier}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            إضافة مورد
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-indigo-100">
-            <p className="text-sm text-gray-600">إجمالي الموردين</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              {filteredSuppliers.length}
-            </p>
-          </Card>
-          <Card className="border-green-100">
-            <p className="text-sm text-gray-600">الموردين النشطين</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">
-              {activeSuppliers}
-            </p>
-          </Card>
-        </div>
-
-        <Card className="mb-6">
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="ابحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
-          </div>
+          </CardContent>
         </Card>
 
-        <Card padding="none">
-          {filteredSuppliers.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">
-                {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد موردين"}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      الاسم
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      الهاتف
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      البريد الإلكتروني
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      جهة الاتصال
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      الحالة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      الإجراءات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredSuppliers.map((supplier) => (
-                    <tr key={supplier.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {supplier.name}
+        <Card className="flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell className="text-right">الاسم</TableHeaderCell>
+                  <TableHeaderCell className="text-right">الهاتف</TableHeaderCell>
+                  <TableHeaderCell className="text-right">البريد الإلكتروني</TableHeaderCell>
+                  <TableHeaderCell className="text-right">جهة الاتصال</TableHeaderCell>
+                  <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                  <TableHeaderCell className="text-center w-24">الإجراءات</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredSuppliers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                      <Building02 className="mx-auto mb-4 size-12 opacity-50" />
+                      <p className="text-lg font-medium">
+                        {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد موردين"}
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredSuppliers.map((supplier) => (
+                    <TableRow key={supplier.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Building02 className="size-5" />
                           </div>
-                          {supplier.nameEn && (
-                            <div className="text-sm text-gray-500">
-                              {supplier.nameEn}
-                            </div>
-                          )}
+                          <div>
+                            <span className="font-semibold text-foreground block">
+                              {supplier.name}
+                            </span>
+                            {supplier.nameEn && (
+                              <span className="text-xs font-mono text-muted-foreground mt-0.5 block">
+                                {supplier.nameEn}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {supplier.phone || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono font-medium">
+                        <span dir="ltr">{supplier.phone || "-"}</span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-medium">
                         {supplier.email || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-medium">
                         {supplier.contactPerson || "-"}
-                      </td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell>
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold",
                             supplier.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                              ? "bg-success/10 text-success"
+                              : "bg-danger/10 text-danger"
+                          )}
                         >
                           {supplier.isActive ? "نشط" : "غير نشط"}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <button
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleEditSupplier(supplier)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="size-8 text-muted-foreground hover:text-primary"
                             title="تعديل"
                           >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
+                            <Edit01 className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() =>
                               handleDeleteSupplier(supplier.id, supplier.name)
                             }
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="size-8 text-muted-foreground hover:bg-danger/10 hover:text-danger"
                             title="حذف"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            <Trash01 className="size-4" />
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
 
         {isModalOpen && (

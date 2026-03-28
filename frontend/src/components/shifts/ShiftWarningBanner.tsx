@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, XCircle } from "lucide-react";
+import { AlertTriangle, Clock, XCircle } from "@untitledui/icons";
 import { ShiftWarning } from "@/types/shift.types";
 import clsx from "clsx";
 
@@ -47,7 +47,7 @@ export const ShiftWarningBanner = ({ warning, onClose }: ShiftWarningBannerProps
             >
               {isCritical ? "🚨 تحذير شديد" : "⚠️ تحذير"}
             </h3>
-            <div className="flex items-center gap-1 text-sm text-gray-600">
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
               <span>
                 {hoursText} ساعة و {minutesText} دقيقة

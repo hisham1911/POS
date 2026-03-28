@@ -1,17 +1,33 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Building2 } from "lucide-react";
-import { Button } from "@/components/common/Button";
-import { Card } from "@/components/common/Card";
-import { Loading } from "@/components/common/Loading";
-import {
-  useGetBranchesQuery,
-  useDeleteBranchMutation,
-} from "@/api/branchesApi";
-import { BranchFormModal } from "@/components/branches/BranchFormModal";
-import type { Branch } from "@/types/branch.types";
-import { formatDateTime } from "@/utils/formatters";
 import { toast } from "react-hot-toast";
 import clsx from "clsx";
+import {
+  Building02,
+  Edit01,
+  Plus,
+  Trash01,
+} from "@untitledui/icons";
+
+import {
+  useDeleteBranchMutation,
+  useGetBranchesQuery,
+} from "@/api/branchesApi";
+import { BranchFormModal } from "@/components/branches/BranchFormModal";
+import { Loading } from "@/components/common/Loading";
+import { Button } from "@/components/ui/button";
+import { MetricCard } from "@/components/app/metric-card";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui/table";
+import type { Branch } from "@/types/branch.types";
+import { formatDateTime } from "@/utils/formatters";
+import { cn } from "@/lib/utils";
 
 export const BranchesPage = () => {
   const [showFormModal, setShowFormModal] = useState(false);
@@ -52,213 +68,162 @@ export const BranchesPage = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <div className="flex h-full items-center justify-center bg-background">
+        <Loading />
+      </div>
+    );
   }
 
   const activeBranches = branches.filter((b) => b.isActive).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-blue-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">إدارة الفروع</h1>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground flex items-center gap-3">
+              <Building02 className="size-8 text-primary" />
+              إدارة الفروع
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إدارة جميع فروع المؤسسة والتحكم في بيانات وإعدادات كل فرع
+            </p>
           </div>
-          <p className="text-gray-600">
-            إدارة جميع فروع المؤسسة والتحكم في بيانات كل فرع
-          </p>
-        </div>
 
-        <div className="flex justify-end">
-          <Button
-            variant="primary"
-            onClick={() => setShowFormModal(true)}
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            إضافة فرع جديد
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-blue-100">
-            <p className="text-sm text-gray-600">إجمالي الفروع</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              {branches.length}
-            </p>
-          </Card>
-          <Card className="border-green-100">
-            <p className="text-sm text-gray-600">الفروع النشطة</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">
-              {activeBranches}
-            </p>
-          </Card>
-        </div>
-
-        {branches.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              لا توجد فروع
-            </h3>
-            <p className="text-gray-500 mb-6">ابدأ بإضافة فرع جديد لمؤسستك</p>
+          <div className="flex items-end gap-2">
             <Button
-              variant="primary"
+              size="lg"
               onClick={() => setShowFormModal(true)}
-              className="gap-2"
+              leftIcon={<Plus className="size-5" />}
             >
-              <Plus className="w-4 h-4" />
+              إضافة فرع جديد
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <MetricCard
+          title="إجمالي الفروع"
+          value={branches.length}
+          description="جميع الفروع المسجلة"
+          icon={Building02}
+        />
+        <MetricCard
+          title="الفروع النشطة"
+          value={activeBranches}
+          description="جميع الفروع المفعلة التي تعمل حالياً"
+          icon={Building02}
+          tone="success"
+        />
+      </div>
+
+      <div className="space-y-6">
+        {branches.length === 0 ? (
+          <Card className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex size-20 items-center justify-center rounded-2xl bg-muted/50">
+              <Building02 className="size-10 text-muted-foreground/50" />
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-foreground">
+              لا توجد فروع مسجلة
+            </h3>
+            <p className="mb-8 max-w-sm text-sm text-muted-foreground">
+              يبدو أنه لم يتم إضافة أي فرع بعد. قم بإضافة الفرع الأول لمؤسستك
+              للبدء في العمل.
+            </p>
+            <Button size="lg" onClick={() => setShowFormModal(true)} leftIcon={<Plus className="size-5" />}>
               إضافة فرع جديد
             </Button>
           </Card>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">
-                      اسم الفرع
-                    </th>
-                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">
-                      الكود
-                    </th>
-                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">
-                      العنوان
-                    </th>
-                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">
-                      الهاتف
-                    </th>
-                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">
-                      الحالة
-                    </th>
-                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">
-                      تاريخ الإنشاء
-                    </th>
-                    <th className="text-center py-4 px-6 text-sm font-semibold text-gray-700">
-                      الإجراءات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
+          <Card className="flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-x-auto">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell className="text-right">اسم الفرع</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الكود</TableHeaderCell>
+                    <TableHeaderCell className="text-right">العنوان</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الهاتف</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                    <TableHeaderCell className="text-right">تاريخ الإنشاء</TableHeaderCell>
+                    <TableHeaderCell className="text-center w-28">الإجراءات</TableHeaderCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
                   {branches.map((branch) => (
-                    <tr
-                      key={branch.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-4 px-6">
+                    <TableRow key={branch.id}>
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                            <Building2 className="w-5 h-5 text-primary-600" />
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Building02 className="size-5" />
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-800">
-                              {branch.name}
-                            </p>
-                          </div>
+                          <span className="font-semibold text-foreground">
+                            {branch.name}
+                          </span>
                         </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex rounded-lg bg-muted px-2.5 py-1 font-mono text-sm font-bold text-muted-foreground">
                           {branch.code}
                         </span>
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-medium text-sm">
                         {branch.address || "—"}
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {branch.phone || "—"}
-                      </td>
-                      <td className="py-4 px-6">
+                      </TableCell>
+                      <TableCell className="font-mono text-muted-foreground text-sm">
+                        <span dir="ltr">{branch.phone || "—"}</span>
+                      </TableCell>
+                      <TableCell>
                         <span
-                          className={clsx(
-                            "px-3 py-1 rounded-full text-xs font-medium",
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold leading-none",
                             branch.isActive
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700",
+                              ? "bg-success/10 text-success"
+                              : "bg-danger/10 text-danger"
                           )}
                         >
                           {branch.isActive ? "نشط" : "غير نشط"}
                         </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-600">
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-medium text-muted-foreground">
                         {formatDateTime(branch.createdAt)}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleEdit(branch)}
-                            className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+                            className="size-8 text-muted-foreground hover:text-primary"
                             title="تعديل"
                           >
-                            <Edit className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
-                          </button>
-                          <button
+                            <Edit01 className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleDelete(branch)}
                             disabled={isDeleting}
-                            className="p-2 hover:bg-red-50 rounded-lg transition-colors group disabled:opacity-50"
+                            className="size-8 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:opacity-50"
                             title="حذف"
                           >
-                            <Trash2 className="w-4 h-4 text-red-600 group-hover:text-red-700" />
-                          </button>
+                            <Trash01 className="size-4" />
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
-          </div>
+          </Card>
         )}
 
         {showFormModal && (
           <BranchFormModal branch={selectedBranch} onClose={handleCloseModal} />
         )}
-
-        {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">
-            💡 نصائح إدارة الفروع
-          </h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الفرع:</strong> كل فرع يمثل موقع عمل منفصل بإدارة خزينة
-                وعمليات خاصة بها
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الكود:</strong> رقم فريد يميز الفرع عن الفروع الأخرى
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>البيانات:</strong> احرص على إدخال بيانات صحيحة وكاملة
-                (عنوان وهاتف)
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الحالة:</strong> يمكن تفعيل أو تعطيل الفرع حسب الحاجة
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التحديث:</strong> جميع البيانات المحفوظة يمكن تعديلها
-                لاحقاً
-              </span>
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
   );

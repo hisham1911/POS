@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   X,
   ChevronDown,
-} from "lucide-react";
+} from "@untitledui/icons";
 import { toast } from "sonner";
 import { formatDateOnly } from "../../utils/formatters";
 
@@ -143,8 +143,8 @@ export default function BranchPricingEditor() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">أسعار الفروع</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">أسعار الفروع</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             تخصيص أسعار مختلفة لكل فرع
           </p>
         </div>
@@ -159,15 +159,15 @@ export default function BranchPricingEditor() {
       </div>
 
       {/* Branch Selector */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-card rounded-lg border border-border p-4">
+        <label className="block text-sm font-medium text-muted-foreground mb-2">
           اختر الفرع
         </label>
         <div className="relative w-full md:w-64">
           <select
             value={selectedBranchId}
             onChange={(e) => setSelectedBranchId(Number(e.target.value))}
-            className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+            className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm"
           >
             <option value={0}>اختر فرع</option>
             {branches.map((branch) => (
@@ -176,15 +176,15 @@ export default function BranchPricingEditor() {
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+          <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
         </div>
       </div>
 
       {/* Add/Edit Form */}
       {isAddingPrice && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               {editingPriceId ? "تعديل السعر" : "إضافة سعر مخصص"}
             </h3>
             <button
@@ -197,15 +197,15 @@ export default function BranchPricingEditor() {
                   effectiveFrom: new Date().toISOString().split("T")[0],
                 });
               }}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-muted/50 rounded-lg"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 المنتج
               </label>
               <div className="relative">
@@ -217,7 +217,7 @@ export default function BranchPricingEditor() {
                       productId: Number(e.target.value),
                     })
                   }
-                  className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   required
                   disabled={!!editingPriceId}
                 >
@@ -228,12 +228,12 @@ export default function BranchPricingEditor() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 السعر المخصص (ج.م)
               </label>
               <input
@@ -244,14 +244,14 @@ export default function BranchPricingEditor() {
                 onChange={(e) =>
                   setFormData({ ...formData, price: e.target.value })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 تاريخ السريان
               </label>
               <input
@@ -260,7 +260,7 @@ export default function BranchPricingEditor() {
                 onChange={(e) =>
                   setFormData({ ...formData, effectiveFrom: e.target.value })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -279,7 +279,7 @@ export default function BranchPricingEditor() {
                   setIsAddingPrice(false);
                   setEditingPriceId(null);
                 }}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                className="px-6 py-3 bg-muted text-muted-foreground rounded-lg hover:bg-gray-300"
               >
                 إلغاء
               </button>
@@ -290,35 +290,35 @@ export default function BranchPricingEditor() {
 
       {/* Prices Table */}
       {selectedBranchId > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-muted/30 border-b border-border">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     المنتج
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     السعر الافتراضي
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     السعر المخصص
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     الفرق
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     تاريخ السريان
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     الحالة
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     إجراءات
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-gray-200">
                 {branchPrices && branchPrices.length > 0 ? (
                   branchPrices.map((price) => {
                     const difference = price.price - price.defaultPrice;
@@ -328,14 +328,14 @@ export default function BranchPricingEditor() {
                     ).toFixed(1);
 
                     return (
-                      <tr key={price.id} className="hover:bg-gray-50">
+                      <tr key={price.id} className="hover:bg-muted/30">
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-foreground">
                             {price.productName}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-foreground">
                             {price.defaultPrice.toFixed(2)} ج.م
                           </div>
                         </td>
@@ -351,7 +351,7 @@ export default function BranchPricingEditor() {
                                 ? "text-green-600"
                                 : difference < 0
                                   ? "text-red-600"
-                                  : "text-gray-600"
+                                  : "text-muted-foreground"
                             }`}
                           >
                             {difference > 0 ? "+" : ""}
@@ -359,7 +359,7 @@ export default function BranchPricingEditor() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-foreground">
                             {formatDateOnly(price.effectiveFrom)}
                           </div>
                         </td>
@@ -369,7 +369,7 @@ export default function BranchPricingEditor() {
                               نشط
                             </span>
                           ) : (
-                            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted/50 text-foreground">
                               غير نشط
                             </span>
                           )}
@@ -398,11 +398,11 @@ export default function BranchPricingEditor() {
                 ) : (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
-                      <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">
+                      <DollarSign className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
+                      <p className="text-muted-foreground">
                         لا توجد أسعار مخصصة لهذا الفرع
                       </p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground/70 mt-1">
                         يتم استخدام الأسعار الافتراضية للمنتجات
                       </p>
                     </td>

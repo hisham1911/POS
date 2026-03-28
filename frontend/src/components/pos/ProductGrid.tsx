@@ -3,7 +3,7 @@ import { Product } from "@/types/product.types";
 import { Category } from "@/types/category.types";
 import { ProductCard } from "./ProductCard";
 import { StockAdjustmentModal } from "./StockAdjustmentModal";
-import { Package } from "lucide-react";
+import { Package } from "@untitledui/icons";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
 
@@ -29,9 +29,9 @@ export const ProductGrid = ({ products, categories }: ProductGridProps) => {
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-400">
-        <Package className="w-16 h-16 mx-auto mb-4" />
-        <p className="text-lg">لا توجد منتجات في هذا التصنيف</p>
+      <div className="text-center py-12 text-muted-foreground flex flex-col items-center">
+        <Package className="size-16 mb-4 opacity-30" />
+        <p className="text-lg font-bold">لا توجد منتجات في هذا التصنيف</p>
       </div>
     );
   }

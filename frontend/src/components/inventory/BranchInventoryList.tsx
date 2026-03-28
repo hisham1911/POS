@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGetBranchInventoryQuery } from "../../api/inventoryApi";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch } from "../../store/slices/branchSlice";
-import { Package, AlertTriangle, Search, RefreshCw } from "lucide-react";
+import { Package, AlertTriangle, Search, RefreshCw } from "@untitledui/icons";
 import { toast } from "sonner";
 import { formatDateOnly } from "../../utils/formatters";
 
@@ -37,7 +37,7 @@ export default function BranchInventoryList() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <p className="text-gray-600">الرجاء اختيار فرع أولاً</p>
+          <p className="text-muted-foreground">الرجاء اختيار فرع أولاً</p>
         </div>
       </div>
     );
@@ -73,14 +73,14 @@ export default function BranchInventoryList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">مخزون الفرع</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">مخزون الفرع</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             الفرع: <span className="font-semibold">{currentBranch.name}</span>
           </p>
         </div>
         <button
           onClick={handleRefresh}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-muted/30"
         >
           <RefreshCw className="w-4 h-4" />
           تحديث
@@ -89,54 +89,54 @@ export default function BranchInventoryList() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 w-5 h-5" />
         <input
           type="text"
           placeholder="ابحث عن منتج (الاسم، الكود، الباركود)..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pr-10 pl-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-100 rounded-lg">
               <Package className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">إجمالي المنتجات</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">إجمالي المنتجات</p>
+              <p className="text-2xl font-bold text-foreground">
                 {filteredInventory?.length || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-green-100 rounded-lg">
               <Package className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">إجمالي الكمية</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">إجمالي الكمية</p>
+              <p className="text-2xl font-bold text-foreground">
                 {filteredInventory?.reduce((sum, item) => sum + item.quantity, 0) || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-red-100 rounded-lg">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">منتجات منخفضة</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">منتجات منخفضة</p>
+              <p className="text-2xl font-bold text-foreground">
                 {filteredInventory?.filter((item) => item.isLowStock).length || 0}
               </p>
             </div>
@@ -145,48 +145,48 @@ export default function BranchInventoryList() {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted/30 border-b border-border">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   المنتج
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   الكود
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   الكمية المتاحة
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   حد إعادة الطلب
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   الحالة
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   آخر تحديث
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-gray-200">
               {filteredInventory && filteredInventory.length > 0 ? (
                 filteredInventory.map((item) => (
                   <tr
                     key={item.id}
-                    className={`hover:bg-gray-50 ${
+                    className={`hover:bg-muted/30 ${
                       item.isLowStock ? "bg-red-50" : ""
                     }`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-foreground">
                             {item.productName}
                           </div>
                           {item.productBarcode && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground">
                               باركود: {item.productBarcode}
                             </div>
                           )}
@@ -194,17 +194,17 @@ export default function BranchInventoryList() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-foreground">
                         {item.productSku || "-"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-foreground">
                         {item.quantity}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-foreground">
                         {item.reorderLevel}
                       </div>
                     </td>
@@ -220,7 +220,7 @@ export default function BranchInventoryList() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {formatDateOnly(item.lastUpdatedAt)}
                     </td>
                   </tr>
@@ -228,8 +228,8 @@ export default function BranchInventoryList() {
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
+                    <Package className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
+                    <p className="text-muted-foreground">
                       {searchTerm
                         ? "لا توجد منتجات تطابق البحث"
                         : "لا توجد منتجات في المخزون"}

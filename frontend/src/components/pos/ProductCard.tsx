@@ -62,7 +62,7 @@ export const ProductCard = ({
 
     if (totalStock <= 0) {
       return (
-        <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-bold rounded-full bg-red-500 text-white shadow-sm">
+        <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-bold rounded-full bg-danger text-danger-foreground shadow-sm">
           نفد
         </span>
       );
@@ -70,7 +70,7 @@ export const ProductCard = ({
 
     if (availableStock <= 0) {
       return (
-        <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-bold rounded-full bg-orange-500 text-white shadow-sm">
+        <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-bold rounded-full bg-warning text-warning-foreground shadow-sm">
           في السلة
         </span>
       );
@@ -85,7 +85,7 @@ export const ProductCard = ({
     }
 
     return (
-      <span className="absolute top-2 left-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-700/70 text-white shadow-sm">
+      <span className="absolute top-2 left-2 px-2 py-0.5 text-[11px] font-bold rounded-full bg-muted-foreground/80 text-background shadow-sm backdrop-blur-sm">
         {availableStock}
       </span>
     );
@@ -104,19 +104,19 @@ export const ProductCard = ({
       disabled={isDisabled || !canAddMore}
       className={clsx(
         "relative rounded-xl overflow-hidden transition-all duration-200 w-full text-right p-3",
-        "bg-white border-2",
+        "bg-card border-2",
         isDisabled && "opacity-50 cursor-not-allowed",
         !isDisabled && canAddMore && "active:scale-[0.97]",
         !canAddMore && !isDisabled && "cursor-not-allowed",
         isInCart
-          ? "border-primary-400 shadow-md"
-          : "border-transparent shadow hover:shadow-md"
+          ? "border-primary shadow-md"
+          : "border-transparent shadow-sm hover:shadow"
       )}
       aria-label={`إضافة ${product.name} - ${formatCurrency(product.price)}`}
       aria-disabled={isDisabled}
     >
       {/* Image */}
-      <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden relative">
+      <div className="aspect-square bg-gradient-to-br from-muted/30 to-muted/50 rounded-lg mb-3 flex items-center justify-center overflow-hidden relative">
         {product.imageUrl && !imageError ? (
           <img
             src={product.imageUrl}
@@ -135,19 +135,19 @@ export const ProductCard = ({
       </div>
 
       {/* Name */}
-      <h3 className="font-semibold text-gray-800 truncate mb-1 text-sm">
+      <h3 className="font-semibold text-foreground truncate mb-1 text-sm">
         {product.name}
       </h3>
 
       {/* Price */}
-      <p className="text-primary-600 font-bold">
+      <p className="text-primary font-bold">
         {formatCurrency(product.price)}
       </p>
 
       {/* Out of stock overlay */}
       {isOutOfStock && (
-        <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center rounded-xl">
-          <span className="bg-red-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center rounded-xl">
+          <span className="bg-danger/10 text-danger border border-danger/20 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
             نفد المخزون
           </span>
         </div>
@@ -155,8 +155,8 @@ export const ProductCard = ({
 
       {/* Inactive overlay */}
       {!product.isActive && !isOutOfStock && (
-        <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center rounded-xl">
-          <span className="bg-gray-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center rounded-xl">
+          <span className="bg-muted text-muted-foreground border border-border px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
             غير متوفر
           </span>
         </div>

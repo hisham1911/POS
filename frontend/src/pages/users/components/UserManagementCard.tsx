@@ -1,14 +1,26 @@
 import { useState } from "react";
-import { Card, Loading } from "../../../components/common";
-import { Plus, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Edit01, Plus, Trash01, Power01 } from "@untitledui/icons";
+import { toast } from "react-hot-toast";
+
 import {
-  useGetAllUsersQuery,
   useDeleteUserMutation,
+  useGetAllUsersQuery,
   useToggleUserStatusMutation,
 } from "../../../api/usersApi";
-import { toast } from "react-hot-toast";
-import UserFormModal from "./UserFormModal";
+import { Loading } from "../../../components/common/Loading";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "../../../components/ui/table";
 import type { UserDto } from "../../../types/user.types";
+import UserFormModal from "./UserFormModal";
+import { cn } from "@/lib/utils";
 
 export default function UserManagementCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,64 +66,50 @@ export default function UserManagementCard() {
 
   return (
     <>
-      <Card>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">قائمة المستخدمين</h2>
-          <button
+      <Card className="flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-border bg-muted/10">
+          <h2 className="text-xl font-bold text-foreground">قائمة المستخدمين في الفرع</h2>
+          <Button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+            leftIcon={<Plus className="size-5" />}
           >
-            <Plus className="w-5 h-5" />
             إضافة مستخدم جديد
-          </button>
+          </Button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  الاسم
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  البريد الإلكتروني
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  الهاتف
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  الدور
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  الفرع
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  الحالة
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  الإجراءات
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+        <div className="flex-1 overflow-x-auto">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell className="text-right">الاسم</TableHeaderCell>
+                <TableHeaderCell className="text-right">البريد الإلكتروني</TableHeaderCell>
+                <TableHeaderCell className="text-right">الهاتف</TableHeaderCell>
+                <TableHeaderCell className="text-right">الدور</TableHeaderCell>
+                <TableHeaderCell className="text-right">الفرع</TableHeaderCell>
+                <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                <TableHeaderCell className="text-right">الإجراءات</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm">{user.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                <TableRow key={user.id} className="hover:bg-muted/30">
+                  <TableCell className="font-semibold text-foreground">{user.name}</TableCell>
+                  <TableCell className="font-mono text-sm font-medium text-muted-foreground">
                     {user.email}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {user.phone || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
+                  </TableCell>
+                  <TableCell className="font-mono text-sm text-muted-foreground">
+                    <span dir="ltr">{user.phone || "-"}</span>
+                  </TableCell>
+                  <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      className={cn(
+                        "inline-flex w-fit items-center px-2.5 py-1 rounded-full text-[11px] font-bold leading-none",
                         user.role === "Admin"
-                          ? "bg-purple-100 text-purple-700"
+                          ? "bg-secondary/10 text-secondary"
                           : user.role === "SystemOwner"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-blue-100 text-blue-700"
-                      }`}
+                            ? "bg-danger/10 text-danger"
+                            : "bg-primary/10 text-primary",
+                      )}
                     >
                       {user.role === "Admin"
                         ? "مدير"
@@ -119,72 +117,74 @@ export default function UserManagementCard() {
                           ? "مالك النظام"
                           : "كاشير"}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  </TableCell>
+                  <TableCell className="text-sm font-medium text-muted-foreground">
                     {user.role === "Admin" ? "كل الفروع" : user.branchName || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
+                  </TableCell>
+                  <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      className={cn(
+                        "inline-flex w-fit items-center px-2.5 py-1 rounded-full text-[11px] font-bold leading-none",
                         user.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
+                          ? "bg-success/10 text-success"
+                          : "bg-muted text-muted-foreground",
+                      )}
                     >
                       {user.isActive ? "نشط" : "معطل"}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <button
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEdit(user)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
                         title="تعديل"
                       >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
+                        <Edit01 className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleToggleStatus(user.id, user.isActive)}
-                        className={`p-2 rounded-lg transition ${
+                        className={cn(
+                          "size-8 text-muted-foreground",
                           user.isActive
-                            ? "text-orange-600 hover:bg-orange-50"
-                            : "text-green-600 hover:bg-green-50"
-                        }`}
+                            ? "hover:text-warning hover:bg-warning/10"
+                            : "hover:text-success hover:bg-success/10",
+                        )}
                         title={user.isActive ? "تعطيل" : "تفعيل"}
                       >
-                        {user.isActive ? (
-                          <PowerOff className="w-4 h-4" />
-                        ) : (
-                          <Power className="w-4 h-4" />
-                        )}
-                      </button>
-                      <button
+                        <Power01 className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleDelete(user.id, user.name)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        className="size-8 text-muted-foreground hover:text-danger hover:bg-danger/10"
                         title="حذف"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        <Trash01 className="size-4" />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-
-          {users.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              لا يوجد مستخدمين حالياً
-            </div>
-          )}
+              {users.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                    لا يوجد مستخدمين حالياً
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </Card>
 
       {isModalOpen && (
-        <UserFormModal
-          user={editingUser}
-          onClose={handleCloseModal}
-        />
+        <UserFormModal user={editingUser} onClose={handleCloseModal} />
       )}
     </>
   );

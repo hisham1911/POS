@@ -1,22 +1,37 @@
 import { useState } from 'react';
-import { Card, Loading, Button, Input, Modal } from '../../components/common';
-import {
-  Users,
-  Edit,
-  Lock,
-  CheckCircle,
-  XCircle,
-  Building2,
-  Search,
-} from 'lucide-react';
-import {
-  useGetAllSystemUsersQuery,
-  useUpdateSystemUserMutation,
-  useToggleSystemUserStatusMutation,
-  useResetSystemUserPasswordMutation,
-  SystemUser,
-} from '../../api/systemUsersApi';
 import { toast } from 'sonner';
+import {
+  Building02,
+  CheckCircle,
+  Edit01,
+  Lock01,
+  SearchLg,
+  Users01,
+  XCircle,
+} from '@untitledui/icons';
+
+import {
+  SystemUser,
+  useGetAllSystemUsersQuery,
+  useResetSystemUserPasswordMutation,
+  useToggleSystemUserStatusMutation,
+  useUpdateSystemUserMutation,
+} from '../../api/systemUsersApi';
+import { Loading } from '../../components/common/Loading';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { Modal } from '../../components/common/Modal'; // Assuming keeping common modal or use standard dialog
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from '../../components/ui/table';
+import { MetricCard } from '../../components/app/metric-card';
+import { cn } from '../../lib/utils';
 
 export default function SystemUsersPage() {
   const { data: users, isLoading, error } = useGetAllSystemUsersQuery();
@@ -51,7 +66,7 @@ export default function SystemUsersPage() {
       }).unwrap();
       toast.success('تم تحديث بيانات المستخدم بنجاح');
       setEditDialogOpen(false);
-    } catch (error) {
+    } catch (err) {
       toast.error('فشل تحديث بيانات المستخدم');
     }
   };
@@ -60,7 +75,7 @@ export default function SystemUsersPage() {
     try {
       await toggleStatus(userId).unwrap();
       toast.success('تم تغيير حالة المستخدم بنجاح');
-    } catch (error) {
+    } catch (err) {
       toast.error('فشل تغيير حالة المستخدم');
     }
   };
@@ -82,7 +97,7 @@ export default function SystemUsersPage() {
       toast.success('تم إعادة تعيين كلمة المرور بنجاح');
       setPasswordDialogOpen(false);
       setNewPassword('');
-    } catch (error) {
+    } catch (err) {
       toast.error('فشل إعادة تعيين كلمة المرور');
     }
   };
@@ -90,13 +105,13 @@ export default function SystemUsersPage() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'SystemOwner':
-        return 'bg-red-100 text-red-800';
+        return 'bg-danger/10 text-danger';
       case 'Admin':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary';
       case 'Cashier':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/10 text-success';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -114,7 +129,11 @@ export default function SystemUsersPage() {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <div className="flex h-full items-center justify-center bg-background">
+        <Loading />
+      </div>
+    );
   }
 
   // Filter users by search term
@@ -135,184 +154,182 @@ export default function SystemUsersPage() {
     return acc;
   }, {} as Record<string, SystemUser[]>);
 
+  const activeUsersCount = users?.filter((u) => u.isActive).length || 0;
+  const inactiveUsersCount = users?.filter((u) => !u.isActive).length || 0;
+
   return (
-    <div className="container mx-auto p-6" dir="rtl">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Users className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold">إدارة المستخدمين</h1>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground flex items-center gap-3">
+              <Users01 className="size-8 text-primary" />
+              إدارة المستخدمين
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إدارة جميع مستخدمي النظام عبر جميع المحلات والفروع.
+            </p>
+          </div>
         </div>
-        <p className="text-gray-600">إدارة جميع مستخدمي النظام عبر جميع المحلات</p>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard
+          title="إجمالي المستخدمين"
+          value={users?.length || 0}
+          description="جميع الحسابات المسجلة"
+          icon={Users01}
+        />
+        <MetricCard
+          title="مستخدم نشط"
+          value={activeUsersCount}
+          description="الحسابات الفعالة على النظام"
+          icon={CheckCircle}
+          tone="success"
+        />
+        <MetricCard
+          title="مستخدم غير نشط"
+          value={inactiveUsersCount}
+          description="الحسابات المعطلة حالياً"
+          icon={XCircle}
+          tone="danger"
+        />
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm mb-1">إجمالي المستخدمين</p>
-              <p className="text-3xl font-bold text-blue-600">{users?.length || 0}</p>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="relative max-w-xl">
+              <SearchLg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="بحث بالاسم أو البريد أو المحل..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-background/50"
+              />
             </div>
-            <Users className="w-12 h-12 text-blue-200" />
-          </div>
+          </CardContent>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm mb-1">مستخدم نشط</p>
-              <p className="text-3xl font-bold text-green-600">
-                {users?.filter((u) => u.isActive).length || 0}
-              </p>
-            </div>
-            <CheckCircle className="w-12 h-12 text-green-200" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm mb-1">مستخدم غير نشط</p>
-              <p className="text-3xl font-bold text-red-600">
-                {users?.filter((u) => !u.isActive).length || 0}
-              </p>
-            </div>
-            <XCircle className="w-12 h-12 text-red-200" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input
-            type="text"
-            placeholder="بحث بالاسم أو البريد أو المحل..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10"
-          />
-        </div>
-      </div>
-
-      {/* Users by Tenant */}
-      {groupedUsers &&
-        Object.entries(groupedUsers).map(([tenantName, tenantUsers]) => (
-          <Card key={tenantName} className="mb-6">
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-6 h-6 text-blue-600" />
-                <h2 className="text-xl font-bold">{tenantName}</h2>
-                <span className="text-sm text-gray-500">({tenantUsers.length} مستخدم)</span>
+        {groupedUsers &&
+          Object.entries(groupedUsers).map(([tenantName, tenantUsers]) => (
+            <Card key={tenantName} className="flex flex-col overflow-hidden">
+              <div className="flex items-center gap-3 border-b border-border bg-muted/10 p-5">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Building02 className="size-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">{tenantName}</h2>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {tenantUsers.length} مستخدم
+                  </span>
+                </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                        الاسم
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                        البريد الإلكتروني
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                        الهاتف
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                        الدور
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                        الفرع
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                        الحالة
-                      </th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                        الإجراءات
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
+              <div className="flex-1 overflow-x-auto">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell className="text-right">الاسم</TableHeaderCell>
+                      <TableHeaderCell className="text-right">البريد الإلكتروني</TableHeaderCell>
+                      <TableHeaderCell className="text-right">الهاتف</TableHeaderCell>
+                      <TableHeaderCell className="text-right">الدور</TableHeaderCell>
+                      <TableHeaderCell className="text-right">الفرع</TableHeaderCell>
+                      <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                      <TableHeaderCell className="text-center w-32">الإجراءات</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {tenantUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm">{user.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
-                          {user.phone || '-'}
-                        </td>
-                        <td className="px-4 py-3">
+                      <TableRow key={user.id}>
+                        <TableCell className="font-semibold text-foreground">
+                          {user.name}
+                        </TableCell>
+                        <TableCell className="font-mono text-muted-foreground text-sm font-medium">
+                          {user.email}
+                        </TableCell>
+                        <TableCell className="font-mono text-muted-foreground text-sm">
+                          <span dir="ltr">{user.phone || '-'}</span>
+                        </TableCell>
+                        <TableCell>
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(
-                              user.role
-                            )}`}
+                            className={cn(
+                              'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold leading-none',
+                              getRoleBadgeColor(user.role)
+                            )}
                           >
                             {getRoleLabel(user.role)}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground font-medium text-sm">
                           {user.branchName || '-'}
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell>
                           {user.isActive ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              <CheckCircle className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-success/10 text-success leading-none">
+                              <CheckCircle className="size-3" />
                               نشط
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              <XCircle className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground leading-none">
+                              <XCircle className="size-3" />
                               غير نشط
                             </span>
                           )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleEditClick(user)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="تعديل"
+                              className="size-8 text-muted-foreground hover:text-primary"
+                              title="تعديل بيانات المستخدم"
                             >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
+                              <Edit01 className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handlePasswordClick(user)}
-                              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                              className="size-8 text-muted-foreground hover:text-warning"
                               title="إعادة تعيين كلمة المرور"
                             >
-                              <Lock className="w-4 h-4" />
-                            </button>
-                            <button
+                              <Lock01 className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleToggleStatus(user.id)}
                               disabled={user.role === 'SystemOwner'}
-                              className={`p-2 rounded-lg transition-colors ${
+                              className={cn(
+                                "size-8",
                                 user.role === 'SystemOwner'
-                                  ? 'text-gray-400 cursor-not-allowed'
+                                  ? 'text-muted-foreground/30 cursor-not-allowed opacity-50'
                                   : user.isActive
-                                  ? 'text-red-600 hover:bg-red-50'
-                                  : 'text-green-600 hover:bg-green-50'
-                              }`}
-                              title={user.isActive ? 'تعطيل' : 'تفعيل'}
+                                  ? 'text-muted-foreground hover:bg-danger/10 hover:text-danger'
+                                  : 'text-muted-foreground hover:bg-success/10 hover:text-success'
+                              )}
+                              title={user.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب'}
                             >
                               {user.isActive ? (
-                                <XCircle className="w-4 h-4" />
+                                <XCircle className="size-4" />
                               ) : (
-                                <CheckCircle className="w-4 h-4" />
+                                <CheckCircle className="size-4" />
                               )}
-                            </button>
+                            </Button>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+      </div>
 
-      {/* Edit Dialog */}
       <Modal
         isOpen={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
@@ -320,30 +337,28 @@ export default function SystemUsersPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">الاسم</label>
+            <label className="mb-2 block text-sm font-semibold text-foreground">الاسم</label>
             <Input
               value={editForm.name}
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              البريد الإلكتروني
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-foreground">البريد الإلكتروني</label>
             <Input
               value={editForm.email}
               onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">الهاتف</label>
+            <label className="mb-2 block text-sm font-semibold text-foreground">الهاتف</label>
             <Input
               value={editForm.phone}
               onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
             />
           </div>
-          <div className="flex gap-2 justify-end pt-4">
-            <Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
+          <div className="flex gap-3 justify-end pt-4">
+            <Button variant="ghost" onClick={() => setEditDialogOpen(false)}>
               إلغاء
             </Button>
             <Button onClick={handleEditSubmit}>حفظ</Button>
@@ -351,31 +366,30 @@ export default function SystemUsersPage() {
         </div>
       </Modal>
 
-      {/* Password Reset Dialog */}
       <Modal
         isOpen={passwordDialogOpen}
         onClose={() => setPasswordDialogOpen(false)}
         title="إعادة تعيين كلمة المرور"
       >
-        <div className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              سيتم إعادة تعيين كلمة المرور للمستخدم: <strong>{selectedUser?.name}</strong>
+        <div className="space-y-5">
+          <div className="rounded-xl border border-warning/20 bg-warning/10 p-4">
+            <p className="text-sm font-bold text-warning">
+              سيتم إعادة تعيين كلمة المرور للمستخدم: {selectedUser?.name}
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              كلمة المرور الجديدة
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-foreground">كلمة المرور الجديدة</label>
             <Input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="أدخل كلمة المرور الجديدة"
+              placeholder="أدخل كلمة المرور الحالية هنا"
+              className="font-mono text-left"
+              dir="ltr"
             />
           </div>
-          <div className="flex gap-2 justify-end pt-4">
-            <Button variant="secondary" onClick={() => setPasswordDialogOpen(false)}>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="ghost" onClick={() => setPasswordDialogOpen(false)}>
               إلغاء
             </Button>
             <Button onClick={handlePasswordSubmit} disabled={!newPassword}>

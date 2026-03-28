@@ -1,63 +1,58 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useProducts, useCategories } from "@/hooks/useProducts";
-import { useCart } from "@/hooks/useCart";
-import { useShift } from "@/hooks/useShift";
-import { useOrders } from "@/hooks/useOrders";
-import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
-import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
-import { usePOSMode } from "@/hooks/usePOSMode";
-import { Customer } from "@/types/customer.types";
-import { PaymentMethod } from "@/types/order.types";
-import { toast } from "sonner";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
-  ScanBarcode,
-  PackageCheck,
   AlertCircle,
-  PlusCircle,
-  FileText,
-  ShoppingCart,
-  User,
-  CreditCard,
-  Receipt,
-  Trash2,
-  Tag,
-  Phone,
-  Star,
-  Banknote,
-  Building2,
+  BankNote01,
+  Building02,
   Check,
-  X as XIcon,
-  Plus,
-  CheckCircle2,
+  CheckCircle,
+  CreditCard01,
+  File04,
   Minus,
   Package,
-} from "lucide-react";
-import clsx from "clsx";
-
-// Import components
-import { ProductListView } from "@/components/pos/ProductListView";
-import { CategoryChips } from "@/components/pos/CategoryChips";
-import { CartItemComponent } from "@/components/pos/CartItem";
-import { CustomerQuickCreateModal } from "@/components/pos/CustomerQuickCreateModal";
-import { ProductQuickCreateModal } from "@/components/pos/ProductQuickCreateModal";
-import { CustomItemModal } from "@/components/pos/CustomItemModal";
-import { Loading } from "@/components/common/Loading";
-import { Button } from "@/components/common/Button";
-import { formatCurrency } from "@/utils/formatters";
+  Phone,
+  Plus,
+  PlusCircle,
+  Receipt,
+  SearchLg,
+  ShoppingCart01,
+  Star01,
+  Tag01,
+  Trash01,
+  User01,
+  XClose,
+} from "@untitledui/icons";
 import { useLazyGetCustomerByPhoneQuery } from "@/api/customersApi";
+import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
+import { Button } from "@/components/ui/button";
+import { Loading } from "@/components/common/Loading";
+import { CartItemComponent } from "@/components/pos/CartItem";
+import { CategoryChips } from "@/components/pos/CategoryChips";
+import { CustomerQuickCreateModal } from "@/components/pos/CustomerQuickCreateModal";
+import { CustomItemModal } from "@/components/pos/CustomItemModal";
+import { ProductListView } from "@/components/pos/ProductListView";
+import { ProductQuickCreateModal } from "@/components/pos/ProductQuickCreateModal";
+import { useCart } from "@/hooks/useCart";
+import { useOrders } from "@/hooks/useOrders";
+import { usePOSMode } from "@/hooks/usePOSMode";
+import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
+import { useCategories, useProducts } from "@/hooks/useProducts";
+import { useShift } from "@/hooks/useShift";
+import { cn } from "@/lib/utils";
+import type { Customer } from "@/types/customer.types";
+import type { PaymentMethod } from "@/types/order.types";
+import { formatCurrency } from "@/utils/formatters";
 
 type WorkspaceTab = "cart" | "customer" | "payment" | "summary";
 
 export const POSWorkspacePage = () => {
   const { mode } = usePOSMode();
 
-  // Redirect to cashier mode if mode is cashier
   if (mode === "cashier") {
     return <Navigate to="/pos" replace />;
   }
 
-  // State
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -78,7 +73,6 @@ export const POSWorkspacePage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const customerPhoneRef = useRef<HTMLInputElement>(null);
 
-  // Hooks
   const { products, isLoading } = useProducts();
   const { categories } = useCategories();
   const {
@@ -100,11 +94,9 @@ export const POSWorkspacePage = () => {
   const { hasActiveShift, isLoading: isLoadingShift, currentShift } = useShift();
   const { createOrder, completeOrder, isCreating, isCompleting } = useOrders();
 
-  // Customer search
   const [searchCustomer, { data: searchResult, isFetching: isSearchingCustomer }] =
     useLazyGetCustomerByPhoneQuery();
 
-  // Fetch shift warnings
   const { data: warningsData } = useGetShiftWarningsQuery(undefined, {
     pollingInterval: 10 * 60 * 1000,
     skip: !hasActiveShift,
@@ -112,7 +104,6 @@ export const POSWorkspacePage = () => {
 
   const shiftWarning = warningsData?.data;
 
-  // Shortcuts
   usePOSShortcuts({
     onCheckout: () => {
       if (items.length > 0) {
@@ -123,19 +114,16 @@ export const POSWorkspacePage = () => {
     onSearch: () => searchInputRef.current?.focus(),
   });
 
-  // Auto-focus search on mount
   useEffect(() => {
     searchInputRef.current?.focus();
   }, []);
 
-  // Auto-update payment amount when total changes
   useEffect(() => {
     if (activeTab === "payment") {
       setAmountPaid(total.toFixed(2));
     }
   }, [total, activeTab]);
 
-  // Handle search/barcode scan
   const handleSearchSubmit = useCallback(
     (value: string) => {
       const trimmedValue = value.trim();
@@ -167,7 +155,6 @@ export const POSWorkspacePage = () => {
     }
   };
 
-  // Customer search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       if (customerPhone.length >= 8) {
@@ -177,7 +164,6 @@ export const POSWorkspacePage = () => {
     return () => clearTimeout(timer);
   }, [customerPhone, searchCustomer]);
 
-  // Handle customer selection
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setCustomerPhone("");
@@ -189,7 +175,6 @@ export const POSWorkspacePage = () => {
     setCustomerPhone("");
   };
 
-  // Payment handlers
   const handleNumpadClick = (value: string) => {
     if (value === "C") {
       setAmountPaid("");
@@ -208,12 +193,10 @@ export const POSWorkspacePage = () => {
     setAmountPaid(amount.toFixed(2));
   };
 
-  // Complete payment
   const handleCompletePayment = async () => {
     const numericAmount = parseFloat(amountPaid) || 0;
     const amountDue = total - numericAmount;
 
-    // Validate payment amount
     if (numericAmount < total && !allowPartialPayment) {
       setShowPaymentError(true);
       setTimeout(() => setShowPaymentError(false), 500);
@@ -221,25 +204,22 @@ export const POSWorkspacePage = () => {
       return;
     }
 
-    // Validate partial payment requires customer
     if (numericAmount < total && !selectedCustomer) {
       toast.error("البيع الآجل يتطلب ربط عميل بالطلب");
       return;
     }
 
-    // Validate customer is active
     if (numericAmount < total && selectedCustomer && !selectedCustomer.isActive) {
       toast.error("العميل غير نشط - لا يمكن البيع الآجل");
       return;
     }
 
-    // Validate credit limit
     if (selectedCustomer && selectedCustomer.creditLimit > 0) {
       const availableCredit = selectedCustomer.creditLimit - selectedCustomer.totalDue;
       const creditLimitExceeded = amountDue > availableCredit;
       if (numericAmount < total && creditLimitExceeded) {
         toast.error(
-          `تجاوز حد الائتمان. المتاح: ${formatCurrency(availableCredit)} ج.م، المطلوب: ${formatCurrency(amountDue)} ج.م`,
+          `تجاوز حد الائتمان. المتاح: ${formatCurrency(availableCredit)}، المطلوب: ${formatCurrency(amountDue)}`,
           { duration: 5000 }
         );
         return;
@@ -247,11 +227,9 @@ export const POSWorkspacePage = () => {
     }
 
     try {
-      // Create order
       const order = await createOrder(selectedCustomer?.id);
       if (!order) return;
 
-      // Complete order with payment
       const completedOrder = await completeOrder(order.id, {
         payments: [{ method: selectedPaymentMethod, amount: numericAmount }],
       });
@@ -268,7 +246,6 @@ export const POSWorkspacePage = () => {
           toast.success("تم إتمام الدفع بنجاح!");
         }
 
-        // Reset state
         setSelectedCustomer(null);
         setCustomerPhone("");
         setAmountPaid("");
@@ -280,7 +257,6 @@ export const POSWorkspacePage = () => {
     }
   };
 
-  // Filter products
   let filteredProducts = products;
 
   if (searchInput.trim()) {
@@ -306,32 +282,30 @@ export const POSWorkspacePage = () => {
     });
   }
 
-  // Loading state
   if (isLoading || isLoadingShift) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50">
+      <div className="flex h-full items-center justify-center bg-background">
         <Loading />
       </div>
     );
   }
 
-  // No active shift warning
   if (!hasActiveShift) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-warning-600" />
+      <div className="flex h-full items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md rounded-3xl bg-card p-10 text-center shadow-xl border border-border/60">
+          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-warning/10">
+            <AlertCircle className="size-10 text-warning" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="mb-3 text-2xl font-black text-foreground">
             لا توجد وردية مفتوحة
           </h2>
-          <p className="text-gray-600 mb-6">
-            يجب فتح وردية قبل البدء في البيع. اذهب إلى صفحة الورديات لفتح وردية جديدة.
+          <p className="mb-8 text-muted-foreground leading-relaxed">
+            يجب فتح وردية قبل البدء في البيع. اذهب إلى صفحة الورديات لفتح وردية جديدة لتتمكن من استخدام نقطة البيع.
           </p>
           <Link
             to="/shift"
-            className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium"
+            className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
             الذهاب إلى الورديات
           </Link>
@@ -340,12 +314,10 @@ export const POSWorkspacePage = () => {
     );
   }
 
-  // Payment calculations
   const numericAmount = parseFloat(amountPaid) || 0;
   const change = numericAmount - total;
   const amountDue = total - numericAmount;
 
-  // Calculate available credit for customer
   const availableCredit = selectedCustomer
     ? selectedCustomer.creditLimit - selectedCustomer.totalDue
     : 0;
@@ -353,8 +325,7 @@ export const POSWorkspacePage = () => {
   const canTakeCredit =
     selectedCustomer &&
     selectedCustomer.isActive &&
-    (selectedCustomer.creditLimit === 0 ||
-      amountDue <= availableCredit);
+    (selectedCustomer.creditLimit === 0 || amountDue <= availableCredit);
 
   const creditLimitExceeded =
     selectedCustomer &&
@@ -366,26 +337,25 @@ export const POSWorkspacePage = () => {
     label: string;
     icon: React.ReactNode;
   }[] = [
-    { id: "Cash", label: "نقدي", icon: <Banknote className="w-6 h-6" /> },
-    { id: "Card", label: "بطاقة", icon: <CreditCard className="w-6 h-6" /> },
-    { id: "Fawry", label: "فوري", icon: <Building2 className="w-6 h-6" /> },
+    { id: "Cash", label: "نقدي", icon: <BankNote01 className="size-6" /> },
+    { id: "Card", label: "بطاقة", icon: <CreditCard01 className="size-6" /> },
+    { id: "Fawry", label: "فوري", icon: <Building02 className="size-6" /> },
   ];
 
   const quickAmounts = [50, 100, 200, 500];
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Shift Warning Banner */}
+    <div className="flex h-full flex-col bg-background">
       {shiftWarning && shiftWarning.shouldWarn && (
-        <div className="bg-warning-50 border-b border-warning-200 px-6 py-3">
+        <div className="border-b border-warning/20 bg-warning/5 px-6 py-3 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-warning-600 shrink-0" />
+            <AlertCircle className="size-5 shrink-0 text-warning" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-warning-800">
+              <p className="text-sm font-semibold text-warning">
                 {shiftWarning.message}
               </p>
               {shiftWarning.hoursOpen && (
-                <p className="text-xs text-warning-600">
+                <p className="text-xs font-medium text-warning/80">
                   الوردية مفتوحة منذ {shiftWarning.hoursOpen.toFixed(1)} ساعة
                 </p>
               )}
@@ -394,29 +364,26 @@ export const POSWorkspacePage = () => {
         </div>
       )}
 
-      {/* Main Area */}
       <div className="flex flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         {/* Left: Product Explorer (60%) */}
-        <div className="flex min-w-0 flex-1 flex-col p-4 lg:min-h-0">
-          {/* Search Input */}
-          <div className="mb-4">
-            <div className="relative">
-              <ScanBarcode className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="flex min-w-0 flex-1 flex-col p-4 lg:min-h-0 bg-muted/10">
+          <div className="mb-5">
+            <div className="relative group">
+              <SearchLg className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="🔍 بحث بالاسم، الباركود أو SKU (اضغط Enter للإضافة)"
-                className="w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm shadow-sm"
+                placeholder="بحث بالاسم، الباركود أو SKU (اضغط Enter للإضافة)"
+                className="w-full rounded-2xl border-2 border-border/50 bg-background pl-4 pr-12 py-3.5 text-sm font-medium shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
                 autoComplete="off"
               />
             </div>
           </div>
 
-          {/* Categories */}
-          <div className="mb-4">
+          <div className="mb-5">
             <CategoryChips
               categories={categories}
               selectedId={selectedCategory}
@@ -424,92 +391,84 @@ export const POSWorkspacePage = () => {
             />
           </div>
 
-          {/* Filters Row */}
-          <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="mb-5 flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => setShowAvailableOnly(!showAvailableOnly)}
-              className={clsx(
-                "flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all",
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shadow-sm",
                 showAvailableOnly
-                  ? "bg-success-600 text-white shadow-md"
-                  : "bg-white text-gray-600 border-2 border-gray-200 hover:border-success-300"
+                  ? "bg-foreground text-background"
+                  : "bg-background text-foreground border border-border hover:bg-muted"
               )}
             >
-              <PackageCheck className="w-4 h-4" />
+              <CheckCircle className="size-4" />
               <span>المتاح فقط</span>
             </button>
 
             <button
               onClick={() => setShowQuickCreate(true)}
-              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium bg-white text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-all"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="size-4" />
               <span>منتج جديد</span>
             </button>
 
             <button
               onClick={() => setShowCustomItem(true)}
               disabled={itemsCount === 0}
-              className={clsx(
-                "flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all",
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all",
                 itemsCount > 0
-                  ? "bg-white text-gray-700 border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-200"
+                  ? "bg-accent/10 text-accent-foreground hover:bg-accent/20"
+                  : "bg-muted text-muted-foreground cursor-not-allowed border border-border/50"
               )}
               title={itemsCount > 0 ? "إضافة منتج مخصص للطلب الحالي" : "ابدأ طلب أولاً"}
             >
-              <FileText className="w-4 h-4" />
+              <File04 className="size-4" />
               <span>منتج مخصص</span>
             </button>
           </div>
 
-          {/* Products List */}
-          <div className="min-h-[18rem] flex-1 overflow-y-auto scrollbar-thin lg:min-h-0">
+          <div className="flex-1 overflow-y-auto scrollbar-thin lg:min-h-0 min-h-[18rem] -mx-4 px-4 pb-4">
             <ProductListView products={filteredProducts} categories={categories} />
           </div>
         </div>
 
         {/* Right: Transaction Workspace (40%) */}
-        <div className="flex min-h-[24rem] max-h-[70vh] w-full flex-col border-t border-gray-200 bg-white lg:max-h-none lg:w-[40%] lg:min-w-[24rem] lg:border-l lg:border-t-0">
+        <div className="flex min-h-[24rem] max-h-[70vh] w-full flex-col border-t border-border bg-card lg:max-h-none lg:w-[40%] lg:min-w-[24rem] lg:border-l lg:border-t-0 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] z-10">
           {/* Tabs */}
-          <div className="grid grid-cols-4 border-b border-gray-200">
+          <div className="grid grid-cols-4 border-b border-border bg-muted/20">
             <button
               onClick={() => setActiveTab("cart")}
-              className={clsx(
-                "relative flex min-w-0 items-center justify-center gap-2 px-2 py-3 text-xs font-medium transition-colors sm:text-sm",
+              className={cn(
+                "relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-3 text-sm font-semibold transition-colors",
                 activeTab === "cart"
-                  ? "text-primary-600 bg-primary-50"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "text-primary bg-background shadow-[inset_0_2px_0_0_hsl(var(--primary))]"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart01 className="size-5" />
               <span className="truncate">السلة</span>
               {itemsCount > 0 && (
-                <span className="absolute top-1 right-1 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
                   {itemsCount}
                 </span>
-              )}
-              {activeTab === "cart" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600" />
               )}
             </button>
 
             <button
               onClick={() => setActiveTab("customer")}
-              className={clsx(
-                "relative flex min-w-0 items-center justify-center gap-2 px-2 py-3 text-xs font-medium transition-colors sm:text-sm",
+              className={cn(
+                "relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-3 text-sm font-semibold transition-colors",
                 activeTab === "customer"
-                  ? "text-primary-600 bg-primary-50"
-                  : "text-gray-600 hover:bg-gray-50"
+                   ? "text-primary bg-background shadow-[inset_0_2px_0_0_hsl(var(--primary))]"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
-              <User className="w-4 h-4" />
+              <User01 className="size-5" />
               <span className="truncate">العميل</span>
               {selectedCustomer && (
-                <div className="w-2 h-2 bg-success-500 rounded-full" />
-              )}
-              {activeTab === "customer" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600" />
+                <div className="absolute right-2 top-2 size-2 rounded-full bg-success shadow-sm" />
               )}
             </button>
 
@@ -519,64 +478,57 @@ export const POSWorkspacePage = () => {
                 setAmountPaid(total.toFixed(2));
               }}
               disabled={items.length === 0}
-              className={clsx(
-                "relative flex min-w-0 items-center justify-center gap-2 px-2 py-3 text-xs font-medium transition-colors sm:text-sm",
+              className={cn(
+                "relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-3 text-sm font-semibold transition-colors",
                 activeTab === "payment"
-                  ? "text-primary-600 bg-primary-50"
-                  : "text-gray-600 hover:bg-gray-50",
+                   ? "text-primary bg-background shadow-[inset_0_2px_0_0_hsl(var(--primary))]"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                 items.length === 0 && "opacity-50 cursor-not-allowed"
               )}
             >
-              <CreditCard className="w-4 h-4" />
+              <CreditCard01 className="size-5" />
               <span className="truncate">الدفع</span>
-              {activeTab === "payment" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600" />
-              )}
             </button>
 
             <button
               onClick={() => setActiveTab("summary")}
               disabled={items.length === 0}
-              className={clsx(
-                "relative flex min-w-0 items-center justify-center gap-2 px-2 py-3 text-xs font-medium transition-colors sm:text-sm",
+              className={cn(
+                "relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-3 text-sm font-semibold transition-colors",
                 activeTab === "summary"
-                  ? "text-primary-600 bg-primary-50"
-                  : "text-gray-600 hover:bg-gray-50",
+                   ? "text-primary bg-background shadow-[inset_0_2px_0_0_hsl(var(--primary))]"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                 items.length === 0 && "opacity-50 cursor-not-allowed"
               )}
             >
-              <Receipt className="w-4 h-4" />
+              <Receipt className="size-5" />
               <span className="truncate">الملخص</span>
-              {activeTab === "summary" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600" />
-              )}
             </button>
           </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-5">
             {/* Cart Tab */}
             {activeTab === "cart" && (
               <div className="space-y-4">
                 {items.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-                    <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                      <ShoppingCart className="w-10 h-10" />
+                  <div className="flex h-full flex-col items-center justify-center py-16 text-muted-foreground">
+                    <div className="mb-5 flex size-24 items-center justify-center rounded-full bg-muted shadow-inner">
+                      <ShoppingCart01 className="size-12 opacity-50" />
                     </div>
-                    <p className="text-lg font-medium">السلة فارغة</p>
-                    <p className="text-sm">اضغط على المنتجات لإضافتها</p>
+                    <p className="text-xl font-bold text-foreground">السلة فارغة</p>
+                    <p className="mt-2 text-sm">ابحث عن المنتجات واضغط عليها لإضافتها</p>
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-gray-800">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-foreground">
                         العناصر ({itemsCount})
                       </h3>
                       <button
                         onClick={clearCart}
-                        className="flex items-center gap-1 text-danger-500 text-sm hover:underline"
+                        className="flex items-center gap-2 text-sm font-semibold text-danger hover:underline"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash01 className="size-4" />
                         إفراغ
                       </button>
                     </div>
@@ -587,52 +539,50 @@ export const POSWorkspacePage = () => {
                       ))}
                     </div>
 
-                    {/* Discount Section */}
-                    <div className="pt-4 border-t space-y-3">
-                      <p className="text-sm font-medium text-gray-700">الخصم</p>
+                    <div className="mt-6 space-y-3 rounded-2xl bg-muted/40 p-4 border border-border/50">
+                      <p className="text-sm font-bold text-foreground">الخصم الإضافي</p>
                       
                       {discountAmount === 0 ? (
                         showDiscountInput ? (
                           <div className="space-y-3">
-                            {/* Discount Type Selector */}
                             <div className="grid grid-cols-2 gap-2">
                               <button
                                 onClick={() => setDiscountInputType("Percentage")}
-                                className={clsx(
-                                  "py-2 px-3 rounded-lg text-sm font-medium transition-all",
+                                className={cn(
+                                  "rounded-xl py-2.5 text-sm font-bold transition-all",
                                   discountInputType === "Percentage"
-                                    ? "bg-primary-600 text-white"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    ? "bg-foreground text-background shadow-md"
+                                    : "bg-background border border-border text-foreground hover:bg-muted"
                                 )}
                               >
                                 نسبة %
                               </button>
                               <button
                                 onClick={() => setDiscountInputType("Fixed")}
-                                className={clsx(
-                                  "py-2 px-3 rounded-lg text-sm font-medium transition-all",
+                                className={cn(
+                                  "rounded-xl py-2.5 text-sm font-bold transition-all",
                                   discountInputType === "Fixed"
-                                    ? "bg-success-600 text-white"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    ? "bg-foreground text-background shadow-md"
+                                    : "bg-background border border-border text-foreground hover:bg-muted"
                                 )}
                               >
                                 مبلغ ثابت
                               </button>
                             </div>
 
-                            {/* Input */}
                             <input
                               type="number"
                               value={discountInputValue === "0" ? "" : discountInputValue}
                               onChange={(e) => setDiscountInputValue(e.target.value)}
                               placeholder={discountInputType === "Percentage" ? "0-100" : "0.00"}
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none"
+                              className="w-full rounded-xl border-2 border-border/50 bg-background px-4 py-3 font-mono text-lg focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
                               autoFocus
                             />
 
-                            {/* Actions */}
                             <div className="flex gap-2">
-                              <button
+                              <Button
+                                variant="default"
+                                className="flex-1"
                                 onClick={() => {
                                   const value = parseFloat(discountInputValue);
                                   if (!isNaN(value) && value > 0) {
@@ -651,48 +601,51 @@ export const POSWorkspacePage = () => {
                                     }
                                   }
                                 }}
-                                className="flex-1 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
                               >
                                 تطبيق
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant="glass"
                                 onClick={() => {
                                   setShowDiscountInput(false);
                                   setDiscountInputValue("");
                                 }}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                               >
                                 إلغاء
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         ) : (
                           <button
                             onClick={() => setShowDiscountInput(true)}
-                            className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:bg-primary-50 transition-colors"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-3.5 text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary font-semibold"
                           >
-                            <Tag className="w-5 h-5" />
-                            <span className="font-medium">إضافة خصم</span>
+                            <Tag01 className="size-5" />
+                            <span>إضافة خصم للطلب</span>
                           </button>
                         )
                       ) : (
-                        <div className="p-3 bg-success-50 border border-success-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-success-700">
-                              {discountType === "Percentage" ? `خصم ${discountValue}%` : "خصم ثابت"}
-                            </span>
-                            <button
-                              onClick={() => {
-                                removeDiscount();
-                                toast.success("تم إلغاء الخصم");
-                              }}
-                              className="p-1 text-danger-500 hover:bg-danger-100 rounded transition-colors"
-                            >
-                              <XIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <div className="text-lg font-bold text-success-600">
-                            - {formatCurrency(discountAmount)}
+                        <div className="rounded-xl border border-success/30 bg-success/10 p-4 relative overflow-hidden">
+                          <div className="absolute inset-0 bg-success/5 pattern-dots pattern-success/20 pattern-bg-transparent pattern-size-4" />
+                          <div className="relative z-10">
+                            <div className="mb-2 flex items-center justify-between">
+                              <span className="text-sm font-bold text-success flex items-center gap-1.5">
+                                <Tag01 className="size-4" />
+                                {discountType === "Percentage" ? `خصم ${discountValue}%` : "خصم ثابت"}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  removeDiscount();
+                                  toast.success("تم إلغاء الخصم");
+                                }}
+                                className="rounded-lg p-1.5 text-success/70 hover:bg-success/20 hover:text-success transition-colors"
+                              >
+                                <XClose className="size-4" />
+                              </button>
+                            </div>
+                            <div className="font-mono text-2xl font-bold text-success">
+                              - {formatCurrency(discountAmount)}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -704,65 +657,66 @@ export const POSWorkspacePage = () => {
 
             {/* Customer Tab */}
             {activeTab === "customer" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">
+              <div className="space-y-5">
+                <h3 className="text-lg font-bold text-foreground">
                   معلومات العميل
                 </h3>
 
                 {selectedCustomer ? (
-                  <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center">
-                          <User className="w-6 h-6 text-white" />
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                    <div className="mb-5 flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+                          <User01 className="size-7" />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-800 text-lg">
-                            {selectedCustomer.name || "عميل"}
+                          <p className="text-xl font-bold text-foreground">
+                            {selectedCustomer.name || "بدون اسم"}
                           </p>
-                          <p className="text-sm text-gray-600 flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {selectedCustomer.phone}
+                          <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground font-mono">
+                            <Phone className="size-3.5" />
+                            <span dir="ltr">{selectedCustomer.phone}</span>
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={handleClearCustomer}
-                        className="p-2 text-gray-400 hover:text-danger-500 hover:bg-danger-50 rounded-lg transition-colors"
+                        className="rounded-xl p-2 text-muted-foreground hover:bg-danger/10 hover:text-danger transition-colors"
+                        title="إزالة العميل"
                       >
-                        <XIcon className="w-5 h-5" />
+                        <XClose className="size-5" />
                       </button>
                     </div>
 
                     <div className="space-y-3">
                       {(selectedCustomer.loyaltyPoints ?? 0) > 0 && (
-                        <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
-                          <span className="text-sm text-gray-700 flex items-center gap-2">
-                            <Star className="w-4 h-4 text-amber-500 fill-current" />
+                        <div className="flex items-center justify-between rounded-xl bg-background border border-border p-3.5 shadow-sm">
+                          <span className="flex items-center gap-2 text-sm font-bold text-foreground">
+                            <Star01 className="size-4 text-warning fill-warning" />
                             نقاط الولاء
                           </span>
-                          <span className="font-bold text-amber-600">
+                          <span className="font-mono text-lg font-bold text-warning">
                             {selectedCustomer.loyaltyPoints}
                           </span>
                         </div>
                       )}
 
                       {selectedCustomer.totalDue > 0 && (
-                        <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                          <span className="text-sm text-gray-700 flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4 text-orange-500" />
+                        <div className="flex items-center justify-between rounded-xl bg-danger/10 border border-danger/20 p-3.5 shadow-sm">
+                          <span className="flex items-center gap-2 text-sm font-bold text-danger">
+                            <AlertCircle className="size-4" />
                             رصيد مستحق
                           </span>
-                          <span className="font-bold text-orange-600">
+                          <span className="font-mono text-lg font-bold text-danger">
                             {formatCurrency(selectedCustomer.totalDue)}
                           </span>
                         </div>
                       )}
 
                       {selectedCustomer.creditLimit > 0 && (
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                          <span className="text-sm text-gray-700">حد الائتمان</span>
-                          <span className="font-bold text-blue-600">
+                        <div className="flex items-center justify-between rounded-xl bg-background border border-border p-3.5 shadow-sm">
+                          <span className="text-sm font-bold text-muted-foreground">حد الائتمان</span>
+                          <span className="font-mono font-bold text-foreground">
                             {formatCurrency(selectedCustomer.creditLimit)}
                           </span>
                         </div>
@@ -770,8 +724,8 @@ export const POSWorkspacePage = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="relative">
+                  <div className="space-y-5">
+                    <div className="relative group">
                       <input
                         ref={customerPhoneRef}
                         type="text"
@@ -779,65 +733,69 @@ export const POSWorkspacePage = () => {
                         onChange={(e) =>
                           setCustomerPhone(e.target.value.replace(/[^0-9]/g, ""))
                         }
-                        placeholder="🔍 ابحث برقم الهاتف..."
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="ابحث برقم الهاتف عن عميل..."
+                        className="w-full rounded-2xl border-2 border-border/50 bg-background px-5 py-4 pl-12 shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 font-mono text-lg"
                         dir="ltr"
                       />
+                      <SearchLg className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                      
                       {isSearchingCustomer && (
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                          <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <div className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                         </div>
                       )}
                     </div>
 
-                    {/* Search Result */}
                     {customerPhone.length >= 8 &&
                       !isSearchingCustomer &&
                       searchResult?.data && (
                         <div
                           onClick={() => handleSelectCustomer(searchResult.data!)}
-                          className="bg-success-50 border border-success-200 rounded-xl p-4 cursor-pointer hover:bg-success-100 transition-colors"
+                          className="group cursor-pointer rounded-2xl border-2 border-success/30 bg-success/5 p-4 transition-all hover:bg-success/10 hover:border-success/50"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-success-600 rounded-full flex items-center justify-center">
-                              <User className="w-5 h-5 text-white" />
+                          <div className="flex items-center gap-4">
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground shadow-md transition-transform group-hover:scale-105">
+                              <User01 className="size-6" />
                             </div>
                             <div className="flex-1">
-                              <p className="font-semibold text-gray-800">
-                                {searchResult.data.name || "عميل"}
+                              <p className="font-bold text-foreground text-lg">
+                                {searchResult.data.name || "بدون اسم"}
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="font-mono text-sm text-muted-foreground">
                                 {searchResult.data.phone}
                               </p>
                             </div>
-                            <span className="text-xs text-success-600 font-medium">
-                              اضغط للاختيار
+                            <span className="rounded-lg bg-success/20 px-3 py-1.5 text-xs font-bold text-success">
+                              اختيار
                             </span>
                           </div>
                         </div>
                       )}
 
-                    {/* Not Found */}
                     {customerPhone.length >= 8 &&
                       !isSearchingCustomer &&
                       !searchResult?.data && (
-                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                          <p className="text-sm text-gray-500 mb-3">
-                            لم يتم العثور على عميل
+                        <div className="rounded-2xl border-2 border-dashed border-border bg-muted/30 p-6 text-center">
+                          <User01 className="mx-auto mb-3 size-10 text-muted-foreground/50" />
+                          <p className="mb-4 font-semibold text-foreground">
+                            العميل غير مسجل بالنظام
                           </p>
-                          <button
+                          <Button
+                            className="w-full"
                             onClick={() => setShowCustomerCreateModal(true)}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                            leftIcon={<Plus className="size-5" />}
                           >
-                            <Plus className="w-5 h-5" />
-                            <span className="font-medium">إضافة عميل جديد</span>
-                          </button>
+                            تسجيل العميل وإضافته للطلب
+                          </Button>
                         </div>
                       )}
 
-                    <div className="text-center text-sm text-gray-500 py-8">
-                      <User className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                      <p>ابحث عن عميل أو اترك الحقل فارغاً للبيع النقدي</p>
+                    <div className="py-10 text-center text-muted-foreground">
+                      <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-muted/50 border border-border/50">
+                        <Users01 className="size-10 opacity-40" />
+                      </div>
+                      <p className="font-medium">ابحث بالهاتف لربط الفاتورة بعميل</p>
+                      <p className="text-sm mt-1 opacity-70">أو اتركها للزبائن العابرين (بيع نقدي)</p>
                     </div>
                   </div>
                 )}
@@ -846,104 +804,91 @@ export const POSWorkspacePage = () => {
 
             {/* Payment Tab */}
             {activeTab === "payment" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">الدفع</h3>
-
-                {/* Total Amount */}
-                <div className="text-center p-6 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200">
-                  <p className="text-sm text-gray-600 mb-1">المبلغ المطلوب</p>
-                  <p className="text-4xl font-bold text-primary-600">
-                    {formatCurrency(total)}
-                  </p>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="mb-4 text-lg font-bold text-foreground">الدفع</h3>
+                  <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent p-6 text-center shadow-inner relative">
+                    <div className="absolute inset-0 bg-primary/5 pattern-dots pattern-primary/10 pattern-bg-transparent pattern-size-4" />
+                    <div className="relative z-10">
+                      <p className="mb-2 text-sm font-bold text-primary">المبلغ المطلوب</p>
+                      <p className="font-display text-5xl font-black text-primary drop-shadow-sm">
+                        {formatCurrency(total)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Payment Methods */}
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-3">
+                  <p className="mb-3 text-sm font-bold text-foreground">
                     طريقة الدفع
                   </p>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="grid grid-cols-3 gap-3">
                     {paymentMethods.map((method) => (
                       <button
                         key={method.id}
                         onClick={() => setSelectedPaymentMethod(method.id)}
-                        className={clsx(
-                          "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                        className={cn(
+                          "flex flex-col items-center gap-2.5 rounded-2xl border-2 p-4 transition-all",
                           selectedPaymentMethod === method.id
-                            ? "border-primary-600 bg-primary-50 text-primary-600"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border bg-background hover:border-primary/40 hover:bg-muted"
                         )}
                       >
-                        {method.icon}
-                        <span className="font-medium text-sm">{method.label}</span>
+                        <div className={cn("p-2 rounded-xl", selectedPaymentMethod === method.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                          {method.icon}
+                        </div>
+                        <span className="font-bold text-sm">{method.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Amount Input (for Cash) */}
                 {selectedPaymentMethod === "Cash" && (
-                  <div className="space-y-4">
+                  <div className="space-y-5 rounded-3xl bg-muted/30 p-5 border border-border/50">
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-3">
-                        المبلغ المدفوع
+                      <p className="mb-3 text-sm font-bold text-foreground text-center">
+                        المبلغ المستلم
                       </p>
                       <div
-                        className={clsx(
-                          "text-center p-4 bg-gray-50 rounded-xl transition-all",
-                          showPaymentError && "animate-shake border-2 border-danger-500"
+                        className={cn(
+                          "rounded-2xl bg-background p-5 text-center shadow-inner transition-all border-2",
+                          showPaymentError ? "animate-shake border-danger" : "border-transparent"
                         )}
                       >
-                        <p className="text-3xl font-bold">
+                        <p className="font-mono text-4xl font-bold text-foreground">
                           {amountPaid || "0"}{" "}
-                          <span className="text-lg text-gray-400">ج.م</span>
+                          <span className="text-xl text-muted-foreground mr-1">ج.م</span>
                         </p>
                       </div>
                     </div>
 
-                    {/* Quick Amounts */}
-                    <div className="grid grid-cols-3 gap-2 sm:flex">
+                    <div className="grid grid-cols-4 gap-2">
                       {quickAmounts.map((amount) => (
-                        <button
-                          key={amount}
-                          onClick={() => handleQuickAmount(amount)}
-                          className="py-2 rounded-lg bg-gray-100 font-medium hover:bg-primary-100 hover:text-primary-600 transition-colors text-sm sm:flex-1"
-                        >
-                          {amount}
-                        </button>
+                         <button
+                         key={amount}
+                         onClick={() => handleQuickAmount(amount)}
+                         className="rounded-xl bg-background border border-border py-3 font-mono text-sm font-bold hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm"
+                       >
+                         {amount}
+                       </button>
                       ))}
-                      <button
-                        onClick={() => handleQuickAmount(total)}
-                        className="col-span-3 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors text-sm sm:col-span-1 sm:flex-1"
-                      >
-                        تمام
-                      </button>
                     </div>
 
-                    {/* Numpad */}
                     <div className="grid grid-cols-4 gap-2">
                       {[
-                        "7",
-                        "8",
-                        "9",
-                        "←",
-                        "4",
-                        "5",
-                        "6",
-                        "C",
-                        "1",
-                        "2",
-                        "3",
-                        ".",
-                        "0",
-                        "00",
+                        "7", "8", "9", "←",
+                        "4", "5", "6", "C",
+                        "1", "2", "3", ".",
+                        "0", "00"
                       ].map((key) => (
-                        <button
+                         <button
                           key={key}
                           onClick={() => handleNumpadClick(key)}
-                          className={clsx(
-                            "h-12 rounded-lg bg-gray-100 font-semibold text-lg hover:bg-gray-200 active:bg-gray-300 transition-colors",
-                            key === "0" && "col-span-2"
+                          className={cn(
+                            "flex h-14 items-center justify-center rounded-xl bg-background border border-border font-mono text-xl font-bold shadow-sm transition-all hover:bg-muted active:scale-95",
+                            key === "0" && "col-span-2",
+                            key === "C" && "text-danger bg-danger/5 border-danger/20 hover:bg-danger/10",
+                            key === "←" && "text-warning bg-warning/5 border-warning/20 hover:bg-warning/10"
                           )}
                         >
                           {key}
@@ -951,44 +896,40 @@ export const POSWorkspacePage = () => {
                       ))}
                     </div>
 
-                    {/* Change */}
                     {change > 0 && (
-                      <div className="text-center p-4 bg-success-50 rounded-xl border border-success-200">
-                        <p className="text-sm text-gray-600">الباقي</p>
-                        <p className="text-2xl font-bold text-success-600">
+                      <div className="rounded-2xl border border-success/30 bg-success/10 p-5 text-center shadow-inner mt-4">
+                        <p className="mb-1 text-sm font-bold text-success/80">الباقي للعميل</p>
+                        <p className="font-mono text-3xl font-black text-success">
                           {formatCurrency(change)}
                         </p>
                       </div>
                     )}
 
-                    {/* Amount Due */}
                     {numericAmount < total && numericAmount > 0 && (
                       <div
-                        className={clsx(
-                          "text-center p-4 rounded-xl border",
+                        className={cn(
+                          "rounded-2xl border p-5 text-center shadow-inner mt-4",
                           creditLimitExceeded
-                            ? "bg-danger-50 border-danger-200"
-                            : "bg-orange-50 border-orange-200"
+                            ? "border-danger/30 bg-danger/10"
+                            : "border-warning/30 bg-warning/10"
                         )}
                       >
-                        <p className="text-sm text-gray-600">المبلغ المستحق</p>
+                        <p className="mb-1 text-sm font-bold opacity-80">المبلغ المتبقي (الآجل)</p>
                         <p
-                          className={clsx(
-                            "text-2xl font-bold",
-                            creditLimitExceeded
-                              ? "text-danger-600"
-                              : "text-orange-600"
+                          className={cn(
+                            "font-mono text-3xl font-black",
+                            creditLimitExceeded ? "text-danger" : "text-warning"
                           )}
                         >
                           {formatCurrency(amountDue)}
                         </p>
                         {creditLimitExceeded && (
-                          <p className="text-xs text-danger-600 mt-1">
+                          <p className="mt-2 text-xs font-bold text-danger bg-danger/10 p-1.5 rounded-md inline-block">
                             تجاوز حد الائتمان - المتاح: {formatCurrency(availableCredit)}
                           </p>
                         )}
                         {selectedCustomer && !selectedCustomer.isActive && (
-                          <p className="text-xs text-danger-600 mt-1">
+                          <p className="mt-2 text-xs font-bold text-danger bg-danger/10 p-1.5 rounded-md inline-block">
                             العميل غير نشط
                           </p>
                         )}
@@ -997,25 +938,23 @@ export const POSWorkspacePage = () => {
                   </div>
                 )}
 
-                {/* Partial Payment Option */}
                 {selectedCustomer && canTakeCredit && selectedPaymentMethod === "Cash" && (
-                  <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
                     <input
                       type="checkbox"
-                      id="partialPayment"
                       checked={allowPartialPayment}
                       onChange={(e) => setAllowPartialPayment(e.target.checked)}
-                      className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-500 mt-0.5"
+                      className="mt-1 size-5 rounded text-primary focus:ring-primary focus:ring-offset-background"
                     />
-                    <label htmlFor="partialPayment" className="flex-1 cursor-pointer">
-                      <p className="font-medium text-gray-800 text-sm">
+                    <div>
+                      <p className="font-bold text-foreground">
                         السماح بالدفع الجزئي (بيع آجل)
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        يمكن للعميل دفع جزء من المبلغ والباقي يُسجل كدين
+                      <p className="mt-1 text-sm text-muted-foreground leading-snug">
+                        تسجيل الدفعة الحالية وتقييد الباقي كدين على حساب العميل.
                       </p>
-                    </label>
-                  </div>
+                    </div>
+                  </label>
                 )}
               </div>
             )}
@@ -1023,46 +962,49 @@ export const POSWorkspacePage = () => {
             {/* Summary Tab */}
             {activeTab === "summary" && (
               <div className="space-y-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                <h3 className="mb-4 text-lg font-bold text-foreground">
                   ملخص الطلب
                 </h3>
 
-                {/* Customer Info */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <p className="text-xs font-medium text-gray-500 mb-2">العميل</p>
+                <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                  <p className="mb-2 text-xs font-bold text-muted-foreground">العميل</p>
                   {selectedCustomer ? (
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-primary-500" />
-                      <span className="font-medium text-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 p-2 rounded-full text-primary">
+                        <User01 className="size-4" />
+                      </div>
+                      <span className="font-bold text-foreground">
                         {selectedCustomer.name || selectedCustomer.phone}
                       </span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <User className="w-4 h-4" />
-                      <span>عميل نقدي</span>
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                       <div className="bg-muted p-2 rounded-full">
+                        <User01 className="size-4" />
+                      </div>
+                      <span className="font-medium">عميل نقدي عابر</span>
                     </div>
                   )}
                 </div>
 
-                {/* Items Summary */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <p className="text-xs font-medium text-gray-500 mb-3">
-                    العناصر ({itemsCount})
-                  </p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+                <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                  <div className="mb-3 flex justify-between items-center text-xs font-bold text-muted-foreground">
+                    <span>العناصر</span>
+                    <span className="bg-muted px-2 py-0.5 rounded-md">{itemsCount}</span>
+                  </div>
+                  <div className="max-h-56 space-y-2.5 overflow-y-auto scrollbar-thin pr-1">
                     {items.map((item) => (
                       <div
                         key={item.product.id}
-                        className="flex items-center justify-between text-sm"
+                        className="flex items-start justify-between text-sm py-1 border-b border-border/40 last:border-0 last:pb-0"
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-700">
+                        <div className="flex items-start gap-2.5 pr-2">
+                          <span className="font-mono font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-xs">
                             {item.quantity}x
                           </span>
-                          <span className="text-gray-600">{item.product.name}</span>
+                          <span className="font-medium text-foreground line-clamp-2 leading-tight mt-0.5">{item.product.name}</span>
                         </div>
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-mono font-bold text-foreground whitespace-nowrap pt-0.5">
                           {formatCurrency(item.product.price * item.quantity)}
                         </span>
                       </div>
@@ -1070,25 +1012,24 @@ export const POSWorkspacePage = () => {
                   </div>
                 </div>
 
-                {/* Financial Summary */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+                <div className="space-y-3 rounded-2xl border border-primary/10 bg-primary/5 p-5 shadow-sm">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">المجموع الفرعي</span>
-                    <span className="font-semibold text-gray-800">
+                    <span className="font-medium text-muted-foreground">المجموع الفرعي</span>
+                    <span className="font-mono font-bold text-foreground">
                       {formatCurrency(subtotal)}
                     </span>
                   </div>
 
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-success-600 flex items-center gap-1">
-                        <Tag className="w-4 h-4" />
+                      <span className="flex items-center gap-1.5 font-bold text-success">
+                        <Tag01 className="size-4" />
                         الخصم
                         {discountType === "Percentage" &&
                           discountValue &&
                           ` (${discountValue}%)`}
                       </span>
-                      <span className="font-semibold text-success-600">
+                      <span className="font-mono font-bold text-success">
                         - {formatCurrency(discountAmount)}
                       </span>
                     </div>
@@ -1096,39 +1037,33 @@ export const POSWorkspacePage = () => {
 
                   {isTaxEnabled && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">الضريبة ({taxRate}%)</span>
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-medium text-muted-foreground">الضريبة ({taxRate}%)</span>
+                      <span className="font-mono font-bold text-foreground">
                         {formatCurrency(taxAmount)}
                       </span>
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-gray-300 flex justify-between">
-                    <span className="font-bold text-gray-800">الإجمالي</span>
-                    <span className="text-2xl font-bold text-primary-600">
+                  <div className="mt-2 flex items-center justify-between border-t border-border/50 pt-3">
+                    <span className="text-lg font-black text-foreground">الإجمالي</span>
+                    <span className="font-display text-3xl font-black text-primary">
                       {formatCurrency(total)}
                     </span>
                   </div>
                 </div>
 
-                {/* Payment Method */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <p className="text-xs font-medium text-gray-500 mb-2">
+                <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                  <p className="mb-2 text-xs font-bold text-muted-foreground">
                     طريقة الدفع
                   </p>
-                  <div className="flex items-center gap-2">
-                    {selectedPaymentMethod === "Cash" && (
-                      <Banknote className="w-5 h-5 text-success-600" />
-                    )}
-                    {selectedPaymentMethod === "Card" && (
-                      <CreditCard className="w-5 h-5 text-primary-600" />
-                    )}
-                    {selectedPaymentMethod === "Fawry" && (
-                      <Building2 className="w-5 h-5 text-secondary-600" />
-                    )}
-                    <span className="font-medium text-gray-800">
-                      {paymentMethods.find((m) => m.id === selectedPaymentMethod)
-                        ?.label}
+                  <div className="flex items-center gap-3">
+                    <div className="bg-background border border-border p-2 rounded-xl shadow-sm text-foreground">
+                      {selectedPaymentMethod === "Cash" && <BankNote01 className="size-5" />}
+                      {selectedPaymentMethod === "Card" && <CreditCard01 className="size-5" />}
+                      {selectedPaymentMethod === "Fawry" && <Building02 className="size-5" />}
+                    </div>
+                    <span className="font-bold text-foreground">
+                      {paymentMethods.find((m) => m.id === selectedPaymentMethod)?.label}
                     </span>
                   </div>
                 </div>
@@ -1137,60 +1072,63 @@ export const POSWorkspacePage = () => {
           </div>
 
           {/* Sticky Total Bar */}
-          <div className="border-t border-gray-200 p-4 bg-white">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-600">الإجمالي</span>
-              <span className="text-2xl font-bold text-primary-600">
-                {formatCurrency(total)}
-              </span>
+          <div className="border-t border-border bg-card p-5 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)] z-20">
+            <div className="mb-4 flex items-end justify-between px-1">
+               <div>
+                  <span className="text-sm font-bold text-muted-foreground block mb-0.5">الإجمالي النهائي</span>
+                  <span className="font-display text-4xl font-black text-foreground drop-shadow-sm">
+                    {formatCurrency(total)}
+                  </span>
+               </div>
+               {activeTab === "payment" && selectedPaymentMethod === "Cash" && change > 0 && (
+                 <div className="text-left">
+                   <span className="text-xs font-bold text-success/80 block mb-0.5">الباقي</span>
+                   <span className="font-mono text-xl font-black text-success">{formatCurrency(change)}</span>
+                 </div>
+               )}
             </div>
 
-            {/* Complete Payment Button */}
             {activeTab === "payment" && items.length > 0 && (
               <Button
-                variant="success"
                 size="xl"
-                className="w-full"
+                className="w-full text-lg shadow-lg relative overflow-hidden group"
                 onClick={handleCompletePayment}
-                isLoading={isCreating || isCompleting}
                 disabled={
                   isCreating ||
                   isCompleting ||
                   (numericAmount < total && !allowPartialPayment) ||
                   (numericAmount < total && creditLimitExceeded)
                 }
-                rightIcon={<Check className="w-5 h-5" />}
+                rightIcon={<Check className="size-6 transition-transform group-hover:scale-110" />}
               >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
                 {isCreating
                   ? "جاري إنشاء الطلب..."
                   : isCompleting
                   ? "جاري الدفع..."
                   : numericAmount < total && allowPartialPayment
                   ? `إتمام البيع الآجل (مستحق: ${formatCurrency(amountDue)})`
-                  : "إتمام الدفع"}
+                  : "إتمام الدفع واصدار הפاتورة"}
               </Button>
             )}
 
-            {/* Checkout Button (for other tabs) */}
             {activeTab !== "payment" && items.length > 0 && (
               <Button
-                variant="success"
                 size="xl"
-                className="w-full"
+                className="w-full text-lg shadow-md"
                 onClick={() => {
                   setActiveTab("payment");
                   setAmountPaid(total.toFixed(2));
                 }}
-                rightIcon={<CreditCard className="w-5 h-5" />}
+                rightIcon={<CreditCard01 className="size-6" />}
               >
-                💳 الدفع {formatCurrency(total)}
+                المتابعة للدفع
               </Button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Modals */}
       {showQuickCreate && (
         <ProductQuickCreateModal
           onClose={() => setShowQuickCreate(false)}
@@ -1205,20 +1143,20 @@ export const POSWorkspacePage = () => {
         <CustomItemModal
           onClose={() => setShowCustomItem(false)}
           onSuccess={(item) => {
-            // Add custom item to cart directly
             const customProduct = {
-              id: -Date.now(), // Temporary negative ID for custom items
+              id: -Date.now(),
               name: item.name,
               price: item.unitPrice,
               taxRate: item.taxRate || 14,
               categoryId: 0,
               isActive: true,
               trackInventory: false,
-              type: 2, // Service type
+              type: 2,
               stockQuantity: null,
             };
             addItem(customProduct as any, item.quantity);
             toast.success(`تم إضافة: ${item.name}`);
+            setShowCustomItem(false);
           }}
         />
       )}

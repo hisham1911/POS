@@ -1,27 +1,37 @@
 import { useState } from "react";
 import {
-  ClipboardList,
-  Eye,
-  XCircle,
-  Search,
   Calendar,
-  Undo2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  X,
-  ChevronDown,
-} from "lucide-react";
-import { useOrders } from "@/hooks/useOrders";
-import { Button } from "@/components/common/Button";
-import { Input } from "@/components/common/Input";
-import { Card } from "@/components/common/Card";
-import { Loading } from "@/components/common/Loading";
-import { formatCurrency, formatDateTime } from "@/utils/formatters";
-import { ORDER_STATUS, PAYMENT_METHODS, ORDER_TYPES } from "@/utils/constants";
-import type { Order, OrdersQueryParams } from "@/types/order.types";
-import { OrderDetailsModal } from "@/components/orders/OrderDetailsModal";
+  CornerUpLeft,
+  Eye,
+  Receipt,
+  SearchLg,
+  XCircle,
+  XClose,
+} from "@untitledui/icons";
 import { useGetOrdersQuery } from "@/api/ordersApi";
-import clsx from "clsx";
+import { MetricCard } from "@/components/app/metric-card";
+import { Loading } from "@/components/common/Loading";
+import { OrderDetailsModal } from "@/components/orders/OrderDetailsModal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui/table";
+import { useOrders } from "@/hooks/useOrders";
+import { cn } from "@/lib/utils";
+import type { Order, OrdersQueryParams } from "@/types/order.types";
+import { ORDER_STATUS, ORDER_TYPES, PAYMENT_METHODS } from "@/utils/constants";
+import { formatCurrency, formatDateTime } from "@/utils/formatters";
 
 export const OrdersPage = () => {
   const { todayOrders, isLoadingOrders, cancelOrder } = useOrders();
@@ -86,14 +96,14 @@ export const OrdersPage = () => {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      Completed: "bg-success-50 text-success-500",
-      Pending: "bg-warning-50 text-warning-500",
-      Cancelled: "bg-danger-50 text-danger-500",
-      Refunded: "bg-gray-100 text-gray-500",
-      PartiallyRefunded: "bg-amber-50 text-amber-600",
-      Draft: "bg-gray-100 text-gray-500",
+      Completed: "bg-success/15 text-success",
+      Pending: "bg-warning/15 text-warning",
+      Cancelled: "bg-danger/15 text-danger",
+      Refunded: "bg-muted text-muted-foreground",
+      PartiallyRefunded: "bg-accent/15 text-accent",
+      Draft: "bg-muted text-muted-foreground",
     };
-    return colors[status] || "bg-gray-100 text-gray-500";
+    return colors[status] || "bg-muted text-muted-foreground";
   };
 
   const isReturnOrder = (order: Order) => order.orderType === "Return";
@@ -122,7 +132,11 @@ export const OrdersPage = () => {
   const hasActiveFilters = filters.status || filters.fromDate || filters.toDate;
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loading />
+      </div>
+    );
   }
 
   const completedOrders = filteredOrders.filter(
@@ -130,23 +144,20 @@ export const OrdersPage = () => {
       (o.status === "Completed" || o.status === "PartiallyRefunded") &&
       o.orderType !== "Return",
   ).length;
+
   const returnedOrders = filteredOrders.filter(
     (o) => o.status === "Refunded" || o.orderType === "Return",
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-start justify-between gap-6">
-          {/* Header Section */}
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                <ClipboardList className="w-5 h-5 text-emerald-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">الطلبات</h1>
-            </div>
-            <p className="text-gray-600 text-sm">
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground">
+              الطلبات
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
               {viewMode === "today"
                 ? "طلبات اليوم"
                 : viewMode === "date" && selectedDate
@@ -163,19 +174,18 @@ export const OrdersPage = () => {
             </p>
           </div>
 
-          {/* View Mode Controls - Compact Section */}
-          <div className="flex flex-col gap-3 w-96">
+          <div className="flex w-full flex-col gap-3 sm:w-96">
             <div className="flex gap-2">
               <Button
-                variant={viewMode === "today" ? "primary" : "outline"}
+                variant={viewMode === "today" ? "default" : "glass"}
                 onClick={() => handleViewModeChange("today")}
-                rightIcon={<Calendar className="w-4 h-4" />}
+                leftIcon={<Calendar className="size-4" />}
                 size="sm"
               >
                 اليوم
               </Button>
               <Button
-                variant={viewMode === "all" ? "primary" : "outline"}
+                variant={viewMode === "all" ? "default" : "glass"}
                 onClick={() => handleViewModeChange("all")}
                 size="sm"
               >
@@ -184,24 +194,25 @@ export const OrdersPage = () => {
             </div>
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <label className="block text-xs text-gray-600 font-medium mb-1">
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
                   اختر يوم
                 </label>
                 <Input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className={clsx(
-                    "w-full",
-                    viewMode === "date" && "ring-2 ring-primary-500",
+                  className={cn(
+                    "w-full bg-background/50",
+                    viewMode === "date" &&
+                      "border-transparent ring-2 ring-primary",
                   )}
                 />
               </div>
               {viewMode === "date" && (
                 <Button
-                  variant="primary"
+                  variant="default"
                   size="sm"
-                  leftIcon={<Calendar className="w-4 h-4" />}
+                  leftIcon={<Calendar className="size-4" />}
                 >
                   تصفية
                 </Button>
@@ -209,13 +220,15 @@ export const OrdersPage = () => {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Filters for All Mode */}
-        {viewMode === "all" && (
-          <Card>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Filters for All Mode */}
+      {viewMode === "all" && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-foreground">
                   الحالة
                 </label>
                 <div className="relative">
@@ -224,7 +237,7 @@ export const OrdersPage = () => {
                     onChange={(e) =>
                       handleFilterChange("status", e.target.value || undefined)
                     }
-                    className="w-full appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm text-sm"
+                    className="w-full appearance-none rounded-2xl border border-border bg-background/50 py-2.5 pl-10 pr-4 text-sm shadow-sm transition-all hover:border-muted-foreground/30 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="">الكل</option>
                     <option value="Completed">مكتمل</option>
@@ -233,12 +246,12 @@ export const OrdersPage = () => {
                     <option value="Refunded">مسترجع</option>
                     <option value="PartiallyRefunded">مسترجع جزئياً</option>
                   </select>
-                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-foreground">
                   من تاريخ
                 </label>
                 <Input
@@ -247,11 +260,12 @@ export const OrdersPage = () => {
                   onChange={(e) =>
                     handleFilterChange("fromDate", e.target.value || undefined)
                   }
+                  className="bg-background/50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-foreground">
                   إلى تاريخ
                 </label>
                 <Input
@@ -260,15 +274,16 @@ export const OrdersPage = () => {
                   onChange={(e) =>
                     handleFilterChange("toDate", e.target.value || undefined)
                   }
+                  className="bg-background/50"
                 />
               </div>
 
               <div className="flex items-end">
                 {hasActiveFilters && (
                   <Button
-                    variant="outline"
+                    variant="glass"
                     onClick={clearFilters}
-                    rightIcon={<X className="w-4 h-4" />}
+                    rightIcon={<XClose className="size-4" />}
                     className="w-full"
                   >
                     مسح الفلاتر
@@ -276,285 +291,277 @@ export const OrdersPage = () => {
                 )}
               </div>
             </div>
-          </Card>
-        )}
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <Card>
-            <p className="text-sm text-gray-500">إجمالي الطلبات</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {viewMode === "today"
-                ? filteredOrders.length
-                : pagedData?.totalCount || 0}
-            </p>
-          </Card>
-          <Card className="border-green-100">
-            <p className="text-sm text-gray-600">المكتملة</p>
-            <p className="text-2xl font-bold text-success-500">
-              {completedOrders}
-            </p>
-          </Card>
-          <Card className="border-red-100">
-            <p className="text-sm text-gray-600">المرتجعات</p>
-            <p className="text-2xl font-bold text-danger-500">
-              {returnedOrders}
-            </p>
-          </Card>
-          <Card>
-            <p className="text-sm text-gray-500">صافي المبيعات</p>
-            <p className="text-2xl font-bold text-primary-600">
-              {formatCurrency(
-                filteredOrders
-                  .filter(
-                    (o) =>
-                      (o.status === "Completed" ||
-                        o.status === "PartiallyRefunded" ||
-                        o.status === "Refunded") &&
-                      o.orderType !== "Return",
-                  )
-                  .reduce((sum, o) => {
-                    const netAmount = o.total - (o.refundAmount || 0);
-                    return sum + netAmount;
-                  }, 0),
-              )}
-            </p>
-          </Card>
-          <Card>
-            <p className="text-sm text-gray-500">المرتجعات</p>
-            <p className="text-2xl font-bold text-orange-600">
-              {formatCurrency(
-                Math.abs(
-                  filteredOrders
-                    .filter((o) => o.orderType === "Return")
-                    .reduce((sum, o) => sum + o.total, 0),
-                ),
-              )}
-            </p>
-          </Card>
-        </div>
-
-        {/* Search Bar */}
-        <Card>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              placeholder="بحث برقم الطلب أو اسم العميل..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          </CardContent>
         </Card>
+      )}
 
-        {/* Orders Table */}
-        <Card padding="none" className="flex flex-col">
-          <div className="overflow-auto flex-1">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    رقم الطلب
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    التاريخ
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    العميل
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    الإجمالي
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    طريقة الدفع
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    الحالة
-                  </th>
-                  <th className="px-4 py-3 text-center font-semibold text-gray-600 w-24">
-                    إجراءات
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12">
-                      <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p className="text-gray-400">لا توجد طلبات</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className={clsx(
-                        "border-b hover:bg-gray-50",
-                        isReturnOrder(order) && "bg-orange-50/50",
-                      )}
-                    >
-                      <td className="px-4 py-3 font-mono font-medium">
-                        <div className="flex items-center gap-2">
-                          {isReturnOrder(order) && (
-                            <Undo2 className="w-4 h-4 text-orange-500" />
-                          )}
-                          <span
-                            className={clsx(
-                              isReturnOrder(order) && "text-orange-600",
-                            )}
-                          >
-                            #{order.orderNumber}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {formatDateTime(order.createdAt)}
-                      </td>
-                      <td className="px-4 py-3">{order.customerName || "-"}</td>
-                      <td
-                        className={clsx(
-                          "px-4 py-3 font-semibold",
-                          isReturnOrder(order)
-                            ? "text-orange-600"
-                            : "text-primary-600",
-                        )}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <MetricCard
+          title="إجمالي الطلبات"
+          value={
+            viewMode === "today"
+              ? filteredOrders.length
+              : pagedData?.totalCount || 0
+          }
+          description="جميع الطلبات"
+          icon={Receipt}
+        />
+        <MetricCard
+          title="المكتملة"
+          value={completedOrders}
+          description="ناجحة"
+          icon={Receipt}
+          tone="success"
+        />
+        <MetricCard
+          title="المرتجعات"
+          value={returnedOrders}
+          description="مسترجعة"
+          icon={CornerUpLeft}
+          tone="danger"
+        />
+        <MetricCard
+          title="صافي المبيعات"
+          value={formatCurrency(
+            filteredOrders
+              .filter(
+                (o) =>
+                  (o.status === "Completed" ||
+                    o.status === "PartiallyRefunded" ||
+                    o.status === "Refunded") &&
+                  o.orderType !== "Return",
+              )
+              .reduce((sum, o) => {
+                const netAmount = o.total - (o.refundAmount || 0);
+                return sum + netAmount;
+              }, 0),
+          )}
+          description="أرباح صافية"
+          icon={Receipt}
+        />
+        <MetricCard
+          title="حجم المرتجعات"
+          value={formatCurrency(
+            Math.abs(
+              filteredOrders
+                .filter((o) => o.orderType === "Return")
+                .reduce((sum, o) => sum + o.total, 0),
+            ),
+          )}
+          description="إجمالي الأموال المرتجعة"
+          icon={CornerUpLeft}
+          tone="warning"
+        />
+      </div>
+
+      <div className="flex flex-col gap-6 xl:flex-row">
+        <div className="flex-1 space-y-6">
+          {/* Search Bar */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="relative">
+                <SearchLg className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="بحث برقم الطلب أو اسم العميل..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-background/50 pl-10"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Orders Table */}
+          <Card className="flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-x-auto">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell className="text-right">رقم الطلب</TableHeaderCell>
+                    <TableHeaderCell className="text-right">التاريخ</TableHeaderCell>
+                    <TableHeaderCell className="text-right">العميل</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الإجمالي</TableHeaderCell>
+                    <TableHeaderCell className="text-right">طريقة الدفع</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                    <TableHeaderCell className="w-24 text-center">إجراءات</TableHeaderCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredOrders.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-12 text-center">
+                        <Receipt className="mx-auto mb-4 size-12 text-muted-foreground/50" />
+                        <p className="text-muted-foreground">لا توجد طلبات</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredOrders.map((order) => (
+                      <TableRow
+                        key={order.id}
+                        className={cn(isReturnOrder(order) && "bg-warning/5")}
                       >
-                        {formatCurrency(order.total)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {isReturnOrder(order) ? (
-                          <span className="text-orange-500">
-                            {ORDER_TYPES.Return.icon} {ORDER_TYPES.Return.label}
-                          </span>
-                        ) : order.payments.length > 0 ? (
-                          order.payments
-                            .map((p) => PAYMENT_METHODS[p.method]?.label)
-                            .join(", ")
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={clsx(
-                            "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            getStatusColor(order.status),
+                        <TableCell className="font-mono font-medium">
+                          <div className="flex items-center gap-2">
+                            {isReturnOrder(order) && (
+                              <CornerUpLeft className="size-4 text-warning" />
+                            )}
+                            <span
+                              className={cn(
+                                isReturnOrder(order) && "text-warning",
+                              )}
+                            >
+                              #{order.orderNumber}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDateTime(order.createdAt)}
+                        </TableCell>
+                        <TableCell>{order.customerName || "-"}</TableCell>
+                        <TableCell
+                          className={cn(
+                            "font-semibold",
+                            isReturnOrder(order)
+                              ? "text-warning"
+                              : "text-primary",
                           )}
                         >
-                          {ORDER_STATUS[order.status]?.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => setSelectedOrder(order)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <Eye className="w-4 h-4 text-gray-500" />
-                          </button>
-                          {order.status === "Pending" && (
-                            <button
-                              onClick={() => handleCancel(order.id)}
-                              className="p-2 hover:bg-danger-50 rounded-lg transition-colors"
-                            >
-                              <XCircle className="w-4 h-4 text-danger-500" />
-                            </button>
+                          {formatCurrency(order.total)}
+                        </TableCell>
+                        <TableCell>
+                          {isReturnOrder(order) ? (
+                            <span className="text-warning">
+                              {ORDER_TYPES.Return.label}
+                            </span>
+                          ) : order.payments.length > 0 ? (
+                            order.payments
+                              .map((p) => PAYMENT_METHODS[p.method]?.label)
+                              .join(", ")
+                          ) : (
+                            "-"
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {viewMode === "all" && pagedData && pagedData.totalPages > 1 && (
-            <div className="border-t px-4 py-3 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                صفحة {pagedData.page} من {pagedData.totalPages} (
-                {pagedData.totalCount} طلب)
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleFilterChange("page", (filters.page || 1) - 1)
-                  }
-                  disabled={!pagedData.hasPreviousPage}
-                  rightIcon={<ChevronRight className="w-4 h-4" />}
-                >
-                  السابق
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleFilterChange("page", (filters.page || 1) + 1)
-                  }
-                  disabled={!pagedData.hasNextPage}
-                  leftIcon={<ChevronLeft className="w-4 h-4" />}
-                >
-                  التالي
-                </Button>
-              </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "border-none",
+                              getStatusColor(order.status),
+                            )}
+                          >
+                            {ORDER_STATUS[order.status]?.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setSelectedOrder(order)}
+                              className="size-8 text-muted-foreground hover:text-foreground"
+                            >
+                              <Eye className="size-4" />
+                            </Button>
+                            {order.status === "Pending" && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleCancel(order.id)}
+                                className="size-8 text-danger hover:bg-danger/10"
+                              >
+                                <XCircle className="size-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          )}
-        </Card>
 
-        {/* Order Details Modal */}
-        {selectedOrder && (
-          <OrderDetailsModal
-            order={selectedOrder}
-            onClose={() => setSelectedOrder(null)}
-          />
-        )}
+            {viewMode === "all" && pagedData && pagedData.totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                <div className="text-sm text-muted-foreground">
+                  صفحة {pagedData.page} من {pagedData.totalPages} (
+                  {pagedData.totalCount} طلب)
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() =>
+                      handleFilterChange("page", (filters.page || 1) - 1)
+                    }
+                    disabled={!pagedData.hasPreviousPage}
+                    rightIcon={<ChevronRight className="size-4" />}
+                  >
+                    السابق
+                  </Button>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() =>
+                      handleFilterChange("page", (filters.page || 1) + 1)
+                    }
+                    disabled={!pagedData.hasNextPage}
+                    leftIcon={<ChevronLeft className="size-4" />}
+                  >
+                    التالي
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
 
-        {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">
-            💡 نصائح إدارة الطلبات
-          </h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>أنماط العرض:</strong> عرض طلبات اليوم أو جميع الطلبات أو
-                اختر يوم معين
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>طلبات المرتجعات:</strong> الطلبات البرتقالية هي طلبات
-                مرتجعة من العملاء
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الإحصائيات:</strong> اتبع إجمالي الطلبات والمبيعات
-                الصافية والنقدية
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>البحث:</strong> ابحث بسرعة باستخدام رقم الطلب أو اسم
-                العميل
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التفاصيل:</strong> اضغط على أي طلب لرؤية البنود
-                والمدفوعات
-              </span>
-            </li>
-          </ul>
+        <div className="xl:w-[320px]">
+          <Card className="sticky top-24 border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-primary">
+                💡 نصائح إدارة الطلبات
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 text-sm text-foreground/80">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">•</span>
+                  <span>
+                    <strong>أنماط العرض:</strong> عرض طلبات اليوم أو جميع الطلبات أو اختر يوم معين
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-warning">•</span>
+                  <span>
+                    <strong>المرتجعات:</strong> الطلبات الاستثنائية تكون بلون تحذيري ولها أيقونة دلالية
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">•</span>
+                  <span>
+                    <strong>الإحصائيات:</strong> تتبع المبيعات الصافية لحظياً مع كل عملية
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">•</span>
+                  <span>
+                    <strong>البحث:</strong> ابحث بسرعة باستخدام رقم الطلب أو اسم العميل
+                  </span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {selectedOrder && (
+        <OrderDetailsModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </div>
   );
 };

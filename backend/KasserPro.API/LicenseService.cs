@@ -23,6 +23,7 @@ public static class LicenseService
     {
         var licenseFile = Path.Combine(appDirectory, LicenseFileName);
         var currentMac = GetPrimaryMacAddress();
+        var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 
         // If we can't get a MAC address (unusual), skip validation
         if (string.IsNullOrEmpty(currentMac))
@@ -48,7 +49,16 @@ public static class LicenseService
 
             if (!string.Equals(storedMac, currentMac, StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine($"[LICENSE] FATAL: MAC mismatch - Stored:{storedMac[..Math.Min(6, storedMac.Length)]} Current:{currentMac[..Math.Min(6, currentMac.Length)]}");
+                Console.WriteLine($"[LICENSE] MAC mismatch - Stored:{storedMac[..Math.Min(6, storedMac.Length)]} Current:{currentMac[..Math.Min(6, currentMac.Length)]}");
+
+                if (isDevelopment)
+                {
+                    Console.WriteLine("[LICENSE] Development mode detected - auto-resetting license for this machine");
+                    File.Delete(licenseFile);
+                    var encrypted = Encrypt(currentMac);
+                    File.WriteAllText(licenseFile, encrypted);
+                    return;
+                }
 
                 throw new InvalidOperationException(
                     "ACTIVATION ERROR: This software is licensed to a different machine. " +

@@ -1,31 +1,33 @@
 import { useState } from "react";
 import {
+  BankNote01,
   Clock,
-  DollarSign,
-  ShoppingBag,
-  CreditCard,
-  Banknote,
-  Play,
-  Square,
-  Users,
-} from "lucide-react";
-import { useShift } from "@/hooks/useShift";
-import { useAuth } from "@/hooks/useAuth";
+  CreditCard01,
+  CurrencyDollarCircle,
+  PlayCircle,
+  ShoppingCart01,
+  StopCircle,
+  Users01,
+} from "@untitledui/icons";
+
 import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
-import { Button } from "@/components/common/Button";
-import { Input } from "@/components/common/Input";
-import { Card } from "@/components/common/Card";
-import { Modal } from "@/components/common/Modal";
+import { MetricCard } from "@/components/app/metric-card";
 import { Loading } from "@/components/common/Loading";
-import { formatCurrency, formatDateTime } from "@/utils/formatters";
-import { shiftPersistence } from "@/utils/shiftPersistence";
+import { Modal } from "@/components/common/Modal";
 import {
-  HandoverShiftModal,
   ActiveShiftsList,
   ForceCloseShiftModal,
+  HandoverShiftModal,
   ShiftWarningBanner,
 } from "@/components/shifts";
-import clsx from "clsx";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useShift } from "@/hooks/useShift";
+import { cn } from "@/lib/utils";
+import { formatCurrency, formatDateTime } from "@/utils/formatters";
+import { shiftPersistence } from "@/utils/shiftPersistence";
 
 export const ShiftPage = () => {
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -52,10 +54,9 @@ export const ShiftPage = () => {
     isClosing,
   } = useShift();
 
-  // Fetch shift warnings (polls every 5 minutes)
   const { data: warningsData } = useGetShiftWarningsQuery(undefined, {
-    pollingInterval: 5 * 60 * 1000, // 5 minutes
-    skip: !hasActiveShift, // Only fetch if shift is open
+    pollingInterval: 5 * 60 * 1000,
+    skip: !hasActiveShift,
   });
 
   const shiftWarning = warningsData?.data;
@@ -67,12 +68,11 @@ export const ShiftPage = () => {
   };
 
   const handleCloseShift = async () => {
-    await closeShift({ 
-      closingBalance: Number(closingBalance), 
+    await closeShift({
+      closingBalance: Number(closingBalance),
       notes,
-      rowVersion: currentShift?.rowVersion 
+      rowVersion: currentShift?.rowVersion,
     });
-    // Clear shift persistence when closing shift
     shiftPersistence.clear();
     setShowCloseModal(false);
     setClosingBalance("");
@@ -87,170 +87,147 @@ export const ShiftPage = () => {
   if (isLoading) return <Loading />;
 
   return (
-    <div className="h-full overflow-auto p-6 space-y-6">
-      {/* Shift Warning Banner */}
+    <div className="page-shell">
       {shiftWarning && !dismissedWarning && (
-        <ShiftWarningBanner
-          warning={shiftWarning}
-          onClose={() => setDismissedWarning(true)}
-        />
+        <div className="mb-4">
+          <ShiftWarningBanner
+            warning={shiftWarning}
+            onClose={() => setDismissedWarning(true)}
+          />
+        </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">إدارة الوردية</h1>
-          <p className="text-gray-500 mt-1">
-            فتح وإغلاق الورديات ومتابعة المبيعات
-          </p>
-        </div>
-        <div className="flex gap-3">
-          {!hasActiveShift ? (
-            <Button
-              variant="success"
-              onClick={() => setShowOpenModal(true)}
-              rightIcon={<Play className="w-5 h-5" />}
-            >
-              فتح وردية جديدة
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => setShowHandoverModal(true)}
-                rightIcon={<Users className="w-5 h-5" />}
-              >
-                تسليم الوردية
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => setShowCloseModal(true)}
-                rightIcon={<Square className="w-5 h-5" />}
-              >
-                إغلاق الوردية
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground">
+              إدارة الوردية
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              فتح وإغلاق الورديات ومتابعة المبيعات
+            </p>
+          </div>
 
-      {/* Shift Status */}
-      <Card className="text-center py-8">
+          <div className="flex gap-3">
+            {!hasActiveShift ? (
+              <Button
+                variant="default"
+                onClick={() => setShowOpenModal(true)}
+                rightIcon={<PlayCircle className="size-5" />}
+              >
+                فتح وردية جديدة
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="glass"
+                  onClick={() => setShowHandoverModal(true)}
+                  rightIcon={<Users01 className="size-5" />}
+                >
+                  تسليم الوردية
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowCloseModal(true)}
+                  rightIcon={<StopCircle className="size-5" />}
+                >
+                  إغلاق الوردية
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <Card className="flex flex-col items-center justify-center p-8 text-center bg-background/50 backdrop-blur-md border-border/60">
         <div
-          className={clsx(
-            "w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center",
-            hasActiveShift ? "bg-success-50" : "bg-gray-100",
+          className={cn(
+            "mb-4 flex size-24 items-center justify-center rounded-[2rem]",
+            hasActiveShift ? "bg-success/10" : "bg-muted",
           )}
         >
           <Clock
-            className={clsx(
-              "w-10 h-10",
-              hasActiveShift ? "text-success-500" : "text-gray-400",
+            className={cn(
+              "size-12",
+              hasActiveShift ? "text-success" : "text-muted-foreground",
             )}
           />
         </div>
-        <h2 className="text-xl font-bold mb-2">
-          {hasActiveShift ? "🟢 الوردية مفتوحة" : "🔴 لا توجد وردية مفتوحة"}
+        <h2 className={cn("mb-2 font-display text-2xl font-bold", hasActiveShift ? "text-foreground" : "text-muted-foreground")}>
+          {hasActiveShift ? "الوردية مفتوحة 🟢" : "لا توجد وردية مفتوحة 🔴"}
         </h2>
         {currentShift && hasActiveShift && (
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             فُتحت: {formatDateTime(currentShift.openedAt)}
           </p>
         )}
       </Card>
 
-      {/* Handover Badge */}
       {currentShift && hasActiveShift && currentShift.isHandedOver && (
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
-            <p className="text-sm text-blue-800">
-              <strong>تم التسليم</strong> من{" "}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center gap-3 py-4">
+            <Users01 className="size-5 text-primary" />
+            <p className="text-sm text-foreground/80">
+              <strong className="text-foreground">تم التسليم</strong> من{" "}
               {currentShift.handedOverFromUserName} في{" "}
               {formatDateTime(currentShift.handedOverAt || "")}
             </p>
-          </div>
+          </CardContent>
         </Card>
       )}
 
-      {/* Shift Stats */}
       {currentShift && hasActiveShift && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-primary-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">رصيد الافتتاح</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {formatCurrency(currentShift.openingBalance)}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-success-50 rounded-xl flex items-center justify-center">
-                  <ShoppingBag className="w-6 h-6 text-success-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">عدد الطلبات</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {currentShift.totalOrders}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-warning-50 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-warning-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">إجمالي المبيعات</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {formatCurrency(
-                      currentShift.totalCash + currentShift.totalCard,
-                    )}
-                  </p>
-                </div>
-              </div>
-            </Card>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <MetricCard
+              title="رصيد الافتتاح"
+              value={formatCurrency(currentShift.openingBalance)}
+              description="الرصيد النقدي"
+              icon={CurrencyDollarCircle}
+            />
+            <MetricCard
+              title="عدد الطلبات"
+              value={currentShift.totalOrders}
+              description="مكتملة"
+              icon={ShoppingCart01}
+              tone="success"
+            />
+            <MetricCard
+              title="إجمالي المبيعات"
+              value={formatCurrency(currentShift.totalCash + currentShift.totalCard)}
+              description="اليوم"
+              icon={CurrencyDollarCircle}
+              tone="warning"
+            />
           </div>
 
-          {/* Payment Methods Breakdown */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Banknote className="w-6 h-6 text-green-600" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Card className="border-success/20 bg-success/5">
+              <CardContent className="flex items-center gap-4 py-6">
+                <div className="flex size-14 items-center justify-center rounded-2xl bg-success/15">
+                  <BankNote01 className="size-7 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">المبيعات النقدية</p>
-                  <p className="text-xl font-bold text-gray-800">
+                  <p className="text-sm font-medium text-success">المبيعات النقدية</p>
+                  <p className="font-display text-2xl font-bold text-foreground">
                     {formatCurrency(currentShift.totalCash)}
                   </p>
                 </div>
-              </div>
+              </CardContent>
             </Card>
 
-            <Card>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-blue-600" />
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="flex items-start gap-4 py-6">
+                <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/15">
+                  <CreditCard01 className="size-7 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">مبيعات إلكترونية</p>
-                  <p className="text-xl font-bold text-gray-800">
+                  <p className="text-sm font-medium text-primary">مبيعات إلكترونية</p>
+                  <p className="font-display text-2xl font-bold text-foreground mb-1">
                     {formatCurrency(currentShift.totalCard)}
                   </p>
-                  {(currentShift.totalFawry > 0 ||
-                    currentShift.totalBankTransfer > 0) && (
-                    <div className="text-xs text-gray-400 mt-1 space-y-0.5">
+                  {(currentShift.totalFawry > 0 || currentShift.totalBankTransfer > 0) && (
+                    <div className="space-y-0.5 text-xs text-muted-foreground font-medium">
                       <p>
                         بطاقة:{" "}
                         {formatCurrency(
@@ -263,21 +240,17 @@ export const ShiftPage = () => {
                         <p>فوري: {formatCurrency(currentShift.totalFawry)}</p>
                       )}
                       {currentShift.totalBankTransfer > 0 && (
-                        <p>
-                          تحويل بنكي:{" "}
-                          {formatCurrency(currentShift.totalBankTransfer)}
-                        </p>
+                        <p>ت. بنكي: {formatCurrency(currentShift.totalBankTransfer)}</p>
                       )}
                     </div>
                   )}
                 </div>
-              </div>
+              </CardContent>
             </Card>
           </div>
-        </>
+        </div>
       )}
 
-      {/* Active Shifts List (Admin Only) */}
       {isAdmin && (
         <ActiveShiftsList
           onForceClose={handleForceClose}
@@ -286,7 +259,6 @@ export const ShiftPage = () => {
         />
       )}
 
-      {/* Handover Modal */}
       {currentShift && (
         <HandoverShiftModal
           shift={currentShift}
@@ -294,17 +266,14 @@ export const ShiftPage = () => {
           onClose={() => setShowHandoverModal(false)}
           onSuccess={() => {
             setShowHandoverModal(false);
-            // Shift will be refreshed automatically via RTK Query
           }}
           availableUsers={[
-            // TODO: Fetch from API - for now using mock data
             { id: 2, name: "أحمد محمد", email: "ahmed@kasserpro.com" },
             { id: 3, name: "فاطمة علي", email: "fatima@kasserpro.com" },
           ]}
         />
       )}
 
-      {/* Force Close Modal (Admin Only) */}
       {selectedShiftForForceClose && (
         <ForceCloseShiftModal
           shift={selectedShiftForForceClose}
@@ -316,12 +285,10 @@ export const ShiftPage = () => {
           onSuccess={() => {
             setShowForceCloseModal(false);
             setSelectedShiftForForceClose(null);
-            // Shifts will be refreshed automatically via RTK Query
           }}
         />
       )}
 
-      {/* Open Shift Modal */}
       <Modal
         isOpen={showOpenModal}
         onClose={() => setShowOpenModal(false)}
@@ -334,20 +301,20 @@ export const ShiftPage = () => {
             value={openingBalance === "0" ? "" : openingBalance}
             onChange={(e) => setOpeningBalance(e.target.value)}
             placeholder="0.00"
-            hint="المبلغ النقدي في الصندوق عند بداية الوردية"
           />
+          <p className="text-sm text-muted-foreground px-1 -mt-2">المبلغ النقدي في الصندوق عند بداية الوردية</p>
           <div className="flex gap-3 pt-4">
             <Button
-              variant="secondary"
+              variant="glass"
               onClick={() => setShowOpenModal(false)}
               className="flex-1"
             >
               إلغاء
             </Button>
             <Button
-              variant="success"
+              variant="default"
               onClick={handleOpenShift}
-              isLoading={isOpening}
+              disabled={isOpening}
               className="flex-1"
             >
               فتح الوردية
@@ -356,7 +323,6 @@ export const ShiftPage = () => {
         </div>
       </Modal>
 
-      {/* Close Shift Modal */}
       <Modal
         isOpen={showCloseModal}
         onClose={() => setShowCloseModal(false)}
@@ -364,27 +330,23 @@ export const ShiftPage = () => {
       >
         <div className="space-y-4">
           {currentShift && (
-            <div className="p-4 bg-gray-50 rounded-xl space-y-2">
+            <div className="space-y-3 rounded-2xl bg-muted/50 p-5 border border-border/50">
               <div className="flex justify-between">
-                <span className="text-gray-500">رصيد الافتتاح:</span>
-                <span className="font-medium">
+                <span className="text-muted-foreground font-medium">رصيد الافتتاح:</span>
+                <span className="font-bold text-foreground">
                   {formatCurrency(currentShift.openingBalance)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">المبيعات النقدية:</span>
-                <span className="font-medium">
+                <span className="text-muted-foreground font-medium">المبيعات النقدية:</span>
+                <span className="font-bold text-success">
                   {formatCurrency(currentShift.totalCash)}
                 </span>
               </div>
-              <div className="flex justify-between border-t pt-2">
-                <span className="text-gray-700 font-medium">
-                  الرصيد المتوقع:
-                </span>
-                <span className="font-bold text-primary-600">
-                  {formatCurrency(
-                    currentShift.openingBalance + currentShift.totalCash,
-                  )}
+              <div className="flex justify-between border-t border-border/60 pt-3">
+                <span className="font-bold text-foreground">الرصيد المتوقع:</span>
+                <span className="font-black text-primary text-lg">
+                  {formatCurrency(currentShift.openingBalance + currentShift.totalCash)}
                 </span>
               </div>
             </div>
@@ -397,7 +359,7 @@ export const ShiftPage = () => {
             placeholder="0.00"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="mb-2 block text-sm font-semibold text-foreground">
               ملاحظات (اختياري)
             </label>
             <textarea
@@ -405,21 +367,21 @@ export const ShiftPage = () => {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="أي ملاحظات على الوردية..."
               rows={3}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <div className="flex gap-3 pt-4">
             <Button
-              variant="secondary"
+              variant="glass"
               onClick={() => setShowCloseModal(false)}
               className="flex-1"
             >
               إلغاء
             </Button>
             <Button
-              variant="danger"
+              variant="destructive"
               onClick={handleCloseShift}
-              isLoading={isClosing}
+              disabled={isClosing}
               className="flex-1"
             >
               إغلاق الوردية

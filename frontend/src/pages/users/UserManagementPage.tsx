@@ -1,45 +1,57 @@
 import { useState } from "react";
-import { Card, Loading } from "../../components/common";
-import { Users, Shield } from "lucide-react";
-import UserManagementCard from "./components/UserManagementCard";
+import { ShieldTick, Users01 } from "@untitledui/icons";
+
 import PermissionsManagementCard from "./components/PermissionsManagementCard";
+import UserManagementCard from "./components/UserManagementCard";
 
 export default function UserManagementPage() {
   const [activeCard, setActiveCard] = useState<"users" | "permissions">("users");
 
   return (
-    <div className="container mx-auto p-6" dir="rtl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">إدارة المستخدمين</h1>
-        <p className="text-gray-600">إدارة حسابات المستخدمين وصلاحياتهم</p>
-      </div>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground flex items-center gap-3">
+              <Users01 className="size-8 text-primary" />
+              إدارة المستخدمين
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إدارة حسابات المستخدمين وصلاحياتهم داخل الفرع الحالي
+            </p>
+          </div>
+        </div>
+      </section>
 
-      {/* Card Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <button
           onClick={() => setActiveCard("users")}
-          className={`p-6 rounded-xl border-2 transition-all text-right ${
+          className={`group relative overflow-hidden rounded-2xl border-2 p-6 text-right transition-all outline-none focus:ring-2 focus:ring-primary/50 ${
             activeCard === "users"
-              ? "border-blue-500 bg-blue-50 shadow-md"
-              : "border-gray-200 hover:border-gray-300 bg-white"
+              ? "border-primary bg-primary/5 shadow-md"
+              : "border-transparent bg-muted/30 hover:bg-muted/50 hover:border-border"
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-4">
             <div
-              className={`p-3 rounded-lg ${
-                activeCard === "users" ? "bg-blue-100" : "bg-gray-100"
+              className={`flex size-14 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                activeCard === "users"
+                  ? "bg-primary/20 text-primary"
+                  : "bg-background text-muted-foreground group-hover:text-foreground"
               }`}
             >
-              <Users
-                className={`w-6 h-6 ${
-                  activeCard === "users" ? "text-blue-600" : "text-gray-600"
-                }`}
-              />
+              <Users01 className="size-7" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-lg mb-1">إدارة المستخدمين</h3>
-              <p className="text-sm text-gray-600">
-                إضافة وتعديل وحذف حسابات المستخدمين
+            <div className="flex flex-col pt-1">
+              <h3
+                className={`mb-1 text-lg font-bold transition-colors ${
+                  activeCard === "users" ? "text-primary" : "text-foreground"
+                }`}
+              >
+                إدارة المستخدمين
+              </h3>
+              <p className="text-sm font-medium text-muted-foreground">
+                إضافة وتعديل وحذف حسابات المستخدمين في هذا الفرع
               </p>
             </div>
           </div>
@@ -47,39 +59,42 @@ export default function UserManagementPage() {
 
         <button
           onClick={() => setActiveCard("permissions")}
-          className={`p-6 rounded-xl border-2 transition-all text-right ${
+          className={`group relative overflow-hidden rounded-2xl border-2 p-6 text-right transition-all outline-none focus:ring-2 focus:ring-success/50 ${
             activeCard === "permissions"
-              ? "border-green-500 bg-green-50 shadow-md"
-              : "border-gray-200 hover:border-gray-300 bg-white"
+              ? "border-success bg-success/5 shadow-md"
+              : "border-transparent bg-muted/30 hover:bg-muted/50 hover:border-border"
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-4">
             <div
-              className={`p-3 rounded-lg ${
-                activeCard === "permissions" ? "bg-green-100" : "bg-gray-100"
+              className={`flex size-14 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                activeCard === "permissions"
+                  ? "bg-success/20 text-success"
+                  : "bg-background text-muted-foreground group-hover:text-foreground"
               }`}
             >
-              <Shield
-                className={`w-6 h-6 ${
-                  activeCard === "permissions"
-                    ? "text-green-600"
-                    : "text-gray-600"
-                }`}
-              />
+              <ShieldTick className="size-7" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-lg mb-1">إدارة الصلاحيات</h3>
-              <p className="text-sm text-gray-600">
-                تحديد صلاحيات الكاشيرين والمستخدمين
+            <div className="flex flex-col pt-1">
+              <h3
+                className={`mb-1 text-lg font-bold transition-colors ${
+                  activeCard === "permissions" ? "text-success" : "text-foreground"
+                }`}
+              >
+                إدارة الصلاحيات
+              </h3>
+              <p className="text-sm font-medium text-muted-foreground">
+                تحديد الأدوار وصلاحيات الوصول لكل فئة من المستخدمين
               </p>
             </div>
           </div>
         </button>
       </div>
 
-      {/* Active Card Content */}
-      {activeCard === "users" && <UserManagementCard />}
-      {activeCard === "permissions" && <PermissionsManagementCard />}
+      <div className="mt-2">
+        {activeCard === "users" && <UserManagementCard />}
+        {activeCard === "permissions" && <PermissionsManagementCard />}
+      </div>
     </div>
   );
 }

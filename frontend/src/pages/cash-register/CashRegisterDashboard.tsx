@@ -1,27 +1,30 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  DollarSign,
-  TrendingUp,
+  ArrowCircleDown,
+  ArrowCircleUp,
+  CurrencyDollar as DollarSign,
+  RefreshCcw01 as RefreshCw,
   TrendingDown,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  RefreshCw,
-} from "lucide-react";
+  TrendingUp,
+} from "@untitledui/icons";
+
 import {
+  useDepositMutation,
   useGetCurrentBalanceQuery,
   useGetTransactionsQuery,
-  useDepositMutation,
   useWithdrawMutation,
 } from "../../api/cashRegisterApi";
-import { Button } from "../../components/common/Button";
-import { Card } from "../../components/common/Card";
+import { Button } from "../../components/ui/button";
+import { MetricCard } from "../../components/app/metric-card";
+import { Card, CardContent } from "../../components/ui/card";
 import { Loading } from "../../components/common/Loading";
 import { Modal } from "../../components/common/Modal";
-import type { CashRegisterTransactionType } from "../../types/cashRegister.types";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch } from "../../store/slices/branchSlice";
+import type { CashRegisterTransactionType } from "../../types/cashRegister.types";
 import { formatDateTimeFull } from "../../utils/formatters";
+import { cn } from "../../lib/utils";
 
 export function CashRegisterDashboard() {
   const currentBranch = useAppSelector(selectCurrentBranch);
@@ -73,7 +76,7 @@ export function CashRegisterDashboard() {
 
     try {
       await deposit({
-        branchId: currentBranch.id,
+        branchId: currentBranch!.id,
         amount,
         description: depositDescription,
       }).unwrap();
@@ -100,7 +103,7 @@ export function CashRegisterDashboard() {
 
     try {
       await withdraw({
-        branchId: currentBranch.id,
+        branchId: currentBranch!.id,
         amount,
         description: withdrawDescription,
       }).unwrap();
@@ -129,345 +132,337 @@ export function CashRegisterDashboard() {
     return labels[type];
   };
 
-  const getTransactionTypeColor = (type: CashRegisterTransactionType) => {
-    const colors: Record<CashRegisterTransactionType, string> = {
-      Opening: "text-blue-600",
-      Deposit: "text-green-600",
-      Withdrawal: "text-red-600",
-      Sale: "text-green-600",
-      Refund: "text-red-600",
-      Expense: "text-red-600",
-      SupplierPayment: "text-red-600",
-      Adjustment: "text-yellow-600",
-      Transfer: "text-purple-600",
+  const getTransactionColorTone = (type: CashRegisterTransactionType) => {
+    const colors: Record<CashRegisterTransactionType, "success" | "danger" | "warning" | "primary"> = {
+      Opening: "primary",
+      Deposit: "success",
+      Withdrawal: "danger",
+      Sale: "success",
+      Refund: "danger",
+      Expense: "danger",
+      SupplierPayment: "danger",
+      Adjustment: "warning",
+      Transfer: "primary",
     };
     return colors[type];
   };
 
+  const isIncoming = (amount: number) => amount >= 0;
+
   if (!currentBranch?.id) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center bg-background">
         <Loading />
       </div>
     );
   }
 
-  if (isLoadingBalance) return <Loading />;
+  if (isLoadingBalance) return (
+    <div className="flex h-full items-center justify-center bg-background">
+      <Loading />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">الخزينة</h1>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground flex items-center gap-3">
+              <DollarSign className="size-8 text-primary" />
+              صندوق الخزينة
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إدارة الخزينة وتسجيل المعاملات النقدية اليومية من إيداعات ومسحوبات للفرع الحالي
+            </p>
+            {currentBranch && (
+              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 border border-primary/20">
+                <div className="size-2 rounded-full bg-primary" />
+                <span className="text-sm font-bold text-primary">
+                  الفرع النشط: {currentBranch.name}
+                </span>
+              </div>
+            )}
           </div>
-          <p className="text-gray-600">
-            إدارة الخزينة والمعاملات النقدية اليومية
-          </p>
-          {currentBranch && (
-            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-              <DollarSign className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
-                الفرع الحالي: {currentBranch.name}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div></div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="success" onClick={() => setShowDepositModal(true)}>
-              <ArrowUpCircle className="w-4 h-4" />
-              إيداع
+
+          <div className="flex flex-wrap items-end gap-2">
+            <Button
+              className="bg-success text-success-foreground hover:bg-success/90"
+              onClick={() => setShowDepositModal(true)}
+              leftIcon={<ArrowCircleUp className="size-5" />}
+            >
+              إيداع خزينة
             </Button>
-            <Button variant="danger" onClick={() => setShowWithdrawModal(true)}>
-              <ArrowDownCircle className="w-4 h-4" />
-              سحب
+            <Button
+              className="bg-danger text-danger-foreground hover:bg-danger/90"
+              onClick={() => setShowWithdrawModal(true)}
+              leftIcon={<ArrowCircleDown className="size-5" />}
+            >
+              سحب نقدي
             </Button>
-            <Button variant="outline" onClick={() => refetchBalance()}>
-              <RefreshCw className="w-4 h-4" />
+            <Button
+              variant="outline"
+              onClick={() => refetchBalance()}
+              leftIcon={<RefreshCw className="size-5" />}
+            >
               تحديث
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600">الرصيد الحالي</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {balance?.currentBalance.toFixed(2)} جنيه
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-blue-600" />
-              </div>
-            </div>
-          </Card>
-          <Card className="border-green-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600">إجمالي دخول (آخر 10)</p>
-                <p className="text-2xl font-bold text-green-700 mt-1">
-                  {incomingTotal.toFixed(2)} جنيه
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-            </div>
-          </Card>
-          <Card className="border-red-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600">إجمالي خروج (آخر 10)</p>
-                <p className="text-2xl font-bold text-red-700 mt-1">
-                  {outgoingTotal.toFixed(2)} جنيه
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <TrendingDown className="w-5 h-5 text-red-600" />
-              </div>
-            </div>
-          </Card>
-        </div>
-        <Card padding="none">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                آخر المعاملات
-              </h3>
-              {balance?.lastTransactionDate && (
-                <p className="text-sm text-gray-500 mt-1">
-                  آخر معاملة:{" "}
-                  {formatDateTimeFull(balance.lastTransactionDate)}
-                </p>
-              )}
-            </div>
-            <Link
-              to="/cash-register/transactions"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800"
-            >
-              عرض الكل
-            </Link>
-          </div>
+      </section>
 
-          <div className="p-4">
-            {isLoadingTransactions ? (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard
+          title="الرصيد الفعلي الحالي"
+          value={<>{balance?.currentBalance.toFixed(2)}<span className="text-sm text-foreground/50 mr-1">جنيه</span></>}
+          description="إجمالي مبلغ الخزينة اللحظي"
+          icon={DollarSign}
+        />
+        <MetricCard
+          title="إيداعات آخر 10 معاملات"
+          value={<>{incomingTotal.toFixed(2)}<span className="text-sm text-success/50 mr-1">جنيه</span></>}
+          description="إجمالي المبالغ الداخلة"
+          icon={TrendingUp}
+          tone="success"
+        />
+        <MetricCard
+          title="مدفوعات آخر 10 معاملات"
+          value={<>{outgoingTotal.toFixed(2)}<span className="text-sm text-danger/50 mr-1">جنيه</span></>}
+          description="إجمالي المبالغ المسحوبة"
+          icon={TrendingDown}
+          tone="danger"
+        />
+      </div>
+
+      <Card className="flex flex-col">
+        <div className="flex items-center justify-between border-b border-border bg-muted/10 px-6 py-4">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">
+              آخر عمليات الصندوق
+            </h3>
+            {balance?.lastTransactionDate && (
+              <p className="mt-1 text-sm font-medium text-muted-foreground">
+                محدث في: {formatDateTimeFull(balance.lastTransactionDate)}
+              </p>
+            )}
+          </div>
+          <Link
+            to="/cash-register/transactions"
+            className="text-sm font-bold text-primary hover:underline"
+          >
+            عرض السجل الكامل
+          </Link>
+        </div>
+
+        <div className="p-0">
+          {isLoadingTransactions ? (
+            <div className="py-12">
               <Loading />
-            ) : transactions.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">لا توجد معاملات</p>
-            ) : (
-              <div className="space-y-3">
-                {transactions.map((transaction) => (
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="py-16 text-center text-muted-foreground">
+              <DollarSign className="mx-auto mb-4 size-12 opacity-30" />
+              <p className="text-lg font-medium">لا توجد حركات في الصندوق حالياً</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {transactions.map((transaction) => {
+                const tone = getTransactionColorTone(transaction.type);
+                return (
                   <div
                     key={transaction.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between transition-colors hover:bg-muted/30"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-4">
                       <div
-                        className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                          transaction.amount >= 0
-                            ? "bg-green-100"
-                            : "bg-red-100"
-                        }`}
+                        className={cn(
+                          "flex size-12 shrink-0 items-center justify-center rounded-xl",
+                          isIncoming(transaction.amount) 
+                            ? "bg-success/10 text-success" 
+                            : "bg-danger/10 text-danger"
+                        )}
                       >
-                        {transaction.amount >= 0 ? (
-                          <TrendingUp className="w-5 h-5 text-green-600" />
+                        {isIncoming(transaction.amount) ? (
+                          <TrendingUp className="size-6" />
                         ) : (
-                          <TrendingDown className="w-5 h-5 text-red-600" />
+                          <TrendingDown className="size-6" />
                         )}
                       </div>
                       <div>
-                        <p
-                          className={`font-medium ${getTransactionTypeColor(
-                            transaction.type,
-                          )}`}
-                        >
+                        <p className={cn(
+                          "mb-1 font-bold",
+                          `text-${tone}`
+                        )}>
                           {getTransactionTypeLabel(transaction.type)}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          {transaction.description}
+                        <p className="mb-2 text-sm font-medium text-muted-foreground">
+                          {transaction.description || "—"}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-mono text-xs font-semibold text-muted-foreground/80" dir="ltr">
                           {formatDateTimeFull(transaction.createdAt)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-left">
+                    <div className="text-left shrink-0 max-sm:pl-[64px] max-sm:text-right">
                       <p
-                        className={`text-lg font-bold ${
-                          transaction.amount >= 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
+                        className={cn(
+                          "font-mono text-xl font-black tracking-tight",
+                          isIncoming(transaction.amount)
+                            ? "text-success"
+                            : "text-danger"
+                        )}
+                        dir="ltr"
                       >
-                        {transaction.amount >= 0 ? "+" : ""}
-                        {transaction.amount.toFixed(2)} جنيه
+                        {isIncoming(transaction.amount) ? "+" : ""}
+                        {transaction.amount.toFixed(2)} EGP
                       </p>
-                      <p className="text-xs text-gray-500">
-                        الرصيد: {transaction.balanceAfter.toFixed(2)} جنيه
+                      <p className="mt-1 font-mono text-xs font-bold text-muted-foreground" dir="ltr">
+                        Bal: {transaction.balanceAfter.toFixed(2)}
                       </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
-        <Modal
-          isOpen={showDepositModal}
-          onClose={() => setShowDepositModal(false)}
-          title="إيداع نقدي"
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                المبلغ (جنيه) <span className="text-red-500">*</span>
-              </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Modal
+        isOpen={showDepositModal}
+        onClose={() => setShowDepositModal(false)}
+        title="إيداع نقدي الخزينة"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              المبلغ <span className="text-danger">*</span>
+            </label>
+            <div className="relative">
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={depositAmount === "0" ? "" : depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 pl-12 text-lg font-black font-mono transition-colors focus:border-success focus:outline-none focus:ring-2 focus:ring-success/20"
                 placeholder="0.00"
                 required
+                dir="ltr"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                الوصف <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={depositDescription}
-                onChange={(e) => setDepositDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="وصف الإيداع..."
-                required
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setShowDepositModal(false)}
-              >
-                إلغاء
-              </Button>
-              <Button
-                variant="success"
-                onClick={handleDeposit}
-                disabled={isDepositing}
-              >
-                {isDepositing ? "جاري الإيداع..." : "تأكيد الإيداع"}
-              </Button>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                ج.م
+              </div>
             </div>
           </div>
-        </Modal>
-        <Modal
-          isOpen={showWithdrawModal}
-          onClose={() => setShowWithdrawModal(false)}
-          title="سحب نقدي"
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                المبلغ (جنيه) <span className="text-red-500">*</span>
-              </label>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              البيان / الوصف <span className="text-danger">*</span>
+            </label>
+            <textarea
+              value={depositDescription}
+              onChange={(e) => setDepositDescription(e.target.value)}
+              rows={3}
+              className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm font-medium transition-colors focus:border-success focus:outline-none focus:ring-2 focus:ring-success/20"
+              placeholder="وصف سبب الإيداع (مثال: سداد ذمم)..."
+              required
+            />
+          </div>
+          
+          <div className="mb-2 rounded-xl border border-success/20 bg-success/5 p-4">
+            <p className="text-sm font-bold text-success flex justify-between items-center" dir="rtl">
+              الرصيد الحالي للخزينة:
+              <span className="font-mono text-lg">{balance?.currentBalance.toFixed(2)}</span>
+            </p>
+          </div>
+
+          <div className="flex gap-3 justify-end pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDepositModal(false)}
+              className="flex-1"
+            >
+              التراجع
+            </Button>
+            <Button
+              onClick={handleDeposit}
+              disabled={isDepositing || !depositAmount || !depositDescription}
+              className="flex-1 border-success bg-success text-success-foreground hover:bg-success/90"
+              leftIcon={isDepositing ? <RefreshCw className="size-4 animate-spin" /> : undefined}
+            >
+              {isDepositing ? "جاري الحفظ..." : "تأكيد واستلام النقدية"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        title="سحب نقدي من الخزينة"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              المبلغ <span className="text-danger">*</span>
+            </label>
+            <div className="relative">
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={withdrawAmount === "0" ? "" : withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 pl-12 text-lg font-black font-mono transition-colors focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/20"
                 placeholder="0.00"
                 required
+                dir="ltr"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                الوصف <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={withdrawDescription}
-                onChange={(e) => setWithdrawDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="وصف السحب..."
-                required
-              />
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-              <p className="text-sm text-yellow-800">
-                <strong>الرصيد الحالي:</strong>{" "}
-                {balance?.currentBalance.toFixed(2)} جنيه
-              </p>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setShowWithdrawModal(false)}
-              >
-                إلغاء
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleWithdraw}
-                disabled={isWithdrawing}
-              >
-                {isWithdrawing ? "جاري السحب..." : "تأكيد السحب"}
-              </Button>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                ج.م
+              </div>
             </div>
           </div>
-        </Modal>
-        {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">
-            💡 نصائح استخدام الخزينة
-          </h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الرصيد الحالي:</strong> يظهر إجمالي النقد المتوفر في
-                الخزينة الآن
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الإيداع:</strong> إضافة نقود جديدة إلى الخزينة (يتطلب
-                وصف للعملية)
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>السحب:</strong> إخراج نقود من الخزينة (صرف لموظفين،
-                مصروفات، إلخ)
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>آخر المعاملات:</strong> تعرض آخر 10 عمليات تمت على
-                الخزينة
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>مهم:</strong> جميع العمليات مسجلة وقابلة للمراجعة
-                والتدقيق
-              </span>
-            </li>
-          </ul>
-        </div>{" "}
-      </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              البيان / الوصف <span className="text-danger">*</span>
+            </label>
+            <textarea
+              value={withdrawDescription}
+              onChange={(e) => setWithdrawDescription(e.target.value)}
+              rows={3}
+              className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm font-medium transition-colors focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/20"
+              placeholder="وصف سبب المصروف أو السحب (مثال: نكهات وكهرباء)..."
+              required
+            />
+          </div>
+          
+          <div className="mb-2 rounded-xl border border-warning/20 bg-warning/5 p-4">
+            <p className="text-sm font-bold text-warning flex justify-between items-center" dir="rtl">
+              رصيد الخزينة المتاح:
+              <span className="font-mono text-lg">{balance?.currentBalance.toFixed(2)}</span>
+            </p>
+          </div>
+
+          <div className="flex gap-3 justify-end pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowWithdrawModal(false)}
+              className="flex-1"
+            >
+              التراجع
+            </Button>
+            <Button
+              onClick={handleWithdraw}
+              disabled={isWithdrawing || !withdrawAmount || !withdrawDescription}
+              className="flex-1 border-danger bg-danger text-danger-foreground hover:bg-danger/90"
+              leftIcon={isWithdrawing ? <RefreshCw className="size-4 animate-spin" /> : undefined}
+            >
+              {isWithdrawing ? "جاري الخصم..." : "تأكيد وصرف النقدية"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

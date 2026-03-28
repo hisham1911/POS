@@ -2,23 +2,34 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  ListOrdered,
-  Building2,
+  Building02,
   ChevronDown,
-} from "lucide-react";
+  List,
+  TrendingDown,
+  TrendingUp,
+} from "@untitledui/icons";
+
 import { useGetTransactionsQuery } from "../../api/cashRegisterApi";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Loading } from "../../components/common/Loading";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "../../components/ui/table";
+import { MetricCard } from "../../components/app/metric-card";
+import { useAppSelector } from "../../store/hooks";
+import { selectCurrentBranch } from "../../store/slices/branchSlice";
 import type {
   CashRegisterFilters,
   CashRegisterTransactionType,
 } from "../../types/cashRegister.types";
-import { Button } from "../../components/common/Button";
-import { Card } from "../../components/common/Card";
-import { Loading } from "../../components/common/Loading";
-import { useAppSelector } from "../../store/hooks";
-import { selectCurrentBranch } from "../../store/slices/branchSlice";
 import { formatDateTimeFull } from "../../utils/formatters";
+import { cn } from "../../lib/utils";
 
 export function CashRegisterTransactionsPage() {
   const currentBranch = useAppSelector(selectCurrentBranch);
@@ -65,324 +76,283 @@ export function CashRegisterTransactionsPage() {
     return labels[type];
   };
 
-  const getTransactionTypeBadge = (type: CashRegisterTransactionType) => {
-    const badges: Record<CashRegisterTransactionType, string> = {
-      Opening: "bg-blue-100 text-blue-800",
-      Deposit: "bg-green-100 text-green-800",
-      Withdrawal: "bg-red-100 text-red-800",
-      Sale: "bg-green-100 text-green-800",
-      Refund: "bg-red-100 text-red-800",
-      Expense: "bg-red-100 text-red-800",
-      SupplierPayment: "bg-red-100 text-red-800",
-      Adjustment: "bg-yellow-100 text-yellow-800",
-      Transfer: "bg-purple-100 text-purple-800",
+  const getTransactionTypeBadgeTone = (type: CashRegisterTransactionType) => {
+    const tones: Record<CashRegisterTransactionType, "primary" | "success" | "danger" | "warning"> = {
+      Opening: "primary",
+      Deposit: "success",
+      Withdrawal: "danger",
+      Sale: "success",
+      Refund: "danger",
+      Expense: "danger",
+      SupplierPayment: "danger",
+      Adjustment: "warning",
+      Transfer: "primary",
     };
-    return badges[type];
+    return tones[type];
   };
+
+  const isIncoming = (amount: number) => amount >= 0;
 
   if (!currentBranch?.id) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex h-full items-center justify-center bg-background">
         <Loading />
       </div>
     );
   }
 
-  if (isLoading) return <Loading />;
+  if (isLoading) return (
+    <div className="flex h-full items-center justify-center bg-background">
+      <Loading />
+    </div>
+  );
+  
   if (error)
-    return <div className="text-red-600">حدث خطأ في تحميل المعاملات</div>;
+    return <div className="text-danger flex h-full items-center justify-center font-bold text-lg">حدث خطأ في تحميل المعاملات</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <ListOrdered className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              معاملات الخزينة
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground flex items-center gap-3">
+              <List className="size-8 text-primary" />
+              سجل معاملات الخزينة
             </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              سجل كامل ومفصل لجميع المعاملات النقدية الواردة والصادرة للخزينة
+            </p>
+            {currentBranch && (
+              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 border border-primary/20">
+                <div className="size-2 rounded-full bg-primary" />
+                <span className="text-sm font-bold text-primary">
+                  الفرع النشط: {currentBranch.name}
+                </span>
+              </div>
+            )}
           </div>
-          <p className="text-gray-600">سجل كامل لجميع المعاملات النقدية</p>
-          {currentBranch && (
-            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-              <Building2 className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
-                الفرع الحالي: {currentBranch.name}
-              </span>
-            </div>
-          )}
-        </div>
 
-        <div className="flex justify-end">
-          <Link to="/cash-register">
-            <Button variant="outline">
-              <ArrowRight className="w-4 h-4" />
-              رجوع للخزينة
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-end gap-2">
+            <Link to="/cash-register">
+              <Button leftIcon={<ArrowRight className="size-4" />} variant="outline">
+                العودة للخزينة
+              </Button>
+            </Link>
+          </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-100">
-            <p className="text-sm text-gray-600">المعاملات المعروضة</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              {transactions.length}
-            </p>
-          </Card>
-          <Card className="border-green-100">
-            <p className="text-sm text-gray-600">عمليات دخول</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">
-              {incomingCount}
-            </p>
-          </Card>
-          <Card className="border-red-100">
-            <p className="text-sm text-gray-600">عمليات خروج</p>
-            <p className="text-2xl font-bold text-red-700 mt-1">
-              {outgoingCount}
-            </p>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard
+          title="إجمالي المعاملات المعروضة"
+          value={transactions.length}
+          description="عدد حركات الصندوق في الصفحة الحالية"
+          icon={List}
+        />
+        <MetricCard
+          title="عمليات دخول نقدية"
+          value={incomingCount}
+          description="عدد حركات الإيداع والمبيعات"
+          icon={TrendingUp}
+          tone="success"
+        />
+        <MetricCard
+          title="عمليات خروج نقدية"
+          value={outgoingCount}
+          description="عدد حركات السحب والمصروفات"
+          icon={TrendingDown}
+          tone="danger"
+        />
+      </div>
 
-        <Card>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                نوع المعاملة
-              </label>
-              <div className="relative">
-                <select
-                  value={filters.type || ""}
-                  onChange={(e) =>
-                    handleFilterChange("type", e.target.value || undefined)
-                  }
-                  className="w-full appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm"
-                >
-                  <option value="">الكل</option>
-                  <option value="Opening">فتح وردية</option>
-                  <option value="Deposit">إيداع</option>
-                  <option value="Withdrawal">سحب</option>
-                  <option value="Sale">مبيعات</option>
-                  <option value="Refund">مرتجع</option>
-                  <option value="Expense">مصروف</option>
-                  <option value="SupplierPayment">دفع لمورد</option>
-                  <option value="Adjustment">تسوية</option>
-                  <option value="Transfer">تحويل</option>
-                </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+      <Card className="p-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              نوع المعاملة
+            </label>
+            <div className="relative">
+              <select
+                value={filters.type || ""}
+                onChange={(e) =>
+                  handleFilterChange("type", e.target.value || undefined)
+                }
+                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer text-sm font-medium"
+              >
+                <option value="">جميع المعاملات</option>
+                <option value="Opening">فتح وردية</option>
+                <option value="Deposit">إيداع نقدي</option>
+                <option value="Withdrawal">سحب نقدي</option>
+                <option value="Sale">مبيعات</option>
+                <option value="Refund">مرتجع</option>
+                <option value="Expense">مصروف</option>
+                <option value="SupplierPayment">دفع لمورد</option>
+                <option value="Adjustment">تسوية</option>
+                <option value="Transfer">تحويل خارجي</option>
+              </select>
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                <ChevronDown className="size-5 text-muted-foreground" />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                من تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.fromDate || ""}
-                onChange={(e) =>
-                  handleFilterChange("fromDate", e.target.value || undefined)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                إلى تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.toDate || ""}
-                onChange={(e) =>
-                  handleFilterChange("toDate", e.target.value || undefined)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                رقم الوردية
-              </label>
-              <input
-                type="number"
-                value={filters.shiftId || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "shiftId",
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="رقم الوردية"
-              />
-            </div>
           </div>
-        </Card>
 
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    التاريخ والوقت
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    النوع
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الوصف
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    المبلغ
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الرصيد قبل
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الرصيد بعد
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    المستخدم
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-10 text-center text-sm text-gray-500"
-                    >
-                      لا توجد معاملات مطابقة للفلاتر الحالية.
-                    </td>
-                  </tr>
-                ) : (
-                  transactions.map((transaction) => (
-                    <tr key={transaction.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              من تاريخ
+            </label>
+            <input
+              type="date"
+              value={filters.fromDate || ""}
+              onChange={(e) =>
+                handleFilterChange("fromDate", e.target.value || undefined)
+              }
+              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              إلى تاريخ
+            </label>
+            <input
+              type="date"
+              value={filters.toDate || ""}
+              onChange={(e) =>
+                handleFilterChange("toDate", e.target.value || undefined)
+              }
+              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              رقم الوردية
+            </label>
+            <input
+              type="number"
+              value={filters.shiftId || ""}
+              onChange={(e) =>
+                handleFilterChange(
+                  "shiftId",
+                  e.target.value ? Number(e.target.value) : undefined,
+                )
+              }
+              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium"
+              placeholder="ابحث برقم الوردية..."
+            />
+          </div>
+        </div>
+      </Card>
+
+      <Card className="flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-x-auto">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell className="text-right">التاريخ والوقت</TableHeaderCell>
+                <TableHeaderCell className="text-right">النوع</TableHeaderCell>
+                <TableHeaderCell className="text-right">الوصف</TableHeaderCell>
+                <TableHeaderCell className="text-right">المبلغ</TableHeaderCell>
+                <TableHeaderCell className="text-right">الرصيد قبل</TableHeaderCell>
+                <TableHeaderCell className="text-right">الرصيد بعد</TableHeaderCell>
+                <TableHeaderCell className="text-right">المستخدم</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                    <List className="mx-auto mb-3 size-8 opacity-50" />
+                    لا توجد معاملات مطابقة لخيارات الفلترة الحالية.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                transactions.map((transaction) => {
+                  const tone = getTransactionTypeBadgeTone(transaction.type);
+                  const isInc = isIncoming(transaction.amount);
+
+                  return (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-mono text-xs font-semibold text-muted-foreground whitespace-nowrap" dir="ltr">
                         {formatDateTimeFull(transaction.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      </TableCell>
+                      <TableCell>
                         <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${getTransactionTypeBadge(
-                            transaction.type,
-                          )}`}
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold leading-none",
+                            `bg-${tone}/10 text-${tone}`
+                          )}
                         >
                           {getTransactionTypeLabel(transaction.type)}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 max-w-sm truncate">
-                        {transaction.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1">
-                          {transaction.amount >= 0 ? (
-                            <TrendingUp className="w-4 h-4 text-green-600" />
+                      </TableCell>
+                      <TableCell className="text-sm font-medium text-foreground max-w-[200px] truncate" title={transaction.description}>
+                        {transaction.description || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5" dir="ltr">
+                          {isInc ? (
+                            <TrendingUp className="size-4 text-success" />
                           ) : (
-                            <TrendingDown className="w-4 h-4 text-red-600" />
+                            <TrendingDown className="size-4 text-danger" />
                           )}
                           <span
-                            className={`text-sm font-bold ${
-                              transaction.amount >= 0
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
+                            className={cn(
+                              "font-mono text-sm font-bold",
+                              isInc ? "text-success" : "text-danger"
+                            )}
                           >
-                            {transaction.amount >= 0 ? "+" : ""}
-                            {transaction.amount.toFixed(2)} جنيه
+                            {isInc ? "+" : ""}
+                            {transaction.amount.toFixed(2)} EGP
                           </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {transaction.balanceBefore.toFixed(2)} جنيه
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                        {transaction.balanceAfter.toFixed(2)} جنيه
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {transaction.createdByUserName}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-gray-200">
-              <div className="text-sm text-gray-700">
-                عرض {transactions.length} من {totalCount} معاملة
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(filters.pageNumber! - 1)}
-                  disabled={filters.pageNumber === 1}
-                >
-                  السابق
-                </Button>
-                <span className="px-4 py-2 text-sm text-gray-700">
-                  صفحة {filters.pageNumber} من {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(filters.pageNumber! + 1)}
-                  disabled={filters.pageNumber === totalPages}
-                >
-                  التالي
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
-
-        {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">
-            💡 نصائح استخدام سجل المعاملات
-          </h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>البحث والفلترة:</strong> يمكنك البحث حسب نوع المعاملة
-                والتاريخ ورقم الوردية
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الرصيد:</strong> الرصيد قبل وبعد يوضح تأثير كل معاملة
-                على الرصيد
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الدخول والخروج:</strong> له ألوان مختلفة (أخضر للدخول،
-                أحمر للخروج)
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التدقيق:</strong> جميع المعاملات موثقة باسم المستخدم
-                والتاريخ والوقت الدقيق
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التصدير:</strong> يمكن استخدام الفلاتر لتحديد فترة معينة
-                ثم حفظ التقرير
-              </span>
-            </li>
-          </ul>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-medium text-muted-foreground" dir="ltr">
+                        {transaction.balanceBefore.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-bold text-foreground" dir="ltr">
+                        {transaction.balanceAfter.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-sm font-medium text-muted-foreground">
+                        {transaction.createdByUserName || "—"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
         </div>
-      </div>
+
+        {totalPages > 1 && (
+          <div className="flex flex-col gap-4 border-t border-border bg-muted/5 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-muted-foreground">
+              عرض <span className="font-bold text-foreground">{transactions.length}</span> من أصل <span className="font-bold text-foreground">{totalCount}</span> معاملة
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(filters.pageNumber! - 1)}
+                disabled={filters.pageNumber === 1}
+              >
+                الصفحة السابقة
+              </Button>
+              <div className="flex px-2 text-sm font-medium text-muted-foreground font-mono">
+                {filters.pageNumber} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(filters.pageNumber! + 1)}
+                disabled={filters.pageNumber === totalPages}
+              >
+                الصفحة التالية
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

@@ -17,7 +17,7 @@ import {
   Filter,
   AlertTriangle,
   ChevronDown,
-} from "lucide-react";
+} from "@untitledui/icons";
 import { toast } from "sonner";
 import type { TransferStatus } from "../../types/inventory.types";
 import { formatDateTimeFull } from "../../utils/formatters";
@@ -140,22 +140,22 @@ export default function InventoryTransferList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">طلبات نقل المخزون</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">طلبات نقل المخزون</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             إدارة نقل المخزون بين الفروع
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-card rounded-lg border border-border p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-5 h-5 text-gray-400" />
-          <h3 className="font-semibold text-gray-900">تصفية</h3>
+          <Filter className="w-5 h-5 text-muted-foreground/70" />
+          <h3 className="font-semibold text-foreground">تصفية</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               من فرع
             </label>
             <div className="relative">
@@ -167,7 +167,7 @@ export default function InventoryTransferList() {
                     fromBranchId: e.target.value ? Number(e.target.value) : undefined,
                   })
                 }
-                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm"
               >
                 <option value="">جميع الفروع</option>
                 {branches.map((branch) => (
@@ -176,12 +176,12 @@ export default function InventoryTransferList() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               إلى فرع
             </label>
             <div className="relative">
@@ -193,7 +193,7 @@ export default function InventoryTransferList() {
                     toBranchId: e.target.value ? Number(e.target.value) : undefined,
                   })
                 }
-                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm"
               >
                 <option value="">جميع الفروع</option>
                 {branches.map((branch) => (
@@ -202,12 +202,12 @@ export default function InventoryTransferList() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               الحالة
             </label>
             <div className="relative">
@@ -219,7 +219,7 @@ export default function InventoryTransferList() {
                     status: e.target.value ? (e.target.value as TransferStatus) : undefined,
                   })
                 }
-                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm"
               >
                 <option value="">جميع الحالات</option>
                 <option value="Pending">قيد الانتظار</option>
@@ -227,22 +227,22 @@ export default function InventoryTransferList() {
                 <option value="Received">تم الاستلام</option>
                 <option value="Cancelled">ملغي</option>
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Transfers List */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
         {transfersData && transfersData.items.length > 0 ? (
           <div className="divide-y divide-gray-200">
             {transfersData.items.map((transfer) => (
-              <div key={transfer.id} className="p-6 hover:bg-gray-50">
+              <div key={transfer.id} className="p-6 hover:bg-muted/30">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {transfer.transferNumber}
                       </h3>
                       {getStatusBadge(transfer.status)}
@@ -251,35 +251,35 @@ export default function InventoryTransferList() {
                     {/* Transfer Direction */}
                     <div className="flex items-center gap-3 mb-3">
                       <div className="flex items-center gap-2 text-sm">
-                        <Package className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium text-gray-900">
+                        <Package className="w-4 h-4 text-muted-foreground/70" />
+                        <span className="font-medium text-foreground">
                           {transfer.fromBranchName}
                         </span>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-gray-400" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground/70" />
                       <div className="flex items-center gap-2 text-sm">
-                        <Package className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium text-gray-900">
+                        <Package className="w-4 h-4 text-muted-foreground/70" />
+                        <span className="font-medium text-foreground">
                           {transfer.toBranchName}
                         </span>
                       </div>
                     </div>
 
                     {/* Product Info */}
-                    <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                    <div className="bg-muted/30 rounded-lg p-3 mb-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             {transfer.productName}
                           </p>
                           {transfer.productSku && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               كود: {transfer.productSku}
                             </p>
                           )}
                         </div>
                         <div className="text-left">
-                          <p className="text-sm text-gray-600">الكمية</p>
+                          <p className="text-sm text-muted-foreground">الكمية</p>
                           <p className="text-lg font-bold text-blue-600">
                             {transfer.quantity}
                           </p>
@@ -289,18 +289,18 @@ export default function InventoryTransferList() {
 
                     {/* Reason */}
                     <div className="mb-3">
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         <span className="font-medium">السبب:</span> {transfer.reason}
                       </p>
                       {transfer.notes && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           <span className="font-medium">ملاحظات:</span> {transfer.notes}
                         </p>
                       )}
                     </div>
 
                     {/* Timeline */}
-                    <div className="text-xs text-gray-500 space-y-1">
+                    <div className="text-xs text-muted-foreground space-y-1">
                       <p>
                         أنشئ بواسطة {transfer.createdByUserName} في{" "}
                         {formatDateTimeFull(transfer.createdAt)}
@@ -374,7 +374,7 @@ export default function InventoryTransferList() {
                 {/* Cancel Form */}
                 {cancellingId === transfer.id && (
                   <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       سبب الإلغاء
                     </label>
                     <input
@@ -382,7 +382,7 @@ export default function InventoryTransferList() {
                       value={cancelReason}
                       onChange={(e) => setCancelReason(e.target.value)}
                       placeholder="أدخل سبب الإلغاء..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3"
+                      className="w-full px-4 py-2 border border-border rounded-lg mb-3"
                     />
                     <div className="flex gap-2">
                       <button
@@ -396,7 +396,7 @@ export default function InventoryTransferList() {
                           setCancellingId(null);
                           setCancelReason("");
                         }}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-gray-300"
                       >
                         إلغاء
                       </button>
@@ -408,26 +408,26 @@ export default function InventoryTransferList() {
           </div>
         ) : (
           <div className="p-12 text-center">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <Package className="w-16 h-16 text-muted-foreground/70 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               لا توجد طلبات نقل
             </h3>
-            <p className="text-gray-600">لم يتم إنشاء أي طلبات نقل بعد</p>
+            <p className="text-muted-foreground">لم يتم إنشاء أي طلبات نقل بعد</p>
           </div>
         )}
 
         {/* Pagination */}
         {transfersData && transfersData.totalPages > 1 && (
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div className="px-6 py-4 bg-muted/30 border-t border-border">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 صفحة {transfersData.pageNumber} من {transfersData.totalPages}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                   disabled={pageNumber === 1}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-card border border-border rounded-lg hover:bg-muted/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   السابق
                 </button>
@@ -436,7 +436,7 @@ export default function InventoryTransferList() {
                     setPageNumber((p) => Math.min(transfersData.totalPages, p + 1))
                   }
                   disabled={pageNumber === transfersData.totalPages}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-card border border-border rounded-lg hover:bg-muted/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   التالي
                 </button>

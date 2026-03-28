@@ -1,29 +1,36 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useProducts, useCategories } from "@/hooks/useProducts";
-import { ProductGrid } from "@/components/pos/ProductGrid";
-import { CategoryTabs } from "@/components/pos/CategoryTabs";
-import { Cart } from "@/components/pos/Cart";
-import { PaymentModal } from "@/components/pos/PaymentModal";
-import { LowStockAlert } from "@/components/pos/LowStockAlert";
-import { ProductQuickCreateModal } from "@/components/pos/ProductQuickCreateModal";
-import { CustomItemModal } from "@/components/pos/CustomItemModal";
-import { Loading } from "@/components/common/Loading";
-import { Menu, ScanBarcode, PackageCheck, AlertCircle, PlusCircle, FileText } from "lucide-react";
-import { useCart } from "@/hooks/useCart";
-import { useShift } from "@/hooks/useShift";
-import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
-import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
-import { usePOSMode } from "@/hooks/usePOSMode";
-import { Customer } from "@/types/customer.types";
-import { toast } from "sonner";
-import clsx from "clsx";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  AlertCircle,
+  CheckCircle,
+  File04,
+  Menu01,
+  PlusCircle,
+  SearchLg,
+} from "@untitledui/icons";
+
+import { useGetShiftWarningsQuery } from "@/api/shiftsApi";
+import { Loading } from "@/components/common/Loading";
+import { Cart } from "@/components/pos/Cart";
+import { CategoryTabs } from "@/components/pos/CategoryTabs";
+import { CustomItemModal } from "@/components/pos/CustomItemModal";
+import { LowStockAlert } from "@/components/pos/LowStockAlert";
+import { PaymentModal } from "@/components/pos/PaymentModal";
+import { ProductGrid } from "@/components/pos/ProductGrid";
+import { ProductQuickCreateModal } from "@/components/pos/ProductQuickCreateModal";
 import { ShiftWarningBanner } from "@/components/shifts";
+import { useCart } from "@/hooks/useCart";
+import { usePOSMode } from "@/hooks/usePOSMode";
+import { usePOSShortcuts } from "@/hooks/usePOSShortcuts";
+import { useCategories, useProducts } from "@/hooks/useProducts";
+import { useShift } from "@/hooks/useShift";
+import { cn } from "@/lib/utils";
+import type { Customer } from "@/types/customer.types";
 
 export const POSPage = () => {
   const { mode } = usePOSMode();
 
-  // Redirect to workspace if mode is standard
   if (mode === "standard") {
     return <Navigate to="/pos-workspace" replace />;
   }
@@ -34,27 +41,22 @@ export const POSPage = () => {
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [showCustomItem, setShowCustomItem] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  );
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Hooks must be called at the top level before any callbacks that use their data
   const { products, isLoading } = useProducts();
   const { categories } = useCategories();
   const { addItem, itemsCount } = useCart();
   const { hasActiveShift, isLoading: isLoadingShift } = useShift();
 
-  // Fetch shift warnings (polls every 10 minutes in POS)
   const { data: warningsData } = useGetShiftWarningsQuery(undefined, {
-    pollingInterval: 10 * 60 * 1000, // 10 minutes
-    skip: !hasActiveShift, // Only fetch if shift is open
+    pollingInterval: 10 * 60 * 1000,
+    skip: !hasActiveShift,
   });
 
   const shiftWarning = warningsData?.data;
 
-  // Shortcuts
   usePOSShortcuts({
     onCheckout: () => setShowPayment(true),
     onSearch: () => {
@@ -62,24 +64,20 @@ export const POSPage = () => {
     },
   });
 
-  // Auto-focus search input on mount
   useEffect(() => {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, []);
 
-  // Handle search/barcode scan (Enter key)
   const handleSearchSubmit = useCallback(
     (value: string) => {
       const trimmedValue = value.trim();
       if (!trimmedValue) return;
 
-      // Search by barcode, SKU, or name
       const foundProduct = products.find(
         (p) =>
-          (p.barcode &&
-            p.barcode.toLowerCase() === trimmedValue.toLowerCase()) ||
+          (p.barcode && p.barcode.toLowerCase() === trimmedValue.toLowerCase()) ||
           (p.sku && p.sku.toLowerCase() === trimmedValue.toLowerCase()) ||
           p.name.toLowerCase() === trimmedValue.toLowerCase()
       );
@@ -87,7 +85,6 @@ export const POSPage = () => {
       if (foundProduct) {
         addItem(foundProduct, 1);
         toast.success(`تمت الإضافة: ${foundProduct.name}`);
-        // Clear input and refocus
         setSearchInput("");
         searchInputRef.current?.focus();
       } else {
@@ -104,59 +101,55 @@ export const POSPage = () => {
     }
   };
 
-  // Filter products by search, category and availability
   let filteredProducts = products;
 
-  // Filter by search text
   if (searchInput.trim()) {
     const searchLower = searchInput.toLowerCase().trim();
-    filteredProducts = filteredProducts.filter((p) =>
-      p.name.toLowerCase().includes(searchLower) ||
-      (p.barcode && p.barcode.toLowerCase().includes(searchLower)) ||
-      (p.sku && p.sku.toLowerCase().includes(searchLower))
+    filteredProducts = filteredProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(searchLower) ||
+        (p.barcode && p.barcode.toLowerCase().includes(searchLower)) ||
+        (p.sku && p.sku.toLowerCase().includes(searchLower))
     );
   }
 
-  // Filter by category
   if (selectedCategory) {
-    filteredProducts = filteredProducts.filter((p) => p.categoryId === selectedCategory);
+    filteredProducts = filteredProducts.filter(
+      (p) => p.categoryId === selectedCategory
+    );
   }
 
-  // Filter by available stock if enabled
   if (showAvailableOnly) {
     filteredProducts = filteredProducts.filter((p) => {
-      // If product doesn't track inventory, it's always available
       if (!p.trackInventory) return true;
-      // Only show products with stock > 0
       return (p.stockQuantity ?? 0) > 0;
     });
   }
 
   if (isLoading || isLoadingShift) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50">
+      <div className="flex h-full items-center justify-center bg-background">
         <Loading />
       </div>
     );
   }
 
-  // Show warning if no active shift
   if (!hasActiveShift) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-warning-600" />
+      <div className="flex h-full items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md rounded-3xl bg-card p-10 text-center shadow-xl border border-border/60">
+          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-warning/10">
+            <AlertCircle className="size-10 text-warning" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="mb-3 text-2xl font-black text-foreground">
             لا توجد وردية مفتوحة
           </h2>
-          <p className="text-gray-600 mb-6">
-            يجب فتح وردية قبل البدء في البيع. اذهب إلى صفحة الورديات لفتح وردية جديدة.
+          <p className="mb-8 text-muted-foreground leading-relaxed">
+            يجب فتح وردية قبل البدء في البيع. اذهب إلى صفحة الورديات لفتح وردية جديدة لتتمكن من استخدام نقطة البيع.
           </p>
           <Link
             to="/shift"
-            className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium"
+            className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
             الذهاب إلى الورديات
           </Link>
@@ -166,38 +159,33 @@ export const POSPage = () => {
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* Products Section */}
-      <div className="flex-1 flex flex-col bg-gray-50 p-4 min-w-0">
-        {/* Shift Warning Banner */}
+    <div className="flex h-full overflow-hidden bg-background">
+      <div className="flex min-w-0 flex-1 flex-col bg-muted/10 p-4">
         {shiftWarning && shiftWarning.shouldWarn && (
           <div className="mb-4">
             <ShiftWarningBanner warning={shiftWarning} />
           </div>
         )}
 
-        {/* Low Stock Alert - Admin/Manager only */}
         <LowStockAlert />
 
-        {/* Search Input */}
-        <div className="mb-4">
-          <div className="relative">
-            <ScanBarcode className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="mb-5">
+          <div className="relative group">
+            <SearchLg className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              placeholder="🔍 بحث بالاسم، الباركود أو SKU (اضغط Enter للإضافة)"
-              className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              placeholder="بحث بالاسم، الباركود أو SKU (اضغط Enter للإضافة)"
+              className="w-full rounded-2xl border-2 border-border/50 bg-background pl-4 pr-12 py-3.5 text-sm font-medium shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
               autoComplete="off"
             />
           </div>
         </div>
 
-        {/* Categories and Filters */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-3">
             <CategoryTabs
               categories={categories}
@@ -205,64 +193,55 @@ export const POSPage = () => {
               onSelect={setSelectedCategory}
             />
 
-            {/* Available Stock Filter */}
             <button
               onClick={() => setShowAvailableOnly(!showAvailableOnly)}
-              className={clsx(
-                "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shadow-sm whitespace-nowrap",
                 showAvailableOnly
-                  ? "bg-success-100 text-success-700 border border-success-300"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-foreground text-background"
+                  : "bg-background text-foreground border border-border hover:bg-muted"
               )}
-              title="عرض المنتجات المتاحة في المخزون فقط"
             >
-              <PackageCheck className="w-4 h-4" />
+              <CheckCircle className="size-4" />
               <span className="hidden sm:inline">المتاح فقط</span>
             </button>
 
-            {/* Quick Create Product */}
             <button
               onClick={() => setShowQuickCreate(true)}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700"
-              title="إضافة منتج سريع"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-all whitespace-nowrap"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="size-4" />
               <span className="hidden sm:inline">منتج جديد</span>
             </button>
 
-            {/* Custom Item */}
             <button
               onClick={() => setShowCustomItem(true)}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap bg-secondary-600 text-white hover:bg-secondary-700"
-              title="إضافة منتج مخصص للطلب الحالي"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shadow-sm whitespace-nowrap bg-accent/10 text-accent-foreground hover:bg-accent/20"
             >
-              <FileText className="w-4 h-4" />
+              <File04 className="size-4" />
               <span className="hidden sm:inline">منتج مخصص</span>
             </button>
           </div>
 
-          {/* Mobile cart toggle */}
           <button
             onClick={() => setShowMobileCart(!showMobileCart)}
-            className="relative self-end rounded-lg border border-gray-200 p-2 hover:bg-gray-100 shrink-0 lg:hidden"
+            className="relative self-end rounded-xl border border-border bg-background p-2.5 hover:bg-muted shrink-0 lg:hidden transition-colors"
           >
-            <Menu className="w-5 h-5" />
+            <Menu01 className="size-5 text-foreground" />
             {itemsCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
                 {itemsCount}
               </span>
             )}
           </button>
         </div>
 
-        {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0">
+        <div className="flex-1 min-h-[18rem] overflow-y-auto scrollbar-thin -mx-4 px-4 pb-4">
           <ProductGrid products={filteredProducts} categories={categories} />
         </div>
       </div>
 
-      {/* Cart Section - Desktop */}
-      <div className="hidden lg:flex w-96 bg-white border-l border-gray-200 p-4 flex-col shrink-0">
+      <div className="hidden w-96 shrink-0 flex-col border-r border-border bg-card p-4 lg:flex shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] z-10">
         <Cart
           onCheckout={() => setShowPayment(true)}
           selectedCustomer={selectedCustomer}
@@ -270,14 +249,13 @@ export const POSPage = () => {
         />
       </div>
 
-      {/* Cart Section - Mobile Slide-in */}
       {showMobileCart && (
-        <div className="lg:hidden fixed inset-0 z-40">
+        <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setShowMobileCart(false)}
           />
-          <div className="absolute right-0 top-0 bottom-0 w-[min(100%,24rem)] bg-white p-4 animate-slide-in-right shadow-2xl flex flex-col">
+          <div className="absolute bottom-0 right-0 top-0 flex w-[min(100%,24rem)] animate-in slide-in-from-right flex-col bg-card p-4 shadow-2xl border-l border-border">
             <Cart
               onCheckout={() => {
                 setShowMobileCart(false);
@@ -290,7 +268,6 @@ export const POSPage = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
       {showPayment && (
         <PaymentModal
           onClose={() => setShowPayment(false)}
@@ -299,22 +276,17 @@ export const POSPage = () => {
         />
       )}
 
-      {/* Quick Create Product Modal */}
       {showQuickCreate && (
         <ProductQuickCreateModal
           onClose={() => setShowQuickCreate(false)}
           onSuccess={(productId) => {
             toast.success("تم إضافة المنتج بنجاح");
-            // Optionally add to cart immediately
           }}
         />
       )}
 
-      {/* Custom Item Modal */}
       {showCustomItem && (
-        <CustomItemModal
-          onClose={() => setShowCustomItem(false)}
-        />
+        <CustomItemModal onClose={() => setShowCustomItem(false)} />
       )}
     </div>
   );

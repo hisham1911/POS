@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   X,
   ChevronDown,
-} from "lucide-react";
+} from "@untitledui/icons";
 import { toast } from "sonner";
 import type { CreateTransferRequest } from "../../types/inventory.types";
 
@@ -126,17 +126,17 @@ export default function InventoryTransferForm({
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-card rounded-lg border border-border p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">
+        <h2 className="text-xl font-bold text-foreground">
           نقل مخزون بين الفروع
         </h2>
         {onCancel && (
           <button
             onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-muted/50 rounded-lg"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         )}
       </div>
@@ -146,7 +146,7 @@ export default function InventoryTransferForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* From Branch */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               من فرع
             </label>
             <div className="relative">
@@ -158,7 +158,7 @@ export default function InventoryTransferForm({
                     fromBranchId: Number(e.target.value),
                   })
                 }
-                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm"
                 required
               >
                 <option value={0}>اختر الفرع المصدر</option>
@@ -168,13 +168,13 @@ export default function InventoryTransferForm({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
             </div>
           </div>
 
           {/* To Branch */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               إلى فرع
             </label>
             <div className="relative">
@@ -186,7 +186,7 @@ export default function InventoryTransferForm({
                     toBranchId: Number(e.target.value),
                   })
                 }
-                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 required
                 disabled={!formData.fromBranchId}
               >
@@ -197,7 +197,7 @@ export default function InventoryTransferForm({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function InventoryTransferForm({
 
         {/* Product Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             المنتج
           </label>
           <div className="relative">
@@ -234,7 +234,7 @@ export default function InventoryTransferForm({
               onChange={(e) =>
                 setFormData({ ...formData, productId: Number(e.target.value) })
               }
-              className="appearance-none w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm"
+              className="appearance-none w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm"
               required
             >
               <option value={0}>اختر المنتج</option>
@@ -244,13 +244,13 @@ export default function InventoryTransferForm({
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
           </div>
         </div>
 
         {/* Quantity */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             الكمية
           </label>
           <input
@@ -260,7 +260,7 @@ export default function InventoryTransferForm({
             onChange={(e) =>
               setFormData({ ...formData, quantity: e.target.value })
             }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="1"
             required
           />
@@ -268,7 +268,7 @@ export default function InventoryTransferForm({
 
         {/* Reason */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             سبب النقل <span className="text-red-500">*</span>
           </label>
           <input
@@ -278,14 +278,14 @@ export default function InventoryTransferForm({
               setFormData({ ...formData, reason: e.target.value })
             }
             placeholder="مثال: تعويض نقص المخزون، إعادة توزيع..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             ملاحظات (اختياري)
           </label>
           <textarea
@@ -295,7 +295,7 @@ export default function InventoryTransferForm({
             }
             rows={3}
             placeholder="أي ملاحظات إضافية..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -312,7 +312,7 @@ export default function InventoryTransferForm({
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              className="px-6 py-3 bg-muted text-muted-foreground rounded-lg hover:bg-gray-300"
             >
               إلغاء
             </button>

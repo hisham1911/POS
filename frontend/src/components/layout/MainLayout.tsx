@@ -11,7 +11,6 @@ import {
   getVisibleNavSections
 } from "@/components/layout/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -64,16 +63,6 @@ export const MainLayout = () => {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
-  const locale =
-    preferences.language === "ar" && preferences.useArabicNumerals
-      ? "ar-EG-u-nu-arab"
-      : preferences.language === "ar"
-        ? "ar-EG"
-        : "en-US";
-  const timeLabel = new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(new Date());
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, String(collapsed));
@@ -235,62 +224,50 @@ export const MainLayout = () => {
         {sidebar}
 
         <div className="relative flex min-w-0 flex-1 flex-col gap-4">
-          <header className="glass-panel sticky top-2 z-20 flex flex-col gap-4 px-4 py-4 sm:top-4 sm:px-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <Button
-                  variant="glass"
-                  size="icon"
-                  className="xl:hidden"
-                  onClick={() => setSidebarOpen(true)}
-                  aria-label="Open navigation"
-                >
-                  <Menu01 className="size-4" />
-                </Button>
-                <div className="min-w-0">
-                  <p className="section-caption">{t("layout.workspace")}</p>
-                  <h2 className="truncate text-2xl font-black">
-                    {t(`nav.${route.navKey}`)}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {t(route.descriptionKey)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="glass"
-                  leftIcon={<SearchLg className="size-4" />}
-                  onClick={() => setCommandOpen(true)}
-                  className="hidden md:inline-flex"
-                >
-                  {t("layout.openPalette")}
-                </Button>
-                <LanguagePill />
-                <Badge variant="outline" className="hidden rounded-2xl px-3 py-2 text-foreground sm:inline-flex">
-                  {timeLabel}
-                </Badge>
+          <header className="glass-panel sticky top-2 z-20 flex flex-col gap-2 px-3 py-2 sm:top-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button
+                variant="glass"
+                size="icon"
+                className="h-9 w-9 shrink-0 xl:hidden"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open navigation"
+              >
+                <Menu01 className="size-4" />
+              </Button>
+              <div className="min-w-0">
+                <h2 className="flex items-center gap-2 truncate text-lg font-black sm:text-xl md:text-2xl">
+                  <span className="hidden text-sm font-semibold text-muted-foreground sm:inline-block">
+                    {t("layout.workspace")} /
+                  </span>
+                  {t(`nav.${route.navKey}`)}
+                </h2>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-              <BranchSelector />
-              <DropdownMenu>
-                <DropdownMenuTrigger className="frost-card flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2 sm:w-auto">
-                  <Avatar className="h-11 w-11">
-                    {preferences.avatarImage ? (
-                      <AvatarImage src={preferences.avatarImage} alt={user?.name} />
-                    ) : (
-                      <AvatarFallback>{userInitials || "TP"}</AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="hidden text-start sm:block">
-                    <p className="text-sm font-semibold text-foreground">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground">{t(`roles.${user?.role}`)}</p>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
+            <div className="flex w-full items-center justify-between sm:w-auto sm:justify-end gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <BranchSelector />
+                <LanguagePill />
+              </div>
+              
+              <div className="hidden h-6 w-px bg-border sm:block" />
+
+              <div className="flex items-center shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-full border border-border/50 bg-background/50 p-1 pl-3 transition-colors hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm">
+                    <Avatar className="size-7 sm:size-8">
+                      {preferences.avatarImage ? (
+                        <AvatarImage src={preferences.avatarImage} alt={user?.name} />
+                      ) : (
+                        <AvatarFallback className="text-xs">{userInitials || "TP"}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="hidden text-start sm:block">
+                      <p className="text-xs font-semibold leading-none text-foreground">{user?.name}</p>
+                    </div>
+                  </DropdownMenuTrigger>
+                <DropdownMenuContent anchor="bottom end">
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings01 className="size-4" />
                     {t("nav.settings")}
@@ -302,6 +279,7 @@ export const MainLayout = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </div>
             </div>
           </header>
 

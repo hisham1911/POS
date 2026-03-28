@@ -1,45 +1,57 @@
 import { useState, useMemo } from "react";
 import {
-  ClipboardList,
-  Filter,
+  Building02,
+  CheckCircle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ShoppingCart,
-  Package,
-  FolderOpen,
-  User,
-  Building2,
+  Clipboard,
   Clock,
-  CreditCard,
-  Edit,
+  CreditCard01,
+  Edit01,
+  File04,
+  FilterLines as Filter,
+  Folder,
+  Package,
   Plus,
-  Trash2,
-  RefreshCw,
-  CheckCircle,
+  RefreshCcw01 as RefreshCw,
+  ShoppingCart01 as ShoppingCart,
+  Trash01 as Trash2,
+  User01 as User,
   XCircle,
-  FileEdit,
-  ChevronDown,
-} from "lucide-react";
+} from "@untitledui/icons";
+
 import { useGetAuditLogsQuery } from "@/api/auditApi";
 import { formatDateTime } from "@/utils/formatters";
 import type { AuditLog, AuditLogFilters } from "@/types/audit.types";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 // Entity type icons and labels
-const entityConfig: Record<string, { icon: typeof ShoppingCart; label: string; color: string }> = {
-  Order: { icon: ShoppingCart, label: "طلب", color: "bg-blue-100 text-blue-700" },
-  Product: { icon: Package, label: "منتج", color: "bg-green-100 text-green-700" },
-  Category: { icon: FolderOpen, label: "تصنيف", color: "bg-purple-100 text-purple-700" },
-  User: { icon: User, label: "مستخدم", color: "bg-orange-100 text-orange-700" },
-  Branch: { icon: Building2, label: "فرع", color: "bg-cyan-100 text-cyan-700" },
-  Shift: { icon: Clock, label: "وردية", color: "bg-amber-100 text-amber-700" },
-  Payment: { icon: CreditCard, label: "دفع", color: "bg-pink-100 text-pink-700" },
+const entityConfig: Record<string, { icon: typeof ShoppingCart; label: string; tone: "primary" | "success" | "danger" | "warning" | "secondary" }> = {
+  Order: { icon: ShoppingCart, label: "طلب", tone: "primary" },
+  Product: { icon: Package, label: "منتج", tone: "success" },
+  Category: { icon: Folder, label: "تصنيف", tone: "secondary" },
+  User: { icon: User, label: "مستخدم", tone: "warning" },
+  Branch: { icon: Building02, label: "فرع", tone: "primary" },
+  Shift: { icon: Clock, label: "وردية", tone: "warning" },
+  Payment: { icon: CreditCard01, label: "دفع", tone: "danger" },
 };
 
 // Action icons and colors
-const actionConfig: Record<string, { icon: typeof Plus; color: string; bgColor: string }> = {
-  Create: { icon: Plus, color: "text-green-700", bgColor: "bg-green-100" },
-  Update: { icon: Edit, color: "text-blue-700", bgColor: "bg-blue-100" },
-  Delete: { icon: Trash2, color: "text-red-700", bgColor: "bg-red-100" },
+const actionConfig: Record<string, { icon: typeof Plus; tone: "success" | "primary" | "danger" }> = {
+  Create: { icon: Plus, tone: "success" },
+  Update: { icon: Edit01, tone: "primary" },
+  Delete: { icon: Trash2, tone: "danger" },
 };
 
 /**
@@ -63,17 +75,14 @@ const getActionDescription = (log: AuditLog): string => {
   const newData = parseJson(newValues);
   const oldData = parseJson(oldValues);
 
-  // Order actions - استخدام مصطلح "طلب" وليس "بيع"
   if (entityType === "Order") {
     if (action === "Create") return "إنشاء طلب جديد";
     if (action === "Update") {
       const newStatus = newData?.Status as string | number;
       const oldStatus = oldData?.Status as string | number;
-      // Status 2 = Completed - تم إتمام الدفع وإغلاق الطلب
       if (newStatus === "Completed" || newStatus === 2 || newStatus === "2") {
         return "تم إتمام الدفع وإغلاق الطلب";
       }
-      // Status 3 = Cancelled
       if (newStatus === "Cancelled" || newStatus === 3 || newStatus === "3") {
         return "إلغاء الطلب";
       }
@@ -83,10 +92,8 @@ const getActionDescription = (log: AuditLog): string => {
     if (action === "Delete") return "حذف طلب";
   }
 
-  // Payment actions - المدفوعات
   if (entityType === "Payment") {
     if (action === "Create") {
-      // Check payment method from newValues
       const method = newData?.Method as string | number;
       if (method === "Cash" || method === 0 || method === "0") {
         return "تسجيل دفعة نقدية";
@@ -103,7 +110,6 @@ const getActionDescription = (log: AuditLog): string => {
     if (action === "Delete") return "حذف دفعة";
   }
 
-  // Shift actions
   if (entityType === "Shift") {
     if (action === "Create") return "فتح وردية";
     if (action === "Update") {
@@ -114,7 +120,6 @@ const getActionDescription = (log: AuditLog): string => {
     if (action === "Delete") return "حذف وردية";
   }
 
-  // Product actions
   if (entityType === "Product") {
     if (action === "Create") return "إضافة منتج";
     if (action === "Update") {
@@ -125,28 +130,24 @@ const getActionDescription = (log: AuditLog): string => {
     if (action === "Delete") return "حذف منتج";
   }
 
-  // Category actions
   if (entityType === "Category") {
     if (action === "Create") return "إضافة تصنيف";
     if (action === "Update") return "تعديل تصنيف";
     if (action === "Delete") return "حذف تصنيف";
   }
 
-  // User actions
   if (entityType === "User") {
     if (action === "Create") return "إضافة مستخدم";
     if (action === "Update") return "تعديل مستخدم";
     if (action === "Delete") return "حذف مستخدم";
   }
 
-  // Branch actions
   if (entityType === "Branch") {
     if (action === "Create") return "إضافة فرع";
     if (action === "Update") return "تعديل فرع";
     if (action === "Delete") return "حذف فرع";
   }
 
-  // Fallback
   const actionMap: Record<string, string> = {
     Create: "إنشاء",
     Update: "تعديل",
@@ -158,20 +159,20 @@ const getActionDescription = (log: AuditLog): string => {
 /**
  * Get status badge for order status changes
  */
-const getStatusBadge = (log: AuditLog): { text: string; icon: typeof CheckCircle; color: string } | null => {
+const getStatusBadge = (log: AuditLog): { text: string; icon: typeof CheckCircle; tone: "success" | "danger" | "secondary" } | null => {
   if (log.entityType !== "Order" || log.action !== "Update") return null;
   
   const newData = parseJson(log.newValues);
   const newStatus = newData?.Status as string | number;
   
   if (newStatus === "Completed" || newStatus === 2 || newStatus === "2") {
-    return { text: "تم الدفع", icon: CheckCircle, color: "bg-green-100 text-green-700" };
+    return { text: "تم الدفع", icon: CheckCircle, tone: "success" };
   }
   if (newStatus === "Cancelled" || newStatus === 3 || newStatus === "3") {
-    return { text: "ملغي", icon: XCircle, color: "bg-red-100 text-red-700" };
+    return { text: "ملغي", icon: XCircle, tone: "danger" };
   }
   if (newStatus === "Draft" || newStatus === 0 || newStatus === "0") {
-    return { text: "مسودة", icon: FileEdit, color: "bg-gray-100 text-gray-700" };
+    return { text: "مسودة", icon: File04, tone: "secondary" };
   }
   return null;
 };
@@ -205,7 +206,7 @@ const getDetails = (log: AuditLog): string | null => {
   return null;
 };
 
-const AuditLogPage = () => {
+export default function AuditLogPage() {
   const [filters, setFilters] = useState<AuditLogFilters>({
     page: 1,
     pageSize: 20,
@@ -236,232 +237,248 @@ const AuditLogPage = () => {
   }, [filters]);
 
   return (
-    <div className="h-full flex flex-col p-4 lg:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-            <ClipboardList className="w-5 h-5 text-primary-600" />
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground flex items-center gap-3">
+              <Clipboard className="size-8 text-primary" />
+              سجل النظام الشامل
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              تتبع وتدقيق جميع العمليات والإجراءات التي تمت على مستوى فروع ومكونات النظام المختلفة.
+            </p>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">سجل العمليات</h1>
-            <p className="text-sm text-gray-500">تتبع جميع العمليات في النظام</p>
+          <div className="flex gap-2 items-center">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              leftIcon={<RefreshCw className={cn("size-4", isFetching && "animate-spin")} />}
+            >
+              تحديث السجل
+            </Button>
           </div>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="flex items-center gap-2 px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
-          تحديث
-        </button>
-      </div>
+      </section>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl border p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
+      <Card className="p-5">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">الفلاتر</span>
+            <Filter className="size-5 text-muted-foreground" />
+            <span className="text-sm font-bold text-foreground">تصفية السجلات</span>
           </div>
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs text-red-600 hover:text-red-700"
+              className="text-xs font-bold text-danger hover:text-danger/80 hover:underline"
             >
               مسح الفلاتر
             </button>
           )}
         </div>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Entity Type Filter */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">نوع العملية</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">نوع العملية (المكون)</label>
             <div className="relative">
               <select
                 value={filters.entityType || ""}
                 onChange={(e) => handleFilterChange("entityType", e.target.value)}
-                className="w-full appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                className="w-full appearance-none rounded-xl border border-input bg-background/50 px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium cursor-pointer"
               >
-                <option value="">الكل</option>
+                <option value="">جميع المكونات</option>
                 {Object.entries(entityConfig).map(([key, { label }]) => (
                   <option key={key} value={key}>{label}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                <ChevronDown className="size-5 text-muted-foreground" />
+              </div>
             </div>
           </div>
 
-          {/* Action Filter */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">نوع الإجراء</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">نوع الإجراء</label>
             <div className="relative">
               <select
                 value={filters.action || ""}
                 onChange={(e) => handleFilterChange("action", e.target.value)}
-                className="w-full appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                className="w-full appearance-none rounded-xl border border-input bg-background/50 px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium cursor-pointer"
               >
-                <option value="">الكل</option>
-                <option value="Create">إنشاء</option>
-                <option value="Update">تعديل</option>
-                <option value="Delete">حذف</option>
+                <option value="">جميع الإجراءات</option>
+                <option value="Create">عمليات إنشاء</option>
+                <option value="Update">عمليات تعديل</option>
+                <option value="Delete">عمليات حذف</option>
               </select>
-              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                <ChevronDown className="size-5 text-muted-foreground" />
+              </div>
             </div>
           </div>
 
-          {/* From Date */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">من تاريخ</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">من تاريخ</label>
             <input
               type="date"
               value={filters.fromDate || ""}
               onChange={(e) => handleFilterChange("fromDate", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full rounded-xl border border-input bg-background/50 px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium"
             />
           </div>
 
-          {/* To Date */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">إلى تاريخ</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">إلى تاريخ</label>
             <input
               type="date"
               value={filters.toDate || ""}
               onChange={(e) => handleFilterChange("toDate", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full rounded-xl border border-input bg-background/50 px-4 py-2.5 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium"
             />
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Table */}
-      <div className="flex-1 bg-white rounded-xl border overflow-hidden flex flex-col">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-1/3">العملية</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">التفاصيل</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">المستخدم</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+      <Card className="flex flex-col overflow-hidden flex-1">
+        <div className="flex-1 overflow-x-auto">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell className="text-right w-1/3">العملية الأساسية</TableHeaderCell>
+                <TableHeaderCell className="text-right">التفاصيل / المكون</TableHeaderCell>
+                <TableHeaderCell className="text-right">المستخدم المسؤول</TableHeaderCell>
+                <TableHeaderCell className="text-right">تاريخ ووقت التنفيذ</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {isLoading || isFetching ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-40" /></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-32" /></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-24" /></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-28" /></td>
-                  </tr>
+                  <TableRow key={i}>
+                    <TableCell><div className="h-5 bg-muted rounded-full w-40 animate-pulse" /></TableCell>
+                    <TableCell><div className="h-5 bg-muted rounded-full w-32 animate-pulse" /></TableCell>
+                    <TableCell><div className="h-5 bg-muted rounded-full w-24 animate-pulse" /></TableCell>
+                    <TableCell><div className="h-5 bg-muted rounded-full w-28 animate-pulse" /></TableCell>
+                  </TableRow>
                 ))
               ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-gray-500">
-                    لا توجد سجلات
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={4} className="py-16 text-center text-muted-foreground">
+                    <Clipboard className="mx-auto mb-4 size-10 opacity-30" />
+                    <span className="font-semibold text-base">لا توجد سجلات مطابقة لخياراتك</span>
+                  </TableCell>
+                </TableRow>
               ) : (
                 logs.map((log) => {
                   const entity = entityConfig[log.entityType];
-                  const EntityIcon = entity?.icon || ClipboardList;
+                  const EntityIcon = entity?.icon || Clipboard;
+                  const eTone = entity?.tone || "secondary";
+                  
                   const actionCfg = actionConfig[log.action] || actionConfig.Update;
                   const ActionIcon = actionCfg.icon;
+                  const aTone = actionCfg.tone;
+                  
                   const details = getDetails(log);
                   const statusBadge = getStatusBadge(log);
 
                   return (
-                    <tr key={log.id} className="hover:bg-gray-50">
-                      {/* Action (Primary Column) */}
-                      <td className="px-4 py-3">
+                    <TableRow key={log.id} className="group">
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${actionCfg.bgColor}`}>
-                            <ActionIcon className={`w-4 h-4 ${actionCfg.color}`} />
+                          <span className={cn(
+                            "inline-flex items-center justify-center size-9 rounded-xl shrink-0 transition-colors",
+                            `bg-${aTone}/10 text-${aTone} group-hover:bg-${aTone}/20`
+                          )}>
+                            <ActionIcon className="size-4.5" />
                           </span>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-bold text-foreground">
                               {getActionDescription(log)}
                             </span>
                             {statusBadge && (
-                              <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded text-xs font-medium ${statusBadge.color} w-fit`}>
-                                <statusBadge.icon className="w-3 h-3" />
+                              <span className={cn(
+                                "inline-flex w-fit items-center gap-1 px-2 py-0.5 mt-0.5 rounded-full text-[11px] font-bold leading-none",
+                                `bg-${statusBadge.tone}/10 text-${statusBadge.tone}`
+                              )}>
+                                <statusBadge.icon className="size-3" />
                                 {statusBadge.text}
                               </span>
                             )}
                           </div>
                         </div>
-                      </td>
+                      </TableCell>
 
-                      {/* Details */}
-                      <td className="px-4 py-3">
+                      <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded ${entity?.color || "bg-gray-100"}`}>
-                            <EntityIcon className="w-3.5 h-3.5" />
+                          <span className={cn(
+                            "inline-flex shrink-0 items-center justify-center size-6 rounded bg-background border border-border",
+                            `text-${eTone}`
+                          )}>
+                            <EntityIcon className="size-3.5" />
                           </span>
-                          <div className="flex flex-col">
-                            <span className="text-sm text-gray-700">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-semibold text-foreground truncate">
                               {entity?.label || log.entityType}
                               {log.entityId && (
-                                <span className="text-gray-400 mr-1">#{log.entityId}</span>
+                                <span className="text-muted-foreground mr-1 text-xs">#{log.entityId}</span>
                               )}
                             </span>
                             {details && (
-                              <span className="text-xs text-gray-500">{details}</span>
+                              <span className="text-[11px] font-medium text-muted-foreground truncate" title={details}>{details}</span>
                             )}
                           </div>
                         </div>
-                      </td>
+                      </TableCell>
 
-                      {/* User */}
-                      <td className="px-4 py-3">
-                        <span className="text-sm text-gray-700">
-                          {log.userName || "-"}
+                      <TableCell>
+                        <span className="text-sm font-semibold text-foreground">
+                          {log.userName || "—"}
                         </span>
-                      </td>
+                      </TableCell>
 
-                      {/* Date (Cairo timezone) */}
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <TableCell className="font-mono text-xs font-semibold text-muted-foreground whitespace-nowrap" dir="ltr">
                         {formatDateTime(log.createdAt)}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        {/* Pagination */}
+        {/* Pagination Details */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="border-t px-4 py-3 flex items-center justify-between bg-gray-50">
-            <div className="text-sm text-gray-500">
-              عرض {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} من {pagination.totalCount}
-            </div>
+          <div className="flex flex-col gap-4 border-t border-border bg-muted/5 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-muted-foreground">
+              تصفح السجلات من <span className="font-bold text-foreground">{((pagination.page - 1) * pagination.pageSize) + 1}</span> إلى <span className="font-bold text-foreground">{Math.min(pagination.page * pagination.pageSize, pagination.totalCount)}</span>
+              {" "}من أصل{" "}<span className="font-bold text-foreground">{pagination.totalCount}</span>
+            </p>
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={!pagination.hasPreviousPage}
-                className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                leftIcon={<ChevronRight className="size-4" />}
               >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <span className="text-sm text-gray-600">
-                صفحة {pagination.page} من {pagination.totalPages}
-              </span>
-              <button
+                السابق
+              </Button>
+              <div className="flex px-2 text-sm font-medium text-muted-foreground font-mono">
+                {pagination.page} / {pagination.totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={!pagination.hasNextPage}
-                className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                rightIcon={<ChevronLeft className="size-4" />}
+                className="pl-3"
               >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+                التالي
+              </Button>
             </div>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
-};
-
-export default AuditLogPage;
+}

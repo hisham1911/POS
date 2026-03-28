@@ -1,17 +1,36 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Eye, Edit, Trash2, Receipt, Wallet, ChevronDown } from "lucide-react";
-import {
-  useGetExpensesQuery,
-  useDeleteExpenseMutation,
-} from "@/api/expensesApi";
-import { useGetExpenseCategoriesQuery } from "@/api/expenseCategoriesApi";
-import type { ExpenseStatus, ExpenseFilters } from "@/types/expense.types";
-import { Button } from "@/components/common/Button";
-import { Card } from "@/components/common/Card";
-import { Loading } from "@/components/common/Loading";
-import { formatCurrency, formatDateOnly } from "@/utils/formatters";
 import { toast } from "sonner";
+import {
+  ChevronDown,
+  Edit01,
+  Eye,
+  Plus,
+  Receipt,
+  Trash01,
+  Wallet01,
+} from "@untitledui/icons";
+
+import { useGetExpenseCategoriesQuery } from "@/api/expenseCategoriesApi";
+import {
+  useDeleteExpenseMutation,
+  useGetExpensesQuery,
+} from "@/api/expensesApi";
+import { MetricCard } from "@/components/app/metric-card";
+import { Loading } from "@/components/common/Loading";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import type { ExpenseFilters, ExpenseStatus } from "@/types/expense.types";
+import { formatCurrency, formatDateOnly } from "@/utils/formatters";
 
 export function ExpensesPage() {
   const [filters, setFilters] = useState<ExpenseFilters>({
@@ -63,279 +82,265 @@ export function ExpensesPage() {
   };
 
   const getStatusBadge = (status: ExpenseStatus) => {
-    const badges: Record<ExpenseStatus, string> = {
-      Draft: "bg-gray-100 text-gray-700",
-      Approved: "bg-blue-100 text-blue-800",
-      Paid: "bg-green-100 text-green-800",
-      Rejected: "bg-red-100 text-red-800",
+    const statusConfig: Record<ExpenseStatus, { label: string; class: string }> = {
+      Draft: { label: "مسودة", class: "bg-muted text-muted-foreground" },
+      Approved: { label: "معتمد", class: "bg-primary/10 text-primary" },
+      Paid: { label: "مدفوع", class: "bg-success/10 text-success" },
+      Rejected: { label: "مرفوض", class: "bg-danger/10 text-danger" },
     };
-    const labels: Record<ExpenseStatus, string> = {
-      Draft: "مسودة",
-      Approved: "معتمد",
-      Paid: "مدفوع",
-      Rejected: "مرفوض",
-    };
+
+    const config = statusConfig[status] || { label: status, class: "bg-muted text-muted-foreground" };
+
     return (
       <span
-        className={`px-2 py-1 text-xs font-semibold rounded-full ${badges[status]}`}
+        className={cn(
+          "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap",
+          config.class
+        )}
       >
-        {labels[status]}
+        {config.label}
       </span>
     );
   };
 
-  if (isLoading) return <Loading />;
-  if (error)
-    return <div className="text-red-600">حدث خطأ في تحميل المصروفات</div>;
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center bg-background">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex p-8 items-center justify-center text-danger font-bold text-lg">
+        حدث خطأ في تحميل المصروفات
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Wallet className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">المصروفات</h1>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground">
+              المصروفات
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إدارة مصروفات الشركة ومراجعة حالتها والموافقة على الدفع
+            </p>
           </div>
-          <p className="text-gray-600">
-            إدارة مصروفات الشركة ومراجعة حالتها والموافقة على الدفع
-          </p>
-        </div>
 
-        <div className="flex justify-end">
-          <Link to="/expenses/new">
-            <Button>
-              <Plus className="w-4 h-4" />
-              مصروف جديد
-            </Button>
-          </Link>
+          <div className="flex items-end gap-2">
+            <Link to="/expenses/new">
+              <Button size="lg" leftIcon={<Plus className="size-5" />}>
+                مصروف جديد
+              </Button>
+            </Link>
+          </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  إجمالي المصروفات (الصفحة الحالية)
-                </p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(totalAmount)}
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-blue-600" />
-              </div>
-            </div>
-          </Card>
-          <Card className="border-green-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600">مصروفات مدفوعة</p>
-                <p className="text-2xl font-bold text-green-700 mt-1">
-                  {paidCount}
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <Receipt className="w-5 h-5 text-green-600" />
-              </div>
-            </div>
-          </Card>
-          <Card className="border-amber-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600">مصروفات مسودة</p>
-                <p className="text-2xl font-bold text-amber-700 mt-1">
-                  {draftCount}
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <Receipt className="w-5 h-5 text-amber-600" />
-              </div>
-            </div>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard
+          title="إجمالي المصروفات (الصفحة الحالية)"
+          value={formatCurrency(totalAmount)}
+          description="إجمالي قيمة المصروفات المعروضة"
+          icon={Wallet01}
+          tone="primary"
+        />
+        <MetricCard
+          title="مصروفات مدفوعة"
+          value={paidCount}
+          description="تم سدادها بالفعل"
+          icon={Receipt}
+          tone="success"
+        />
+        <MetricCard
+          title="مصروفات مسودة"
+          value={draftCount}
+          description="قيد المراجعة والاعتماد"
+          icon={Receipt}
+          tone="warning"
+        />
+      </div>
 
+      <div className="space-y-6">
         <Card>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                التصنيف
-              </label>
-              <div className="relative">
-                <select
-                  value={filters.categoryId || ""}
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">
+                  التصنيف
+                </label>
+                <div className="relative">
+                  <select
+                    value={filters.categoryId || ""}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "categoryId",
+                        e.target.value ? Number(e.target.value) : undefined,
+                      )
+                    }
+                    className="w-full appearance-none rounded-xl border border-border bg-background/50 pl-10 pr-4 py-2.5 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-muted-foreground/30"
+                  >
+                    <option value="">الكل</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">
+                  الحالة
+                </label>
+                <div className="relative">
+                  <select
+                    value={filters.status || ""}
+                    onChange={(e) =>
+                      handleFilterChange("status", e.target.value || undefined)
+                    }
+                    className="w-full appearance-none rounded-xl border border-border bg-background/50 pl-10 pr-4 py-2.5 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-muted-foreground/30"
+                  >
+                    <option value="">الكل</option>
+                    <option value="Draft">مسودة</option>
+                    <option value="Approved">معتمد</option>
+                    <option value="Paid">مدفوع</option>
+                    <option value="Rejected">مرفوض</option>
+                  </select>
+                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">
+                  من تاريخ
+                </label>
+                <input
+                  type="date"
+                  value={filters.fromDate || ""}
                   onChange={(e) =>
-                    handleFilterChange(
-                      "categoryId",
-                      e.target.value ? Number(e.target.value) : undefined,
-                    )
+                    handleFilterChange("fromDate", e.target.value || undefined)
                   }
-                  className="w-full appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm"
-                >
-                  <option value="">الكل</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  className="w-full rounded-xl border border-border bg-background/50 px-3 py-2.5 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-muted-foreground/30"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">
+                  إلى تاريخ
+                </label>
+                <input
+                  type="date"
+                  value={filters.toDate || ""}
+                  onChange={(e) =>
+                    handleFilterChange("toDate", e.target.value || undefined)
+                  }
+                  className="w-full rounded-xl border border-border bg-background/50 px-3 py-2.5 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-muted-foreground/30"
+                />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                الحالة
-              </label>
-              <div className="relative">
-                <select
-                  value={filters.status || ""}
-                  onChange={(e) =>
-                    handleFilterChange("status", e.target.value || undefined)
-                  }
-                  className="w-full appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm"
-                >
-                  <option value="">الكل</option>
-                  <option value="Draft">مسودة</option>
-                  <option value="Approved">معتمد</option>
-                  <option value="Paid">مدفوع</option>
-                  <option value="Rejected">مرفوض</option>
-                </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                من تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.fromDate || ""}
-                onChange={(e) =>
-                  handleFilterChange("fromDate", e.target.value || undefined)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                إلى تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.toDate || ""}
-                onChange={(e) =>
-                  handleFilterChange("toDate", e.target.value || undefined)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
+          </CardContent>
         </Card>
 
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    رقم المصروف
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    التصنيف
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الوصف
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    المبلغ
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    التاريخ
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الحالة
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الإجراءات
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+        <Card className="flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell className="text-right">رقم المصروف</TableHeaderCell>
+                  <TableHeaderCell className="text-right">التصنيف</TableHeaderCell>
+                  <TableHeaderCell className="text-right">الوصف</TableHeaderCell>
+                  <TableHeaderCell className="text-right">المبلغ</TableHeaderCell>
+                  <TableHeaderCell className="text-right">التاريخ</TableHeaderCell>
+                  <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                  <TableHeaderCell className="text-center w-28">الإجراءات</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {expenses.length === 0 ? (
-                  <tr>
-                    <td
+                  <TableRow>
+                    <TableCell
                       colSpan={7}
-                      className="px-6 py-10 text-center text-sm text-gray-500"
+                      className="py-12 text-center text-muted-foreground"
                     >
-                      لا توجد مصروفات مطابقة للفلاتر الحالية.
-                    </td>
-                  </tr>
+                      <Wallet01 className="mx-auto mb-4 size-12 opacity-50" />
+                      <p className="text-lg font-medium">لا توجد مصروفات مطابقة للفلاتر الحالية</p>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   expenses.map((expense) => (
-                    <tr key={expense.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <TableRow key={expense.id}>
+                      <TableCell className="font-mono font-bold text-foreground">
                         {expense.expenseNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      </TableCell>
+                      <TableCell className="font-semibold text-foreground">
                         {expense.categoryName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 max-w-sm truncate">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground max-w-xs truncate font-medium">
                         {expense.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                      </TableCell>
+                      <TableCell className="font-mono font-black text-primary">
                         {formatCurrency(expense.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground font-medium">
                         {formatDateOnly(expense.expenseDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      </TableCell>
+                      <TableCell>
                         {getStatusBadge(expense.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-3">
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
                           <Link
                             to={`/expenses/${expense.id}`}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="عرض"
+                            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                            title="عرض التفاصيل"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="size-4" />
                           </Link>
                           {expense.status === "Draft" && (
                             <>
                               <Link
                                 to={`/expenses/${expense.id}/edit`}
-                                className="text-green-600 hover:text-green-900"
+                                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
                                 title="تعديل"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit01 className="size-4" />
                               </Link>
-                              <button
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => handleDelete(expense.id)}
                                 disabled={isDeleting}
-                                className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                                className="size-8 text-muted-foreground hover:bg-danger/10 hover:text-danger"
                                 title="حذف"
                               >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                                <Trash01 className="size-4" />
+                              </Button>
                             </>
                           )}
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {totalPages > 1 && (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-gray-200">
-              <div className="text-sm text-gray-700">
-                عرض {expenses.length} من {totalCount} مصروف
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-border bg-muted/10 px-6 py-4">
+              <div className="text-sm font-semibold text-muted-foreground">
+                عرض <span className="text-foreground">{expenses.length}</span> من{" "}
+                <span className="text-foreground">{totalCount}</span> مصروف
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   onClick={() =>
@@ -345,8 +350,8 @@ export function ExpensesPage() {
                 >
                   السابق
                 </Button>
-                <span className="px-4 py-2 text-sm text-gray-700">
-                  صفحة {filters.pageNumber} من {totalPages}
+                <span className="font-mono text-sm font-bold text-muted-foreground px-4">
+                  صفحة <span className="text-foreground">{filters.pageNumber}</span> من {totalPages}
                 </span>
                 <Button
                   variant="outline"
@@ -361,50 +366,6 @@ export function ExpensesPage() {
             </div>
           )}
         </Card>
-
-        {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">
-            💡 نصائح إدارة المصروفات
-          </h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>المصروف الجديد:</strong> أضف مصروف جديد وحدد الفئة
-                والمبلغ والوصف
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>الحالات:</strong> جميع المصروفات تبدأ كمسودة ثم تحتاج
-                موافقة قبل الدفع
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التصفية:</strong> استخدم الفلاتر للبحث حسب الفئة والحالة
-                والتاريخ
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التتبع:</strong> راقب إجمالي المصروفات والمبالغ المدفوعة
-                والمعلقة
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>
-                <strong>التدقيق:</strong> جميع المصروفات موثقة بالتاريخ
-                والمستخدم والتغييرات
-              </span>
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
   );

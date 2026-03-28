@@ -1,19 +1,36 @@
-import { useState, useMemo } from "react";
-import { Plus, Search, Edit2, Trash2, Package, ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
-  useGetProductsQuery,
+  ChevronDown,
+  Edit01,
+  Package,
+  Plus,
+  SearchLg,
+  Trash01,
+} from "@untitledui/icons";
+
+import {
   useDeleteProductMutation,
+  useGetProductsQuery,
 } from "@/api/productsApi";
-import { useCategories } from "@/hooks/useProducts";
-import { Button } from "@/components/common/Button";
-import { Input } from "@/components/common/Input";
-import { Card } from "@/components/common/Card";
+import { MetricCard } from "@/components/app/metric-card";
 import { Loading } from "@/components/common/Loading";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui/table";
+import { useCategories } from "@/hooks/useProducts";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/types/product.types";
 import { formatCurrency } from "@/utils/formatters";
-import { Product } from "@/types/product.types";
-import { toast } from "react-hot-toast";
-import clsx from "clsx";
 
 export const ProductsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,7 +119,13 @@ export const ProductsPage = () => {
     setEditingProduct(null);
   };
 
-  if (isLoading) return <Loading />;
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center bg-background">
+        <Loading />
+      </div>
+    );
+  }
 
   const totalProducts = filteredProducts.length;
   const activeProducts = filteredProducts.filter((p) => p.isActive).length;
@@ -112,231 +135,231 @@ export const ProductsPage = () => {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Package className="w-5 h-5 text-blue-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                إدارة المنتجات
-              </h1>
-            </div>
-            <p className="text-gray-600">إضافة وتعديل وحذف المنتجات</p>
+    <div className="page-shell">
+      <section className="page-hero">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-balance text-3xl font-black text-foreground">
+              إدارة المنتجات
+            </h1>
+            <p className="mt-4 max-w-2xl text-pretty text-base text-muted-foreground">
+              إضافة وتعديل وحذف المنتجات
+            </p>
           </div>
-          <Button
-            variant="primary"
-            onClick={() => setShowForm(true)}
-            rightIcon={<Plus className="w-5 h-5" />}
-          >
-            إضافة منتج
-          </Button>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-100">
-            <p className="text-sm text-gray-600">إجمالي المنتجات</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              {totalProducts}
-            </p>
-          </Card>
-          <Card className="border-green-100">
-            <p className="text-sm text-gray-600">المنتجات النشطة</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">
-              {activeProducts}
-            </p>
-          </Card>
-          <Card className="border-amber-100">
-            <p className="text-sm text-gray-600">مخزون منخفض</p>
-            <p className="text-2xl font-bold text-amber-700 mt-1">
-              {lowStockProducts}
-            </p>
-          </Card>
+          <div className="flex items-end gap-2">
+            <Button
+              size="lg"
+              onClick={() => setShowForm(true)}
+              leftIcon={<Plus className="size-5" />}
+            >
+              إضافة منتج
+            </Button>
+          </div>
         </div>
+      </section>
 
-        <Card className="shrink-0">
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard
+          title="إجمالي المنتجات"
+          value={totalProducts}
+          description="جميع المنتجات المسجلة"
+          icon={Package}
+        />
+        <MetricCard
+          title="المنتجات النشطة"
+          value={activeProducts}
+          description="متاحة للبيع حالياً"
+          icon={Package}
+          tone="success"
+        />
+        <MetricCard
+          title="مخزون منخفض"
+          value={lowStockProducts}
+          description="تحتاج لإعادة الطلب"
+          icon={Package}
+          tone="danger"
+        />
+      </div>
+
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex-1 space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-4 flex flex-col gap-4 md:flex-row">
+                <div className="flex-1 relative">
+                  <SearchLg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
                   <Input
                     placeholder="بحث عن منتج..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-background/50"
                   />
                 </div>
+                <div className="relative min-w-[200px]">
+                  <select
+                    value={selectedCategory || ""}
+                    onChange={(e) =>
+                      setSelectedCategory(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
+                    className="w-full appearance-none rounded-2xl border border-border bg-background/50 pl-10 pr-4 py-2.5 text-sm shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-muted-foreground/30"
+                  >
+                    <option value="">كل التصنيفات</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground pointer-events-none" />
+                </div>
               </div>
-              <div className="relative">
-                <select
-                  value={selectedCategory || ""}
-                  onChange={(e) =>
-                    setSelectedCategory(
-                      e.target.value ? Number(e.target.value) : null,
-                    )
-                  }
-                  className="appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-all duration-200 shadow-sm"
-                >
-                  <option value="">كل التصنيفات</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+
+              {/* Additional Filters */}
+              <div className="flex flex-wrap gap-6">
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={showActiveOnly}
+                    onChange={(e) => setShowActiveOnly(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-background"
+                  />
+                  <span className="text-sm font-semibold text-foreground">نشط فقط</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={showLowStockOnly}
+                    onChange={(e) => setShowLowStockOnly(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-background"
+                  />
+                  <span className="text-sm font-semibold text-foreground">مخزون منخفض فقط</span>
+                </label>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-x-auto">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell className="w-12 text-right">#</TableHeaderCell>
+                    <TableHeaderCell className="text-right">المنتج</TableHeaderCell>
+                    <TableHeaderCell className="text-right">التصنيف</TableHeaderCell>
+                    <TableHeaderCell className="text-right">السعر</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الكمية</TableHeaderCell>
+                    <TableHeaderCell className="text-right">نقطة إعادة الطلب</TableHeaderCell>
+                    <TableHeaderCell className="text-right">الحالة</TableHeaderCell>
+                    <TableHeaderCell className="text-center w-24">الإجراءات</TableHeaderCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredProducts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
+                        <Package className="mx-auto mb-4 size-12 opacity-50" />
+                        <p className="text-lg font-medium">لا توجد منتجات</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredProducts.map((product, index) => {
+                      const category = categories.find(
+                        (c) => c.id === product.categoryId,
+                      );
+                      return (
+                        <TableRow key={product.id}>
+                          <TableCell className="text-muted-foreground font-mono">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                <Package className="size-5" />
+                              </div>
+                              <span className="font-semibold text-foreground">
+                                {product.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground font-medium">
+                            {category?.name || "-"}
+                          </TableCell>
+                          <TableCell className="font-mono font-black text-primary">
+                            {formatCurrency(product.price)}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold font-mono",
+                                (product.stockQuantity ?? 0) <= 0
+                                  ? "bg-danger/10 text-danger"
+                                  : (product.stockQuantity ?? 0) <=
+                                      (product.lowStockThreshold ?? 5)
+                                    ? "bg-warning/10 text-warning"
+                                    : "bg-success/10 text-success"
+                              )}
+                            >
+                              {product.stockQuantity ?? 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground font-mono font-medium">
+                            {product.reorderPoint ?? "—"}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold",
+                                product.isActive
+                                  ? "bg-success/10 text-success"
+                                  : "bg-muted text-muted-foreground"
+                              )}
+                            >
+                              {product.isActive ? "نشط" : "غير نشط"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(product)}
+                                className="size-8 text-muted-foreground hover:text-primary"
+                                aria-label="تعديل المنتج"
+                              >
+                                <Edit01 className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(product.id)}
+                                disabled={isDeleting}
+                                className="size-8 text-muted-foreground hover:text-danger hover:bg-danger/10"
+                                aria-label="حذف المنتج"
+                              >
+                                <Trash01 className="size-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
             </div>
-
-            {/* Additional Filters */}
-            <div className="flex flex-wrap gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showActiveOnly}
-                  onChange={(e) => setShowActiveOnly(e.target.checked)}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-700">نشط فقط</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showLowStockOnly}
-                  onChange={(e) => setShowLowStockOnly(e.target.checked)}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-700">مخزون منخفض فقط</span>
-              </label>
-            </div>
-          </div>
-        </Card>
-
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    #
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    المنتج
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    التصنيف
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    السعر
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    الكمية
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    نقطة إعادة الطلب
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    الحالة
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600">
-                    الإجراءات
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((product, index) => {
-                  const category = categories.find(
-                    (c) => c.id === product.categoryId,
-                  );
-                  return (
-                    <tr key={product.id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-500">{index + 1}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <Package className="w-5 h-5 text-gray-400" />
-                          </div>
-                          <span className="font-medium">{product.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {category?.name || "-"}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-primary-600">
-                        {formatCurrency(product.price)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={clsx(
-                            "px-2.5 py-1 rounded-full text-xs font-medium",
-                            (product.stockQuantity ?? 0) <= 0
-                              ? "bg-danger-50 text-danger-600"
-                              : (product.stockQuantity ?? 0) <=
-                                  (product.lowStockThreshold ?? 5)
-                                ? "bg-warning-50 text-warning-600"
-                                : "bg-gray-100 text-gray-700",
-                          )}
-                        >
-                          {product.stockQuantity ?? 0}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">
-                        {product.reorderPoint ?? "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={clsx(
-                            "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            product.isActive
-                              ? "bg-success-50 text-success-500"
-                              : "bg-gray-100 text-gray-500",
-                          )}
-                        >
-                          {product.isActive ? "نشط" : "غير نشط"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleEdit(product)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4 text-gray-500" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.id)}
-                            disabled={isDeleting}
-                            className="p-2 hover:bg-danger-50 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-danger-500" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12 text-gray-400">
-                <Package className="w-12 h-12 mx-auto mb-3" />
-                <p>لا توجد منتجات</p>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {showForm && (
-          <ProductFormModal
-            product={editingProduct}
-            onClose={handleCloseForm}
-          />
-        )}
+          </Card>
+        </div>
       </div>
+
+      {showForm && (
+        <ProductFormModal
+          product={editingProduct}
+          onClose={handleCloseForm}
+        />
+      )}
     </div>
   );
 };

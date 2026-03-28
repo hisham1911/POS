@@ -1,4 +1,4 @@
-import { ShoppingCart, Trash2, Tag } from "lucide-react";
+import { ShoppingCart01 as ShoppingCart, Trash01 as Trash2, Tag01 as Tag } from "@untitledui/icons";
 import { useCart } from "@/hooks/useCart";
 import { CartItemComponent } from "./CartItem";
 import { OrderSummary } from "./OrderSummary";
@@ -32,12 +32,12 @@ export const Cart = ({
           onCustomerSelect={onCustomerSelect}
         />
 
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-            <ShoppingCart className="w-10 h-10" />
+        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+          <div className="size-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <ShoppingCart className="size-10 opacity-30" />
           </div>
-          <p className="text-lg font-medium">السلة فارغة</p>
-          <p className="text-sm">اضغط على المنتجات لإضافتها</p>
+          <p className="text-lg font-bold text-foreground">السلة فارغة</p>
+          <p className="text-sm font-medium">اضغط على المنتجات لإضافتها</p>
         </div>
       </div>
     );
@@ -52,18 +52,18 @@ export const Cart = ({
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b">
+      <div className="flex items-center justify-between pb-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold text-gray-800">الطلب الحالي</h2>
-          <span className="bg-primary-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+          <h2 className="text-lg font-bold text-foreground">الطلب الحالي</h2>
+          <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
             {itemsCount}
           </span>
         </div>
         <button
           onClick={clearCart}
-          className="flex items-center gap-1 text-danger-500 text-sm hover:underline"
+          className="flex items-center gap-1 text-danger font-bold text-sm hover:underline"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="size-4" />
           إفراغ
         </button>
       </div>

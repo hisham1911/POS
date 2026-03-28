@@ -1,15 +1,15 @@
 import { useState } from "react";
 import {
-  X,
+  XClose as X,
   Check,
-  Banknote,
-  CreditCard,
-  Building2,
-  User,
+  BankNote01 as Banknote,
+  CreditCard01 as CreditCard,
+  Building02 as Building2,
+  User01 as User,
   Phone,
-  Star,
+  Star01 as Star,
   AlertCircle,
-} from "lucide-react";
+} from "@untitledui/icons";
 import { useCart } from "@/hooks/useCart";
 import { useOrders } from "@/hooks/useOrders";
 import { formatCurrency } from "@/utils/formatters";
@@ -31,9 +31,9 @@ const paymentMethods: {
   label: string;
   icon: React.ReactNode;
 }[] = [
-  { id: "Cash", label: "نقدي", icon: <Banknote className="w-8 h-8" /> },
-  { id: "Card", label: "بطاقة", icon: <CreditCard className="w-8 h-8" /> },
-  { id: "Fawry", label: "فوري", icon: <Building2 className="w-8 h-8" /> },
+  { id: "Cash", label: "نقدي", icon: <Banknote className="size-8" /> },
+  { id: "Card", label: "بطاقة", icon: <CreditCard className="size-8" /> },
+  { id: "Fawry", label: "فوري", icon: <Building2 className="size-8" /> },
 ];
 
 export const PaymentModal = ({
@@ -163,36 +163,36 @@ export const PaymentModal = ({
 
   return (
     <Portal>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-scale-in flex flex-col">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div className="bg-card text-foreground rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-scale-in flex flex-col border border-border">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b shrink-0">
-            <h2 className="text-xl font-bold">الدفع</h2>
+          <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
+            <h2 className="text-xl font-black">الدفع</h2>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-danger-50 hover:text-danger-500 transition-colors"
+              className="size-10 rounded-xl bg-muted/50 flex items-center justify-center hover:bg-danger/10 hover:text-danger flex-shrink-0 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="size-5" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Customer Info */}
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <p className="text-sm font-medium text-gray-500 mb-2">
+            <div className="p-4 bg-muted/30 rounded-xl border border-border">
+              <p className="text-sm font-bold text-muted-foreground mb-2">
                 معلومات العميل
               </p>
               {selectedCustomer ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-primary-500" />
-                    <span className="font-medium text-gray-800">
+                    <User className="size-4 text-primary" />
+                    <span className="font-bold text-foreground">
                       {selectedCustomer.name || selectedCustomer.phone}
                     </span>
                   </div>
                   {selectedCustomer.phone && selectedCustomer.name && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="w-4 h-4 text-gray-400" />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                      <Phone className="size-4" />
                       <span dir="ltr">{selectedCustomer.phone}</span>
                     </div>
                   )}
@@ -272,16 +272,16 @@ export const PaymentModal = ({
             </div>
 
             {/* Total Amount */}
-            <div className="text-center p-6 bg-gray-50 rounded-xl">
-              <p className="text-gray-500 mb-1">الإجمالي المطلوب</p>
-              <p className="text-4xl font-bold text-primary-600">
+            <div className="text-center p-6 bg-primary/5 rounded-xl border border-primary/20">
+              <p className="text-primary font-bold mb-1">الإجمالي المطلوب</p>
+              <p className="text-4xl font-black text-foreground">
                 {formatCurrency(total)}
               </p>
             </div>
 
             {/* Payment Methods */}
             <div>
-              <p className="text-sm font-medium text-gray-500 mb-3">
+              <p className="text-sm font-bold text-muted-foreground mb-3">
                 طريقة الدفع
               </p>
               <div className="grid grid-cols-3 gap-3">
@@ -290,14 +290,14 @@ export const PaymentModal = ({
                     key={method.id}
                     onClick={() => setSelectedMethod(method.id)}
                     className={clsx(
-                      "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                      "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all outline-none",
                       selectedMethod === method.id
-                        ? "border-primary-600 bg-primary-50 text-primary-600"
-                        : "border-gray-200 hover:border-gray-300",
+                        ? "border-primary bg-primary/10 text-primary shadow-sm"
+                        : "border-border bg-card text-foreground hover:border-primary/50",
                     )}
                   >
                     {method.icon}
-                    <span className="mt-2 font-medium">{method.label}</span>
+                    <span className="mt-2 font-bold">{method.label}</span>
                   </button>
                 ))}
               </div>
@@ -307,18 +307,18 @@ export const PaymentModal = ({
             {selectedMethod === "Cash" && (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-3">
+                  <p className="text-sm font-bold text-muted-foreground mb-3">
                     المبلغ المدفوع
                   </p>
                   <div
                     className={clsx(
-                      "text-center p-4 bg-gray-50 rounded-xl transition-all",
-                      showError && "animate-shake border-2 border-danger-500",
+                      "text-center p-4 bg-muted/30 rounded-xl transition-all border border-border",
+                      showError && "animate-shake border-2 border-danger",
                     )}
                   >
-                    <p className="text-3xl font-bold">
+                    <p className="text-3xl font-black text-foreground">
                       {amountPaid || "0"}{" "}
-                      <span className="text-lg text-gray-400">ج.م</span>
+                      <span className="text-lg text-muted-foreground font-semibold">ج.م</span>
                     </p>
                   </div>
                 </div>

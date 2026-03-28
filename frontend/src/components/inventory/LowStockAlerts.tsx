@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGetLowStockItemsQuery } from "../../api/inventoryApi";
 import { useAppSelector } from "../../store/hooks";
 import { selectCurrentBranch, selectBranches } from "../../store/slices/branchSlice";
-import { AlertTriangle, Package, Filter, ChevronDown } from "lucide-react";
+import { AlertTriangle, Package, Filter, ChevronDown } from "@untitledui/icons";
 
 export default function LowStockAlerts() {
   const currentBranch = useAppSelector(selectCurrentBranch);
@@ -53,15 +53,15 @@ export default function LowStockAlerts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">تنبيهات المخزون المنخفض</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">تنبيهات المخزون المنخفض</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             المنتجات التي وصلت إلى حد إعادة الطلب
           </p>
         </div>
 
         {/* Branch Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-gray-400" />
+          <Filter className="w-5 h-5 text-muted-foreground/70" />
           <div className="relative">
             <select
               value={selectedBranchId || "all"}
@@ -70,7 +70,7 @@ export default function LowStockAlerts() {
                   e.target.value === "all" ? undefined : Number(e.target.value)
                 )
               }
-              className="appearance-none pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer hover:border-gray-400 transition-all duration-200 text-gray-700 font-medium shadow-sm min-w-[180px]"
+              className="appearance-none pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card cursor-pointer hover:border-gray-400 transition-all duration-200 text-muted-foreground font-medium shadow-sm min-w-[180px]"
             >
               <option value="all">جميع الفروع</option>
               {branches.map((branch) => (
@@ -79,7 +79,7 @@ export default function LowStockAlerts() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -106,34 +106,34 @@ export default function LowStockAlerts() {
         <div className="space-y-4">
           {selectedBranchId ? (
             // Single branch view
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-muted/30 border-b border-border">
                     <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                         المنتج
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                         الكمية المتاحة
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                         حد إعادة الطلب
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                         النقص
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {lowStockItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
+                      <tr key={item.id} className="hover:bg-muted/30">
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-foreground">
                             {item.productName}
                           </div>
                           {item.productSku && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground">
                               كود: {item.productSku}
                             </div>
                           )}
@@ -144,7 +144,7 @@ export default function LowStockAlerts() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-sm text-gray-900">
+                          <span className="text-sm text-foreground">
                             {item.reorderLevel}
                           </span>
                         </td>
@@ -165,43 +165,43 @@ export default function LowStockAlerts() {
               {Object.entries(groupedByBranch || {}).map(([branchId, data]) => (
                 <div
                   key={branchId}
-                  className="bg-white rounded-lg border border-gray-200 overflow-hidden"
+                  className="bg-card rounded-lg border border-border overflow-hidden"
                 >
-                  <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="bg-muted/30 px-6 py-3 border-b border-border">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {data.branchName}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       {data.items.length} منتج منخفض
                     </p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-muted/30 border-b border-border">
                         <tr>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                             المنتج
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                             الكمية المتاحة
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                             حد إعادة الطلب
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                          <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                             النقص
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-gray-200">
                         {data.items.map((item) => (
-                          <tr key={item.id} className="hover:bg-gray-50">
+                          <tr key={item.id} className="hover:bg-muted/30">
                             <td className="px-6 py-4">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-foreground">
                                 {item.productName}
                               </div>
                               {item.productSku && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted-foreground">
                                   كود: {item.productSku}
                                 </div>
                               )}
@@ -212,7 +212,7 @@ export default function LowStockAlerts() {
                               </span>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="text-sm text-gray-900">
+                              <span className="text-sm text-foreground">
                                 {item.reorderLevel}
                               </span>
                             </td>
@@ -232,13 +232,13 @@ export default function LowStockAlerts() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-12">
+        <div className="bg-card rounded-lg border border-border p-12">
           <div className="text-center">
             <Package className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               لا توجد تنبيهات
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               جميع المنتجات فوق حد إعادة الطلب
             </p>
           </div>

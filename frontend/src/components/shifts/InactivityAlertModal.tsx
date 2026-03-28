@@ -28,59 +28,59 @@ export default function InactivityAlertModal({
         onClick={onClose}
       >
         <div 
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+          className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
                 <span className="text-2xl">⏰</span>
               </div>
-              <h2 className="text-xl font-bold text-gray-800">تنبيه: عدم نشاط طويل</h2>
+              <h2 className="text-xl font-bold text-foreground">تنبيه: عدم نشاط طويل</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted/50 rounded-lg transition-colors"
             >
-              <span className="text-gray-500 text-xl">×</span>
+              <span className="text-muted-foreground text-xl">×</span>
             </button>
           </div>
 
           <div className="p-6 space-y-4 overflow-y-auto flex-1">
             <div>
-              <p className="text-gray-700 mb-2">
+              <p className="text-muted-foreground mb-2">
                 لم يتم تسجيل أي نشاط على هذه الوردية منذ{" "}
                 <strong>{shift.inactiveHours} ساعة</strong>.
               </p>
-              <p className="text-gray-600 text-sm">
+              <p className="text-muted-foreground text-sm">
                 آخر نشاط: {formatDateTimeFull(shift.lastActivityAt)}
               </p>
             </div>
 
             {/* Shift Info */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 space-y-2">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-border space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">وقت الفتح:</span>
-                <span className="font-medium text-gray-800">
+                <span className="text-sm text-muted-foreground">وقت الفتح:</span>
+                <span className="font-medium text-foreground">
                   {formatDateTimeFull(shift.openedAt)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">المدة الإجمالية:</span>
-                <span className="font-medium text-gray-800">
+                <span className="text-sm text-muted-foreground">المدة الإجمالية:</span>
+                <span className="font-medium text-foreground">
                   {shift.durationHours} ساعة و {shift.durationMinutes} دقيقة
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">الرصيد المتوقع:</span>
-                <span className="font-medium text-gray-800">
+                <span className="text-sm text-muted-foreground">الرصيد المتوقع:</span>
+                <span className="font-medium text-foreground">
                   {shift.expectedBalance.toFixed(2)} ج.م
                 </span>
               </div>
             </div>
 
-            <p className="text-sm text-gray-600">ماذا تريد أن تفعل؟</p>
+            <p className="text-sm text-muted-foreground">ماذا تريد أن تفعل؟</p>
 
             {/* Action Buttons */}
             <div className="space-y-2">
@@ -107,7 +107,7 @@ export default function InactivityAlertModal({
 
               <button
                 onClick={onClose}
-                className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                className="w-full px-4 py-2.5 border border-border text-muted-foreground rounded-xl hover:bg-muted/30 transition-colors"
               >
                 إلغاء
               </button>
